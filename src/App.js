@@ -7,9 +7,12 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>Hello from V2</h1>
+        <h1>Things are coming</h1>
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          They may or may not be big. Check back soon.
+        </p>
+        <p>
+          -Robert Noneman
         </p>
         <a
           className="App-link"
