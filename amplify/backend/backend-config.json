@@ -1,6 +1,6 @@
 {
   "api": {
-    "amplifyapp": {
+    "notesapp": {
       "service": "AppSync",
       "providerPlugin": "awscloudformation",
       "output": {
