@@ -53,38 +53,38 @@ function App() {
         <p>
           -Robert Noneman
         </p>
-        <input
-          onChange={e => setFormData({...formData, 'name': e.target.value})}
-          placeholder="Note name"
-          value={formData.name}
-        />
-        <input
-          onChange={e => setFormData({...formData, 'description': e.target.value})}
-          placeholder="Note description"
-          value={formData.description}
-        />
-        <button onClick={createNote}>Create Note</button>
-        <div style={{marginBottom: 30}}>
-          {
-            notes.map(note => (
-              <div key={note.id || note.name}>
-                <h2>{note.name}</h2>
-                <p>{note.description}</p>
-                <button onClick={() => deleteNote(note)}>Delete note</button>
-              </div>
-            ))
-          }
-        </div>
-        <AmplifySignOut />
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
       </header>
+      <input
+        onChange={e => setFormData({...formData, 'name': e.target.value})}
+        placeholder="Note name"
+        value={formData.name}
+      />
+      <input
+        onChange={e => setFormData({...formData, 'description': e.target.value})}
+        placeholder="Note description"
+        value={formData.description}
+      />
+      <button onClick={createNote}>Create Note</button>
+      <div style={{marginBottom: 30}}>
+        {
+          notes.map(note => (
+            <div key={note.id || note.name}>
+              <h2>{note.name}</h2>
+              <p>{note.description}</p>
+              <button onClick={() => deleteNote(note)}>Delete note</button>
+            </div>
+          ))
+        }
+      </div>
+      <AmplifySignOut />
+      <a
+        className="App-link"
+        href="https://reactjs.org"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Learn React
+      </a>
       <ProSidebar>
         <Menu iconShape="square">
           <MenuItem icon={<faGem />}>Dashboard</MenuItem>
