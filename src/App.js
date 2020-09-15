@@ -9,10 +9,10 @@ import awsconfig from './aws-exports';
 import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import 'react-pro-sidebar/dist/css/styles.css';
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { FaGem, FaHeart } from '@fortawesome/free-solid-svg-icons';
+import { faGem, faHeart } from '@fortawesome/free-solid-svg-icons';
 
 Amplify.configure(awsconfig);
-library.add(FaGem, FaHeart);
+library.add(faGem, faHeart);
 
 const initialFormState = { name: '', description: ''}
 
@@ -87,8 +87,8 @@ function App() {
       </header>
       <ProSidebar>
         <Menu iconShape="square">
-          <MenuItem icon={<FaGem />}>Dashboard</MenuItem>
-            <SubMenu title="Components" icon={<FaHeart />}>
+          <MenuItem icon={<faGem />}>Dashboard</MenuItem>
+            <SubMenu title="Components" icon={<faHeart />}>
               <MenuItem>Component 1</MenuItem>
               <MenuItem>Component 2</MenuItem>
             </SubMenu>
