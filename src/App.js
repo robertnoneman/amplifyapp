@@ -44,6 +44,15 @@ function App() {
 
   return (
     <div className="App">
+      <ProSidebar>
+        <Menu iconShape="square">
+          <MenuItem icon={<faGem />}>Dashboard</MenuItem>
+            <SubMenu title="Components" icon={<faHeart />}>
+              <MenuItem>Component 1</MenuItem>
+              <MenuItem>Component 2</MenuItem>
+            </SubMenu>
+        </Menu>
+      </ProSidebar>;
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <h1>Things are coming.</h1>
@@ -85,15 +94,7 @@ function App() {
       >
         Learn React
       </a>
-      <ProSidebar>
-        <Menu iconShape="square">
-          <MenuItem icon={<faGem />}>Dashboard</MenuItem>
-            <SubMenu title="Components" icon={<faHeart />}>
-              <MenuItem>Component 1</MenuItem>
-              <MenuItem>Component 2</MenuItem>
-            </SubMenu>
-        </Menu>
-      </ProSidebar>;
+      
     </div>
   );
 }
