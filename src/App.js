@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Amplify, { API } from 'aws-amplify';
-import { withAuthenticator, AmplifySignOut} from '@aws-amplify/ui-react';
+// import { withAuthenticator, AmplifySignOut} from '@aws-amplify/ui-react';
 import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
 import awsconfig from './aws-exports';
-import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
+// import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import 'react-pro-sidebar/dist/css/styles.css';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faGem, faHeart } from '@fortawesome/free-solid-svg-icons';
@@ -44,15 +44,7 @@ function App() {
 
   return (
     <div className="App">
-      <ProSidebar>
-        <Menu iconShape="square">
-          <MenuItem icon={<faGem />}>Dashboard</MenuItem>
-            <SubMenu title="Components" icon={<faHeart />}>
-              <MenuItem>Component 1</MenuItem>
-              <MenuItem>Component 2</MenuItem>
-            </SubMenu>
-        </Menu>
-      </ProSidebar>;
+      
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <h1>Things are coming.</h1>
@@ -85,7 +77,6 @@ function App() {
           ))
         }
       </div>
-      <AmplifySignOut />
       <a
         className="App-link"
         href="https://reactjs.org"
@@ -98,5 +89,6 @@ function App() {
     </div>
   );
 }
-
-export default withAuthenticator(App);
+// AmplifySignOut /> <--- that goes last before the last </div>
+//export default withAuthenticator(App);
+export default App;
