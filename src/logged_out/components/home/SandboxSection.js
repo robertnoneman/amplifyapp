@@ -321,7 +321,7 @@ function SandboxSection(props) {
   }, [setAppState]);
 
   return (
-    <section id='sandbox-top'>
+    <div id='sandbox-top'>
     <div className={classNames(classes.wrapper)}>
       <div className={classNames("container-fluid lg-mg-top")}>
         <section id='sandbox'>
@@ -333,7 +333,54 @@ function SandboxSection(props) {
         <Weather>
 
         </Weather>
-        <div>
+        <Grid 
+          item
+          className={classNames(classes.card, classes.containerFluid)}
+        >
+          <Box mb={4} justifyContent="center">
+            <Sandbox
+              title={appState.synopsisT}
+              content={appState.synopsisB}
+              highlighted={appState.loading}
+            />
+            <Sandbox
+              title={appState.nearTermT}
+              content={appState.nearTermB}
+              highlighted={appState.loading}
+           />
+          </Box>
+          <Box className={classes.containerFix}>
+            <Sandbox
+              highlighted
+              title={appState.station}
+              content={appState.date}
+            />
+          </Box>
+          <Box className={classes.containerFix}>
+            <DataLoading>
+
+            </DataLoading>
+          </Box>
+        </Grid>
+      </div>
+    </div>
+    </div>
+  );
+}
+
+SandboxSection.propTypes = {
+  width: PropTypes.string.isRequired,
+  classes: PropTypes.object,
+  theme: PropTypes.object,
+  // pushMessageToSnackbar: PropTypes.func,
+};
+
+export default withStyles(styles, { withTheme: true })(
+  withWidth()(SandboxSection)
+);
+
+/*
+ <div>
           <Box align="center">
             <IconButton
               color="secondary"
@@ -447,48 +494,4 @@ function SandboxSection(props) {
             </Box>
           </AccordionDetails>
         </Accordion>
-        <Grid 
-          item
-          className={classNames(classes.card, classes.containerFluid)}
-        >
-          <Box mb={4} justifyContent="center">
-            <Sandbox
-              title={appState.synopsisT}
-              content={appState.synopsisB}
-              highlighted={appState.loading}
-            />
-            <Sandbox
-              title={appState.nearTermT}
-              content={appState.nearTermB}
-              highlighted={appState.loading}
-           />
-          </Box>
-          <Box className={classes.containerFix}>
-            <Sandbox
-              highlighted
-              title={appState.station}
-              content={appState.date}
-            />
-          </Box>
-          <Box className={classes.containerFix}>
-            <DataLoading>
-
-            </DataLoading>
-          </Box>
-        </Grid>
-      </div>
-    </div>
-    </section>
-  );
-}
-
-SandboxSection.propTypes = {
-  width: PropTypes.string.isRequired,
-  classes: PropTypes.object,
-  theme: PropTypes.object,
-  // pushMessageToSnackbar: PropTypes.func,
-};
-
-export default withStyles(styles, { withTheme: true })(
-  withWidth()(SandboxSection)
-);
+*/

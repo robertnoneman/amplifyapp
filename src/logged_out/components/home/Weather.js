@@ -46,7 +46,7 @@ const styles = theme => ({
       },
       AccordionDetails: {
         paddintTop: theme.spacing(0),
-        justifyContent: "flex-start",
+        justifyContent: "center",
         backgroundColor: theme.palette.primary.dark
       },
 });
@@ -187,7 +187,8 @@ function Weather(props) {
             var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
             var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
 
-            var locationResult = regexTests[3].test.exec(afdText);
+            var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm'); //regexTests[3].test.exec(afdText);
+            var locationResult = locationTest.exec(afdText);
             console.log(locationResult);
             
             var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
@@ -284,7 +285,7 @@ function Weather(props) {
       ];
 
     return (
-        <div>
+        <section id="Weather">
             {sections.map((element, index) => (
                 <Accordion className={classes.accordion} key={index}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon color="primary"/>}>
@@ -311,7 +312,22 @@ function Weather(props) {
                     {accordionState}
                 </Button>
             </Box>
-        </div>
+            <AccordionDetails className={classes.AccordionDetails}>
+              <Box display="flex" align="center">
+                <IconButton
+                  color="secondary"
+                  align="center"
+                  className={classes.IconButton}
+                  onClick={() => {
+                    fetchWeather();
+                  }}
+                  aria-label="Refresh"
+                >
+                  <RefreshOutlined />
+                </IconButton>
+              </Box>
+          </AccordionDetails>
+        </section>
     );
 }
 

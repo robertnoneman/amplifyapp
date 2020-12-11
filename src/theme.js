@@ -103,6 +103,11 @@ const theme = createMuiTheme({
         borderBottom: `${borderWidth}px solid ${borderColor}`
       }
     },
+    MuiListItemIcon: {
+      root: {
+        display: "contents"
+      }
+    },
     MuiDialog: {
       paper: {
         width: "100%",

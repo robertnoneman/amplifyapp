@@ -8,6 +8,7 @@ import {
   Button,
   Hidden,
   IconButton,
+  ListItemIcon,
   withStyles
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
@@ -16,7 +17,8 @@ import HowToRegIcon from "@material-ui/icons/HowToReg";
 import LockOpenIcon from "@material-ui/icons/LockOpen";
 import BookIcon from "@material-ui/icons/Book";
 import NavigationDrawer from "../../../shared/components/NavigationDrawer";
-import AnchorLink from 'react-anchor-link-smooth-scroll'
+import AnchorLink from "react-anchor-link-smooth-scroll"
+import { Toys } from "@material-ui/icons";
 
 const styles = theme => ({
   appBar: {
@@ -36,7 +38,8 @@ const styles = theme => ({
     fontWeight: 900
   },
   noDecoration: {
-    textDecoration: "none !important"
+    textDecoration: "none !important",
+    display: "contents"
   }
 });
 
@@ -55,6 +58,11 @@ function NavBar(props) {
       link: "/",
       name: "Home",
       icon: <HomeIcon className="text-white" />
+    },
+    {
+      link: "/sandbox",
+      name: "Sandbox",
+      icon: <Toys className="text-white" />
     },
     {
       link: "/blog",
@@ -100,7 +108,7 @@ function NavBar(props) {
             classes={{ text: classes.menuButtonText }}
             textDecoration="none !important" 
           >
-            <AnchorLink offset='100' href='#sandbox-top'>
+            <AnchorLink offset='100' href='#sandbox-top' className={classes.noDecoration}>
             <Typography
                 variant="h4"
                 className={classes.menuButtonText}
@@ -132,11 +140,13 @@ function NavBar(props) {
                       className={classes.noDecoration}
                       onClick={handleMobileDrawerClose}
                     >
+                      
                       <Button
                         color="secondary"
                         size="large"
                         classes={{ text: classes.menuButtonText }}
                       >
+                        <ListItemIcon display="contents" color="secondary">{element.icon}</ListItemIcon>
                         {element.name}
                       </Button>
                     </Link>
@@ -150,6 +160,7 @@ function NavBar(props) {
                     classes={{ text: classes.menuButtonText }}
                     key={element.name}
                   >
+                    <ListItemIcon>{element.icon}</ListItemIcon>
                     {element.name}
                   </Button>
                 );
