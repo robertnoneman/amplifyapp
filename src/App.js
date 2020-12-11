@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment, Suspense, lazy } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Amplify, { API } from 'aws-amplify';
@@ -10,11 +10,21 @@ import awsconfig from './aws-exports';
 import 'react-pro-sidebar/dist/css/styles.css';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faGem, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { MuiThemeProvider, CssBaseline } from "@material-ui/core";
+import theme from "./theme";
+import GlobalStyles from "./GlobalStyles";
+import * as serviceWorker from "./serviceWorker";
+import Pace from "./shared/components/Pace";
 
 Amplify.configure(awsconfig);
 library.add(faGem, faHeart);
 
 const initialFormState = { name: '', description: ''}
+
+const LoggedInComponent = lazy(() => import("./logged_in/components/Main"));
+
+const LoggedOutComponent = lazy(() => import("./logged_out/components/Main"));
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -85,7 +95,23 @@ function App() {
       >
         Learn React
       </a>
-      
+      <BrowserRouter>
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        <GlobalStyles />
+        <Pace color={theme.palette.primary.light} />
+        <Suspense fallback={<Fragment />}>
+          <Switch>
+            <Route path="/c">
+              <LoggedInComponent />
+            </Route>
+            <Route>
+              <LoggedOutComponent />
+            </Route>
+          </Switch>
+        </Suspense>
+      </MuiThemeProvider>
+      </BrowserRouter>
     </div>
   );
 }
