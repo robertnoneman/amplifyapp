@@ -54,7 +54,24 @@ function App() {
 
   return (
     <div className="App">
-      
+      <BrowserRouter>
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        <GlobalStyles />
+        <Pace color={theme.palette.primary.light} />
+        <Suspense fallback={<Fragment />}>
+          <Switch>
+            <Route path="/c">
+              <LoggedInComponent />
+            </Route>
+            <Route>
+              <LoggedOutComponent />
+            </Route>
+          </Switch>
+        </Suspense>
+      </MuiThemeProvider>
+      </BrowserRouter>
+
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <h1>Things are coming.</h1>
@@ -95,26 +112,10 @@ function App() {
       >
         Learn React
       </a>
-      <BrowserRouter>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        <GlobalStyles />
-        <Pace color={theme.palette.primary.light} />
-        <Suspense fallback={<Fragment />}>
-          <Switch>
-            <Route path="/c">
-              <LoggedInComponent />
-            </Route>
-            <Route>
-              <LoggedOutComponent />
-            </Route>
-          </Switch>
-        </Suspense>
-      </MuiThemeProvider>
-      </BrowserRouter>
     </div>
   );
 }
 // AmplifySignOut /> <--- that goes last before the last </div>
 //export default withAuthenticator(App);
+serviceWorker.register();
 export default App;

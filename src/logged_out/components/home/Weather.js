@@ -72,8 +72,8 @@ const regexTests = [
 
 function Weather(props) {
     const { classes } = props;
-    const [accordionState, setAccordionState] = useState("Area Forecast Discussion");
-    const [accordionBody, setAccordionBody] = useState("Body goes here");
+    const [accordionState, setAccordionState] = useState("Area Forecast Discussion - ");
+    const [accordionBody, setAccordionBody] = useState("- Click to view");
     const [appState, setAppState] = useState({
         loading: false,
         data: "",
@@ -171,9 +171,10 @@ function Weather(props) {
         const titleResult = regexTests[0].test.exec(appState.data);
         if(titleResult)
         {
-            setAccordionState(titleResult[0]);
+            setAccordionState(titleResult[2]);
+            setAccordionBody([titleResult[3]])
         }
-    }, [appState.data, setAccordionState]);
+    }, [appState.data, setAccordionState, setAccordionBody]);
 
     useEffect(() => {
         setAppState({loading: true});
@@ -241,21 +242,6 @@ function Weather(props) {
           });
       }, [setAppState]);
 
-    // useEffect(() => {
-    //     setAppState({loading: true});
-    //     const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
-    //     Axios.get(afdUrl)
-    //       .then((data) => {
-    //         const allData = cheerio.load(data.data);
-    //         const afd = allData('pre.glossaryProduct')
-    //         const afdText = afd.text();
-    //         setAppState({
-    //           loading: false, 
-    //           data: afdText, 
-    //         });
-    //       });
-    //   }, [setAppState]);
-
     const sections = [
         {
           title: appState.date,
@@ -302,14 +288,18 @@ function Weather(props) {
                     </Bordered>
                 </Accordion>
             ))}
-            <Box display="flex" justifyContent="flex-end">
+            <Box display="flex" justifyContent="center" align="center">
                 <Button
                 variant="contained"
                 color="secondary"
                 size="large"
+                align="center"
                 onClick={parseWeather}
                 >
                     {accordionState}
+                    <Box>
+                      {accordionBody}
+                    </Box>
                 </Button>
             </Box>
             <AccordionDetails className={classes.AccordionDetails}>

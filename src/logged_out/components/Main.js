@@ -42,6 +42,12 @@ function Main(props) {
     setSelectedTab("Blog");
   }, [setSelectedTab]);
 
+  const selectSandbox = useCallback(() => {
+    smoothScrollTop();
+    document.title = "Rob Noneman - Sandbox";
+    setSelectedTab("SandboxPage");
+  }, [setSelectedTab]);
+
   const openLoginDialog = useCallback(() => {
     setDialogOpen("login");
     setIsMobileDrawerOpen(false);
@@ -130,7 +136,9 @@ function Main(props) {
       <Routing
         blogPosts={blogPosts}
         selectHome={selectHome}
+        selectSandbox={selectSandbox}
         selectBlog={selectBlog}
+
       />
       <Footer />
     </div>

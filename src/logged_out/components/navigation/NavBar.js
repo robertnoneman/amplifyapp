@@ -9,7 +9,7 @@ import {
   Hidden,
   IconButton,
   ListItemIcon,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import HomeIcon from "@material-ui/icons/Home";
@@ -18,7 +18,7 @@ import LockOpenIcon from "@material-ui/icons/LockOpen";
 import BookIcon from "@material-ui/icons/Book";
 import NavigationDrawer from "../../../shared/components/NavigationDrawer";
 import AnchorLink from "react-anchor-link-smooth-scroll"
-import { Toys } from "@material-ui/icons";
+import { BeachAccess, Toys } from "@material-ui/icons";
 
 const styles = theme => ({
   appBar: {
@@ -30,8 +30,14 @@ const styles = theme => ({
     justifyContent: "space-between"
   },
   menuButtonText: {
-    fontSize: theme.typography.body1.fontSize,
-    fontWeight: theme.typography.h6.fontWeight
+    //fontSize: theme.typography.body2.fontSize,
+    fontSize: 12,
+    fontWeight: theme.typography.h6.fontWeight,
+    "&:hover": {
+      fontSize: theme.typography.body1.fontSize,
+      fontWeight: theme.typography.h6.fontWeight
+    }
+
   },
   brandText: {
     fontFamily: "'Heebo', cursive",
@@ -60,9 +66,9 @@ function NavBar(props) {
       icon: <HomeIcon className="text-white" />
     },
     {
-      link: "/sandbox",
-      name: "Sandbox",
-      icon: <Toys className="text-white" />
+      link: "/sandboxpage",
+      name: "SandboxPage",
+      icon: <BeachAccess className="text-white" />
     },
     {
       link: "/blog",

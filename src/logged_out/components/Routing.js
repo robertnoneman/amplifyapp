@@ -5,9 +5,10 @@ import PropsRoute from "../../shared/components/PropsRoute";
 import Home from "./home/Home";
 import Blog from "./blog/Blog";
 import BlogPost from "./blog/BlogPost";
+import SandboxPage from "./sandboxpage/SandboxPage"
 
 function Routing(props) {
-  const { blogPosts, selectBlog, selectHome } = props;
+  const { blogPosts, selectBlog, selectHome, selectSandbox } = props;
   return (
     <Switch>
       {blogPosts.map((post) => (
@@ -32,7 +33,12 @@ function Routing(props) {
         blogPosts={blogPosts}
       />
       )
-      <PropsRoute path="/" component={Home} selectHome={selectHome} />)
+      <PropsRoute path="/SandboxPage" component={SandboxPage} selectSandbox={selectSandbox} />
+      <PropsRoute path="/" component={Home} selectHome={selectHome} />
+      
+      )
+      
+      
     </Switch>
   );
 }
@@ -41,6 +47,7 @@ Routing.propTypes = {
   blogposts: PropTypes.arrayOf(PropTypes.object),
   selectHome: PropTypes.func.isRequired,
   selectBlog: PropTypes.func.isRequired,
+  selectSandbox: PropTypes.func.isRequired
 };
 
 export default memo(Routing);
