@@ -18,7 +18,7 @@ import LockOpenIcon from "@material-ui/icons/LockOpen";
 import BookIcon from "@material-ui/icons/Book";
 import NavigationDrawer from "../../../shared/components/NavigationDrawer";
 import AnchorLink from "react-anchor-link-smooth-scroll"
-import { BeachAccess, Toys } from "@material-ui/icons";
+import { BeachAccess, } from "@material-ui/icons";
 
 const styles = theme => ({
   appBar: {

@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useState, useEffect, } from "react";
 import PropTypes from "prop-types";
 import { 
   Box,
@@ -7,20 +7,21 @@ import {
   Typography, 
   withWidth, 
   withStyles, 
-  Accordion, 
-  AccordionSummary, 
-  AccordionDetails,
-  MenuItem, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  FormControl,
-  ListItemSecondaryAction,
-  Select,
-  OutlinedInput,
-  IconButton} from "@material-ui/core";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import Bordered from "../../../shared/components/Bordered";
+  // Accordion, 
+  // AccordionSummary, 
+  // AccordionDetails,
+  // MenuItem, 
+  // List, 
+  // ListItem, 
+  // ListItemText, 
+  // FormControl,
+  // ListItemSecondaryAction,
+  // Select,
+  // OutlinedInput,
+  // IconButton,
+} from "@material-ui/core";
+// import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+// import Bordered from "../../../shared/components/Bordered";
 // import calculateSpacing from "./calculateSpacing"
 import classNames from "classnames";
 //import theme from "../../../theme";
@@ -29,7 +30,7 @@ import Weather from "./Weather";
 import WeatherData from "../../../shared/functions/getWeather";
 import withDataLoading from "../../../shared/components/withDataLoading";
 import Axios from "axios";
-import { RefreshOutlined } from "@material-ui/icons";
+// import { RefreshOutlined } from "@material-ui/icons";
 import cheerio from "cheerio"
 
 // const cheerio = require('cheerio')
@@ -129,8 +130,8 @@ const styles = theme => ({
 function SandboxSection(props) {
   const { classes } = props;
   const DataLoading = withDataLoading(WeatherData);
-  const [accordionState, setAccordionState] = useState("Area Forecast Discussion");
-  const [accordionBody, setAccordionBody] = useState("Select a section");
+  // const [accordionState, setAccordionState] = useState("Area Forecast Discussion");
+  // const [accordionBody, setAccordionBody] = useState("Select a section");
   const [appState, setAppState] = useState({
     loading: false,
     data: "",
@@ -150,111 +151,111 @@ function SandboxSection(props) {
     longTermB: "",
   });
 
-  const handleChange = useCallback(
-    (event) => {
-      const {name, value} = event.target;
-      // setSectionT(sectionT);
-      if (name) {
-        setAccordionState(value);
-        setAccordionBody(name);
-      }
-    },
-    [setAccordionState, setAccordionBody]
-  );
+  // const handleChange = useCallback(
+  //   (event) => {
+  //     const {name, value} = event.target;
+  //     // setSectionT(sectionT);
+  //     if (name) {
+  //       setAccordionState(value);
+  //       setAccordionBody(name);
+  //     }
+  //   },
+  //   [setAccordionState, setAccordionBody]
+  // );
 
-  const fetchWeather = useCallback(() => {
-    setAppState({loading: true});
-    const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
-    Axios.get(afdUrl)
-      .then((data) => {
-        const allData = cheerio.load(data.data);
-        const afd = allData('pre.glossaryProduct')
-        const afdText = afd.text();
-        // console.log(afdText);
-        var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
-        var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
-        var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
-        var locationResult = locationTest.exec(afdText);
-        console.log(locationResult);
-        var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
-        var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var stationResult = stationTest.exec(afdText);
-        var dateResult = dateTest.exec(afdText);
-        var synopsisResult = afdSynopsis.exec(afdText);
-        var sectionsResult = sectionsTest.exec(afdText);
-        var nearTermResult = nearTermTest.exec(afdText);
-        console.log(nearTermResult);
-        var shortTermResult = shortTermTest.exec(afdText);
-        var longTermResult = longTermTest.exec(afdText);
-        console.log(stationResult);
-        const stat = stationResult[0];
-        const location = locationResult[1];
-        const product = stationResult[3];
-        const date = dateResult[0];
-        const synopT = synopsisResult[0];
-        const synopB = sectionsResult[3];
-        const nearTT = nearTermResult[2];
-        const nearTB = nearTermResult[3];
-        const shortTT = shortTermResult[2];
-        const shortTB = shortTermResult[3];
-        const longTT = longTermResult[2];
-        const longTB = longTermResult[3];
-        console.log(stat);
-        console.log(synopsisResult);
-        sectionsResult.forEach((match, groupIndex) => {
-          console.log(`Found match, group ${groupIndex}: ${match}`);
-        });
-        setAppState({
-          loading: false, 
-          data: afdText,
-          title: "",
-          body: "", 
-          station: stat,
-          date: date,
-          product: product,
-          location: location, 
-          synopsisT: synopT, 
-          synopsisB: synopB, 
-          nearTermT: nearTT,
-          nearTermB: nearTB,
-          shortTermT: shortTT,
-          shortTermB: shortTB,
-          longTermT: longTT,
-          longTermB: longTB
-        });
-      });
-  }, [setAppState]);
+  // const fetchWeather = useCallback(() => {
+  //   setAppState({loading: true});
+  //   const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
+  //   Axios.get(afdUrl)
+  //     .then((data) => {
+  //       const allData = cheerio.load(data.data);
+  //       const afd = allData('pre.glossaryProduct')
+  //       const afdText = afd.text();
+  //       // console.log(afdText);
+  //       var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
+  //       var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
+  //       var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
+  //       var locationResult = locationTest.exec(afdText);
+  //       console.log(locationResult);
+  //       var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
+  //       var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+  //       var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+  //       var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+  //       var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+  //       var stationResult = stationTest.exec(afdText);
+  //       var dateResult = dateTest.exec(afdText);
+  //       var synopsisResult = afdSynopsis.exec(afdText);
+  //       var sectionsResult = sectionsTest.exec(afdText);
+  //       var nearTermResult = nearTermTest.exec(afdText);
+  //       console.log(nearTermResult);
+  //       var shortTermResult = shortTermTest.exec(afdText);
+  //       var longTermResult = longTermTest.exec(afdText);
+  //       console.log(stationResult);
+  //       const stat = stationResult[0];
+  //       const location = locationResult[1];
+  //       const product = stationResult[3];
+  //       const date = dateResult[0];
+  //       const synopT = synopsisResult[0];
+  //       const synopB = sectionsResult[3];
+  //       const nearTT = nearTermResult[2];
+  //       const nearTB = nearTermResult[3];
+  //       const shortTT = shortTermResult[2];
+  //       const shortTB = shortTermResult[3];
+  //       const longTT = longTermResult[2];
+  //       const longTB = longTermResult[3];
+  //       console.log(stat);
+  //       console.log(synopsisResult);
+  //       sectionsResult.forEach((match, groupIndex) => {
+  //         console.log(`Found match, group ${groupIndex}: ${match}`);
+  //       });
+  //       setAppState({
+  //         loading: false, 
+  //         data: afdText,
+  //         title: "",
+  //         body: "", 
+  //         station: stat,
+  //         date: date,
+  //         product: product,
+  //         location: location, 
+  //         synopsisT: synopT, 
+  //         synopsisB: synopB, 
+  //         nearTermT: nearTT,
+  //         nearTermB: nearTB,
+  //         shortTermT: shortTT,
+  //         shortTermB: shortTB,
+  //         longTermT: longTT,
+  //         longTermB: longTB
+  //       });
+  //     });
+  // }, [setAppState]);
 
-  const sections = [
-    {
-      title: appState.date,
-      body: appState.location,
-      sectionName: "Header"
-    },
-    {
-      title: appState.synopsisT,
-      body: appState.synopsisB,
-      sectionName: "Synopsis"
-    },
-    {
-      title: appState.nearTermT,
-      body: appState.nearTermB,
-      sectionName: "Near Term"
-    },
-    {
-      title: appState.shortTermT,
-      body: appState.shortTermB,
-      sectionName: "Short Term"
-    },
-    {
-      title: appState.longTermT,
-      body: appState.longTermB,
-      sectionName: "Long Term"
-    }
-  ];
+  // const sections = [
+  //   {
+  //     title: appState.date,
+  //     body: appState.location,
+  //     sectionName: "Header"
+  //   },
+  //   {
+  //     title: appState.synopsisT,
+  //     body: appState.synopsisB,
+  //     sectionName: "Synopsis"
+  //   },
+  //   {
+  //     title: appState.nearTermT,
+  //     body: appState.nearTermB,
+  //     sectionName: "Near Term"
+  //   },
+  //   {
+  //     title: appState.shortTermT,
+  //     body: appState.shortTermB,
+  //     sectionName: "Short Term"
+  //   },
+  //   {
+  //     title: appState.longTermT,
+  //     body: appState.longTermB,
+  //     sectionName: "Long Term"
+  //   }
+  // ];
 
   useEffect(() => {
     setAppState({loading: true});

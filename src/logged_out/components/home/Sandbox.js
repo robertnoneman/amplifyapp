@@ -1,8 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Typography, Box, withStyles } from "@material-ui/core";
+import { 
+  Typography, 
+  Box, 
+  withStyles, 
+  // Card, 
+  // Paper, 
+  Grid} from "@material-ui/core";
 import { ResizableBox } from 'react-resizable';
 import ResizableContent from '../../../shared/components/ResizableContent'
+import useResizeAware from 'react-resize-aware'
 // import { Draggable } from 'react-draggable';
 
 
@@ -47,12 +54,23 @@ const styles = theme => ({
 });
 
 function Sandbox(props) {
-  const { classes, title, content, highlighted} = props;
+  const { classes, title, content, highlighted } = props;
   const [isVisibile, setIsVisible] = useState(false);
+  const [resizeListener, sizes] = useResizeAware();
+  const [showBox, setShowBox] = useState(true)
 
   // function showHandle(e) {
   //   e.target.className="box hover-handles";
   // }
+
+  useEffect(() => {
+    const timeoutID = setTimeout(() => {
+      setShowBox(false);
+    }, 500);
+    return () => {
+      clearTimeout(timeoutID);
+    };
+  }, [setShowBox]);
 
   return (
     <div className={highlighted ? classes.sandboxActive : classes.sandbox}>
@@ -60,35 +78,54 @@ function Sandbox(props) {
         <Typography align="center" variant="h4" className={classes.title}>
           {"How about the weather?"}
         </Typography>
-        <ResizableBox
-          onMouseOver={() => setIsVisible(true)}
-          onMouseLeave={() => setIsVisible(false)}
-          className="custom-box box"
-          width={1100}
+          { showBox?
+            <Box className="hidden-box box" display="none">
+            <span className="text-white">{title}<p>{content}</p></span>
+            {resizeListener}
+            </Box> : null
+          }
+          <ResizableBox
+            onMouseOver={() => {setIsVisible(true); }}
+            onMouseLeave={() => {setIsVisible(false); }}
+            className="custom-box box"
+            width={sizes.width}
+            height={sizes.height}
+            // handle={<span className="custom-handle custom-handle-se" />}
+            // onMouseOver={showHandle}
+            handle={(h) => <span className={isVisibile ? `custom-handle custom-handle-${h}` : "hover-handles hover-handles"} />}
+            handleSize={[8, 8]}
+            resizeHandles={['sw', 'se', 'nw', 'ne', 'w', 'e', 'n', 's']}
+            >
+            <span className="custom-box text-white">
+                <Grid item xs zeroMinWidth>
+                  <Typography>
+                    {title}
+                  </Typography>
+                </Grid>
+                <Grid item xs zeroMinWidth>
+                  <Typography>
+                    {content}
+                  </Typography>
+                </Grid>
+            </span>
+          </ResizableBox>
+      </Box>
+      <Box display="none">
+          <ResizableContent
+          top={700}
+          left={700}
+          width={500}
           height={500}
-          // handle={<span className="custom-handle custom-handle-se" />}
-          // onMouseOver={showHandle}
-          handle={(h) => <span className={isVisibile ? `custom-handle custom-handle-${h}` : "hover-handles hover-handles"} />}
-          handleSize={[8, 8]}
-          resizeHandles={['sw', 'se', 'nw', 'ne', 'w', 'e', 'n', 's']}>
-          
-          <span className="text-white">{title}<p>{content}</p></span>
-        </ResizableBox>
-        <ResizableContent
-        top={700}
-        left={700}
-        width={500}
-        height={500}
-        rotateAngle={0}
-        // style={classes.sandboxResizable}
-        >
-          <div className="box text-white">
-            {title}
-          </div>
-          <div className="box text-white">
-            {content}
-          </div>
-        </ResizableContent>
+          rotateAngle={0}
+          // style={classes.sandboxResizable}
+          >
+            <div className="box text-white">
+              {title}
+            </div>
+            <div className="box text-white">
+              {content}
+            </div>
+          </ResizableContent>
       </Box>
     </div>
   );

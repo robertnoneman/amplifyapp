@@ -3,27 +3,27 @@ import React, {useState, useEffect, useCallback} from "react";
 import PropTypes from "prop-types";
 import { 
   Box,
-  Grid, 
+  // Grid, 
   Typography, 
   withWidth, 
   withStyles, 
   Accordion, 
   AccordionSummary, 
   AccordionDetails,
-  MenuItem, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  FormControl,
-  ListItemSecondaryAction,
-  Select,
-  OutlinedInput,
+  // MenuItem, 
+  // List, 
+  // ListItem, 
+  // ListItemText, 
+  // FormControl,
+  // ListItemSecondaryAction,
+  // Select,
+  // OutlinedInput,
   IconButton,
   Button} from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Bordered from "../../../shared/components/Bordered";
 // import calculateSpacing from "./calculateSpacing"
-import classNames from "classnames";
+// import classNames from "classnames";
 //import theme from "../../../theme";
 import Axios from "axios";
 import { RefreshOutlined } from "@material-ui/icons";
@@ -93,17 +93,17 @@ function Weather(props) {
         longTermB: "",
       });
 
-    const handleChange = useCallback(
-        (event) => {
-          const {name, value} = event.target;
-          // setSectionT(sectionT);
-          if (name) {
-            setAccordionState(value);
-            setAccordionBody(name);
-          }
-        },
-        [setAccordionState, setAccordionBody]
-      );
+    // const handleChange = useCallback(
+    //     (event) => {
+    //       const {name, value} = event.target;
+    //       // setSectionT(sectionT);
+    //       if (name) {
+    //         setAccordionState(value);
+    //         setAccordionBody(name);
+    //       }
+    //     },
+    //     [setAccordionState, setAccordionBody]
+    //   );
 
     const fetchWeather = useCallback(() => {
         setAppState({loading: true});
@@ -190,7 +190,7 @@ function Weather(props) {
 
             var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm'); //regexTests[3].test.exec(afdText);
             var locationResult = locationTest.exec(afdText);
-            console.log(locationResult);
+            //console.log(locationResult);
             
             var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
             var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
@@ -202,10 +202,10 @@ function Weather(props) {
             var synopsisResult = afdSynopsis.exec(afdText);
             var sectionsResult = sectionsTest.exec(afdText);
             var nearTermResult = nearTermTest.exec(afdText);
-            console.log(nearTermResult);
+            //console.log(nearTermResult);
             var shortTermResult = shortTermTest.exec(afdText);
             var longTermResult = longTermTest.exec(afdText);
-            console.log(stationResult);
+            //console.log(stationResult);
             const stat = stationResult[0];
             const location = locationResult[1];
             const product = stationResult[3];
@@ -218,11 +218,11 @@ function Weather(props) {
             const shortTB = shortTermResult[3];
             const longTT = longTermResult[2];
             const longTB = longTermResult[3];
-            console.log(stat);
-            console.log(synopsisResult);
-            sectionsResult.forEach((match, groupIndex) => {
-              console.log(`Found match, group ${groupIndex}: ${match}`);
-            });
+            // console.log(stat);
+            // console.log(synopsisResult);
+            // sectionsResult.forEach((match, groupIndex) => {
+            //   console.log(`Found match, group ${groupIndex}: ${match}`);
+            // });
             setAppState({
               loading: false, 
               data: afdText, 

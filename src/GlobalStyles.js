@@ -137,7 +137,8 @@ const styles = theme => ({
       },
       "&:hover": {
         ".react-resizable-handle": {
-          display: "block"
+          display: "block",
+          zIndex: "tooltip"
         } 
       }
     },
@@ -159,13 +160,17 @@ const styles = theme => ({
     ".custom-box": {
       overflow: "hidden",
     },
+    ".hidden-box": {
+      display: "hidden",
+      overflow: "hidden",
+    },
     ".custom-handle": {
       position: "absolute",
       width: "8px",
       height: "8px",
       backgroundColor: "#6e3a48",
       opacity: 0.75,
-      borderRadius: "4px"
+      borderRadius: "4px",
     },
     ".custom-handle-sw": {
       bottom: "-4px",
