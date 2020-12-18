@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import {
@@ -34,10 +34,13 @@ const styles = theme => ({
     fontSize: 12,
     fontWeight: theme.typography.h6.fontWeight,
     "&:hover": {
-      fontSize: theme.typography.body1.fontSize,
-      fontWeight: theme.typography.h6.fontWeight
-    }
-
+      //fontSize: theme.typography.body1.fontSize,
+      fontWeight: theme.typography.h6.fontWeight,
+      dataAos: "zoom-in" ,
+      color: "primary"
+      //dataAos: "zoom-in-up", 
+      //dataAosDelay: "50"
+    },
   },
   brandText: {
     fontFamily: "'Heebo', cursive",
@@ -57,8 +60,22 @@ function NavBar(props) {
     handleMobileDrawerOpen,
     handleMobileDrawerClose,
     mobileDrawerOpen,
-    selectedTab
+    selectedTab,
   } = props;
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [hover, setHover] = useState(false);
+
+  const handlePopoverOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+
   const menuItems = [
     {
       link: "/",
@@ -73,12 +90,12 @@ function NavBar(props) {
     {
       link: "/blog",
       name: "Blog",
-      icon: <BookIcon className="text-white" />
+      icon: <BookIcon className="menuButtonText text-white"/>
     },
     {
       name: "Register",
       onClick: openRegisterDialog,
-      icon: <HowToRegIcon className="text-white" />
+      icon: <HowToRegIcon className="text-white" style={{'&:hover': {dataAos: "zoom-in", color: "#6e3a48"}}}/>
     },
     {
       name: "Login",
@@ -112,7 +129,12 @@ function NavBar(props) {
             color="secondary" 
             size="large"
             classes={{ text: classes.menuButtonText }}
-            textDecoration="none !important" 
+            textDecoration="none !important"
+            onMouseEnter={handlePopoverOpen}
+            onMouseLeave={handlePopoverClose}
+            open={open}
+            data-aos={ open ? "zoom-in" : null}
+            //style={{'&:hover': {dataAos: "zoom-out"}}}
           >
             <AnchorLink offset='100' href='#sandbox-top' className={classes.noDecoration}>
             <Typography
@@ -121,6 +143,7 @@ function NavBar(props) {
                 display="inline"
                 color="secondary"
                 textDecoration="none !important"
+                
               >
                 SANDBOX
               </Typography>
@@ -130,6 +153,7 @@ function NavBar(props) {
             <Hidden mdUp>
               <IconButton
                 className={classes.menuButton}
+                style={{'&:hover': {dataAos: "zoom-out"}}}
                 onClick={handleMobileDrawerOpen}
                 aria-label="Open Navigation"
               >
@@ -149,10 +173,12 @@ function NavBar(props) {
                       
                       <Button
                         color="secondary"
+                        style={{'&:hover': {dataAos: "zoom-in", color: "#6e3a48"}}}
+                        //onMouseEnter={{dataAos: "zoom-in", color: "#6e3a48"}}
                         size="large"
                         classes={{ text: classes.menuButtonText }}
                       >
-                        <ListItemIcon display="contents" color="secondary">{element.icon}</ListItemIcon>
+                        <ListItemIcon display="contents" color="primary">{element.icon}</ListItemIcon>
                         {element.name}
                       </Button>
                     </Link>
@@ -165,8 +191,11 @@ function NavBar(props) {
                     onClick={element.onClick}
                     classes={{ text: classes.menuButtonText }}
                     key={element.name}
+                    //style={{ data-aos: "zoom-in"}}
+                    data-aos="zoom-in-up" 
+                    data-aos-delay="100"
                   >
-                    <ListItemIcon>{element.icon}</ListItemIcon>
+                    <ListItemIcon >{element.icon}</ListItemIcon>
                     {element.name}
                   </Button>
                 );

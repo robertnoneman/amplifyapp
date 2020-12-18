@@ -2,36 +2,48 @@
 import React, {useState, useEffect, Fragment} from "react";
 import PropTypes from "prop-types";
 import { 
+  AppBar,
   Box,
   Grid, 
   Typography, 
   withWidth, 
-  withStyles, 
-  // Accordion, 
-  // AccordionSummary, 
-  // AccordionDetails,
-  // MenuItem, 
-  // List, 
-  // ListItem, 
-  // ListItemText, 
-  // FormControl,
-  // ListItemSecondaryAction,
-  // Select,
-  // OutlinedInput,
-  // IconButton,
+  withStyles,
+  useTheme,
+  Tab,
+  Tabs, 
 } from "@material-ui/core";
-// import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-// import Bordered from "../../../shared/components/Bordered";
-// import calculateSpacing from "./calculateSpacing"
 import classNames from "classnames";
-//import theme from "../../../theme";
 import Sandbox from "../home/Sandbox";
 import Weather from "../home/Weather";
+//import calculateSpacing from "../home/calculateSpacing";
 import WeatherData from "../../../shared/functions/getWeather";
 import withDataLoading from "../../../shared/components/withDataLoading";
 import Axios from "axios";
-// import { RefreshOutlined } from "@material-ui/icons";
 import cheerio from "cheerio"
+import SwipeableViews from "react-swipeable-views";
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <Typography
+      component="div"
+      role="tabpanel"
+      hidden={value !== index}
+      id={`action-tabpanel-${index}`}
+      aria-labelledby={`action-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box p={3}>{children}</Box>}
+    </Typography>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.any.isRequired,
+  value: PropTypes.any.isRequired,
+};
 
 const styles = theme => ({
     sandboxActive: {
@@ -124,12 +136,32 @@ const styles = theme => ({
       backgroundColor: theme.palette.primary.dark
     },
   });
+
+function a11yProps(index) {
+  return {
+    id: `action-tab-${index}`,
+    'aria-controls': `action-tabpanel-${index}`,
+  };
+}
   
 function SandboxPage(props) {
-  const { classes, selectSandbox } = props;
+  const { classes, selectSandbox, } = props;
+  const theme = useTheme();
+  const [value, setValue] = useState(0);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  const handleChangeIndex = (index) => {
+    setValue(index);
+  };
+
+  const transitionDuration = {
+    enter: theme.transitions.duration.enteringScreen,
+    exit: theme.transitions.duration.leavingScreen,
+  };
+
   const DataLoading = withDataLoading(WeatherData);
-  // const [accordionState, setAccordionState] = useState("Area Forecast Discussion");
-  // const [accordionBody, setAccordionBody] = useState("Select a section");
   const [appState, setAppState] = useState({
     loading: false,
     data: "",
@@ -148,7 +180,167 @@ function SandboxPage(props) {
     longTermT: "",
     longTermB: "",
   });
+    
+    useEffect(() => {
+      setAppState({loading: true});
+      const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
+      Axios.get(afdUrl)
+        .then((data) => {
+          const allData = cheerio.load(data.data);
+          const afd = allData('pre.glossaryProduct')
+          const afdText = afd.text();
+          // console.log(afdText);
+          var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
+          var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
+          var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
+          var locationResult = locationTest.exec(afdText);
+          console.log(locationResult);
+          var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
+          var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+          var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+          var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+          var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+          var stationResult = stationTest.exec(afdText);
+          var dateResult = dateTest.exec(afdText);
+          var synopsisResult = afdSynopsis.exec(afdText);
+          var sectionsResult = sectionsTest.exec(afdText);
+          var nearTermResult = nearTermTest.exec(afdText);
+          console.log(nearTermResult);
+          var shortTermResult = shortTermTest.exec(afdText);
+          var longTermResult = longTermTest.exec(afdText);
+          console.log(stationResult);
+          const stat = stationResult[0];
+          const location = locationResult[1];
+          const product = stationResult[3];
+          const date = dateResult[0];
+          const synopT = synopsisResult[0];
+          const synopB = sectionsResult[3];
+          const nearTT = nearTermResult[2];
+          const nearTB = nearTermResult[3];
+          const shortTT = shortTermResult[2];
+          const shortTB = shortTermResult[3];
+          const longTT = longTermResult[2];
+          const longTB = longTermResult[3];
+          console.log(stat);
+          console.log(synopsisResult);
+          sectionsResult.forEach((match, groupIndex) => {
+            console.log(`Found match, group ${groupIndex}: ${match}`);
+          });
+          setAppState({
+            loading: false, 
+            data: afdText, 
+            station: stat,
+            date: date,
+            product: product,
+            location: location, 
+            synopsisT: synopT, 
+            synopsisB: synopB, 
+            nearTermT: nearTT,
+            nearTermB: nearTB,
+            shortTermT: shortTT,
+            shortTermB: shortTB,
+            longTermT: longTT,
+            longTermB: longTB
+          });
+        });
+    }, [setAppState]);
+    
+    useEffect(() => {
+      selectSandbox();
+    }, [selectSandbox]);
+
+    return (
+      <Fragment>
+        <div id='sandbox-top'>
+          <div > {/*className={classNames(classes.wrapper)}*/}
+            <div className={classNames("container-fluid lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
+              <section id='SandboxPage'>
+                <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
+                Sandbox Section!
+                </Typography>
+              </section>              
+              <Box className={classes.containerFluid}>
+                <Typography className="text-white">Weather</Typography>
+              </Box>
+              <AppBar position="relative">
+                <Tabs
+                  value={value}
+                  onChange={handleChange}
+                  indicatorColor="primary"
+                  textColor="secondary"
+                  variant="fullWidth"
+                  aria-label="action tabs example"
+                >
+                  <Tab label="Weather timeline" {...a11yProps(0)} />
+                  <Tab label="Weather accordion" {...a11yProps(1)} />
+                  <Tab label="Weather button" {...a11yProps(2)} />
+                  <Tab label="Weather resizeable boxes" {...a11yProps(3)} />
+                </Tabs>
+              </AppBar>
+
+              <SwipeableViews
+                axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
+                index={value}
+                onChangeIndex={handleChangeIndex}
+              >
+                <TabPanel value={value} index={0} dir={theme.direction}>
+                  <Weather displayType="timeline"/>
+                </TabPanel>
+                <TabPanel value={value} index={1} dir={theme.direction}>
+                  <Weather displayType="accordion"/>             
+                </TabPanel>
+                <TabPanel value={value} index={2} dir={theme.direction}>
+                  <Weather displayType="button"/>
+                </TabPanel>
+                <TabPanel value={value} index={3} dir={theme.direction}>
+                  <Grid 
+                    item
+                    className={classNames(classes.card, classes.containerFluid)}
+                    >
+                    <Box mb={4} justifyContent="center">
+                      <Sandbox
+                        title={appState.synopsisT}
+                        content={appState.synopsisB}
+                        highlighted={appState.loading}
+                      />
+                      <Sandbox
+                        title={appState.nearTermT}
+                        content={appState.nearTermB}
+                        highlighted={appState.loading}
+                      />
+                    </Box>
+                    <Box className={classes.containerFix}>
+                      <Sandbox
+                        highlighted
+                        title={appState.station}
+                        content={appState.date}
+                      />
+                    </Box>
+                    <Box className={classes.containerFix}>
+                      <DataLoading />
+                    </Box>
+                  </Grid>
+                </TabPanel>
+              </SwipeableViews>
+            </div>
+          </div>
+        </div>
+      </Fragment>
+    );
+  }
   
+  SandboxPage.propTypes = {
+    width: PropTypes.string.isRequired,
+    classes: PropTypes.object,
+    theme: PropTypes.object,
+    selectSandbox: PropTypes.func.isRequired
+    // pushMessageToSnackbar: PropTypes.func,
+  };
+  
+  export default withStyles(styles, { withTheme: true })(
+    withWidth()(SandboxPage)
+  );
+
   // const handleChange = useCallback(
   //   (event) => {
   //     const {name, value} = event.target;
@@ -254,133 +446,3 @@ function SandboxPage(props) {
   //       sectionName: "Long Term"
   //     }
   //   ];
-  
-    useEffect(() => {
-      setAppState({loading: true});
-      const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
-      Axios.get(afdUrl)
-        .then((data) => {
-          const allData = cheerio.load(data.data);
-          const afd = allData('pre.glossaryProduct')
-          const afdText = afd.text();
-          // console.log(afdText);
-          var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
-          var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
-          var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
-          var locationResult = locationTest.exec(afdText);
-          console.log(locationResult);
-          var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
-          var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var stationResult = stationTest.exec(afdText);
-          var dateResult = dateTest.exec(afdText);
-          var synopsisResult = afdSynopsis.exec(afdText);
-          var sectionsResult = sectionsTest.exec(afdText);
-          var nearTermResult = nearTermTest.exec(afdText);
-          console.log(nearTermResult);
-          var shortTermResult = shortTermTest.exec(afdText);
-          var longTermResult = longTermTest.exec(afdText);
-          console.log(stationResult);
-          const stat = stationResult[0];
-          const location = locationResult[1];
-          const product = stationResult[3];
-          const date = dateResult[0];
-          const synopT = synopsisResult[0];
-          const synopB = sectionsResult[3];
-          const nearTT = nearTermResult[2];
-          const nearTB = nearTermResult[3];
-          const shortTT = shortTermResult[2];
-          const shortTB = shortTermResult[3];
-          const longTT = longTermResult[2];
-          const longTB = longTermResult[3];
-          console.log(stat);
-          console.log(synopsisResult);
-          sectionsResult.forEach((match, groupIndex) => {
-            console.log(`Found match, group ${groupIndex}: ${match}`);
-          });
-          setAppState({
-            loading: false, 
-            data: afdText, 
-            station: stat,
-            date: date,
-            product: product,
-            location: location, 
-            synopsisT: synopT, 
-            synopsisB: synopB, 
-            nearTermT: nearTT,
-            nearTermB: nearTB,
-            shortTermT: shortTT,
-            shortTermB: shortTB,
-            longTermT: longTT,
-            longTermB: longTB
-          });
-        });
-    }, [setAppState]);
-    
-    useEffect(() => {
-      selectSandbox();
-    }, [selectSandbox]);
-
-    return (
-      <Fragment>
-        <div id='sandbox-top'>
-        <div > {/*className={classNames(classes.wrapper)}*/}
-
-          <div className={classNames("container-fluid lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
-            <section id='SandboxPage'>
-              <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
-              Sandbox Section!
-              </Typography>
-            </section>
-    
-            <Weather>
-            </Weather>
-            <Grid 
-              item
-              className={classNames(classes.card, classes.containerFluid)}
-            >
-              <Box mb={4} justifyContent="center">
-                <Sandbox
-                  title={appState.synopsisT}
-                  content={appState.synopsisB}
-                  highlighted={appState.loading}
-                />
-                <Sandbox
-                  title={appState.nearTermT}
-                  content={appState.nearTermB}
-                  highlighted={appState.loading}
-              />
-              </Box>
-              <Box className={classes.containerFix}>
-                <Sandbox
-                  highlighted
-                  title={appState.station}
-                  content={appState.date}
-                />
-              </Box>
-              <Box className={classes.containerFix}>
-                <DataLoading>
-    
-                </DataLoading>
-              </Box>
-            </Grid>
-          </div>
-        </div>
-        </div>
-      </Fragment>
-    );
-  }
-  
-  SandboxPage.propTypes = {
-    width: PropTypes.string.isRequired,
-    classes: PropTypes.object,
-    theme: PropTypes.object,
-    selectSandbox: PropTypes.func.isRequired
-    // pushMessageToSnackbar: PropTypes.func,
-  };
-  
-  export default withStyles(styles, { withTheme: true })(
-    withWidth()(SandboxPage)
-  );

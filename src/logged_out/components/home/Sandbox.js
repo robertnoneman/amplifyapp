@@ -58,10 +58,17 @@ function Sandbox(props) {
   const [isVisibile, setIsVisible] = useState(false);
   const [resizeListener, sizes] = useResizeAware();
   const [showBox, setShowBox] = useState(true)
-
   // function showHandle(e) {
   //   e.target.className="box hover-handles";
   // }
+  // sizes.width = 100;
+  // sizes.height = 100;
+
+  // useEffect(() => {
+  //   sizes.width = 100;
+  //   sizes.height = 100;
+  //   }
+  // );
 
   useEffect(() => {
     const timeoutID = setTimeout(() => {
@@ -70,7 +77,7 @@ function Sandbox(props) {
     return () => {
       clearTimeout(timeoutID);
     };
-  }, [setShowBox]);
+  }, [sizes, setShowBox]);
 
   return (
     <div className={highlighted ? classes.sandboxActive : classes.sandbox}>
@@ -88,8 +95,8 @@ function Sandbox(props) {
             onMouseOver={() => {setIsVisible(true); }}
             onMouseLeave={() => {setIsVisible(false); }}
             className="custom-box box"
-            width={sizes.width}
-            height={sizes.height}
+            width={showBox? 100 : sizes.width}
+            height={showBox? 100 : sizes.height}
             // handle={<span className="custom-handle custom-handle-se" />}
             // onMouseOver={showHandle}
             handle={(h) => <span className={isVisibile ? `custom-handle custom-handle-${h}` : "hover-handles hover-handles"} />}
