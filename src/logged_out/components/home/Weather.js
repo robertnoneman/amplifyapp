@@ -29,7 +29,9 @@ import Bordered from "../../../shared/components/Bordered";
 import calculateSpacing from "./calculateSpacing";
 import Axios from "axios";
 import { AcUnit, Brightness3, Brightness5, CloudQueue, Dialpad, FilterDrama, Flare, FlashOn, Grain, InvertColors, NightsStay, RefreshOutlined, WbCloudy, WbSunny, } from "@material-ui/icons";
-import assignIcon from "../../../shared/functions/assignIcon"
+import assignIcon from "../../../shared/functions/assignIcon";
+import NwsIcons from "../../../shared/components/NwsIcons"
+//import "weather-icons";
 
 const cheerio = require('cheerio')
 
@@ -111,7 +113,7 @@ const styles = theme => ({
       // boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .30)',
     },
     weatherDotCloudyDay: {
-      background: 'linear-gradient(30deg, #555 30%, #888 90%)',
+      background: 'linear-gradient(30deg, #555 30%, #ddd 90%)',
       borderColor: '#000'
       // boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .30)',
     },
@@ -258,7 +260,7 @@ WeatherAccordion.propTypes = {
 };
 
 function Weather(props) {
-    const { classes, displayType, weatherCondition } = props;
+    const { classes, displayType, } = props;
     const theme = useTheme();
     const [accordionState, setAccordionState] = useState("Area Forecast Discussion - ");
     const [accordionBody, setAccordionBody] = useState("- Click to view");
@@ -427,6 +429,7 @@ function Weather(props) {
             //setAppState({daily: element})
           })
           const dailyConst = dailyTemp;
+          //console.log(dailyConst[0].icon)
           setDailyForecast({
             daily0: dailyConst[0],
             daily1: dailyConst[1],
@@ -603,7 +606,8 @@ function Weather(props) {
           startTime: dailyForecast.daily0.startTime,
           detailedForecast: dailyForecast.daily0.detailedForecast,
           endTime: dailyForecast.daily0.endTime,
-          icon: assignIcon(dailyForecast.daily0.shortForecast, dailyForecast.daily0.isDaytime).icon,
+          //icon: assignIcon(dailyForecast.daily0.shortForecast, dailyForecast.daily0.isDaytime).ico, dailyForecast.daily0.isDaytimen,
+          icon: NwsIcons(dailyForecast.daily0.icon, dailyForecast.daily0.isDaytime),
           condition: assignIcon(dailyForecast.daily0.shortForecast, dailyForecast.daily0.isDaytime).iconName,
           isDaytime: dailyForecast.daily0.isDaytime,
           number: dailyForecast.daily0.number,
@@ -612,14 +616,15 @@ function Weather(props) {
           temperatureTrend: dailyForecast.daily0.temperatureTrend,
           temperatureUnit: dailyForecast.daily0.temperatureUnit,
           windDirection: dailyForecast.daily0.windDirection,
-          windSpeed: dailyForecast.daily0.windSpeed
+          windSpeed: dailyForecast.daily0.windSpeed,
         },
         {
           name: dailyForecast.daily1.name,
           startTime: dailyForecast.daily1.startTime,
           detailedForecast: dailyForecast.daily1.detailedForecast,
           endTime: dailyForecast.daily1.endTime,
-          icon: assignIcon(dailyForecast.daily1.shortForecast, dailyForecast.daily1.isDaytime).icon,
+          //icon: assignIcon(dailyForecast.daily1.shortForecast, dailyForecast.daily1.isDaytime).ico, dailyForecast.daily1.isDaytimen,
+          icon: NwsIcons(dailyForecast.daily1.icon, dailyForecast.daily1.isDaytime),
           condition: assignIcon(dailyForecast.daily1.shortForecast, dailyForecast.daily1.isDaytime).iconName,
           isDaytime: dailyForecast.daily1.isDaytime,
           number: dailyForecast.daily1.number,
@@ -635,7 +640,8 @@ function Weather(props) {
           startTime: dailyForecast.daily2.startTime,
           detailedForecast: dailyForecast.daily2.detailedForecast,
           endTime: dailyForecast.daily2.endTime,
-          icon: assignIcon(dailyForecast.daily2.shortForecast, dailyForecast.daily2.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily2.icon, dailyForecast.daily2.isDaytime),
+          //icon: assignIcon(dailyForecast.daily2.shortForecast, dailyForecast.daily2.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily2.shortForecast, dailyForecast.daily2.isDaytime).iconName,
           isDaytime: dailyForecast.daily2.isDaytime,
           number: dailyForecast.daily2.number,
@@ -651,7 +657,8 @@ function Weather(props) {
           startTime: dailyForecast.daily3.startTime,
           detailedForecast: dailyForecast.daily3.detailedForecast,
           endTime: dailyForecast.daily3.endTime,
-          icon: assignIcon(dailyForecast.daily3.shortForecast, dailyForecast.daily3.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily3.icon, dailyForecast.daily3.isDaytime),
+          //icon: assignIcon(dailyForecast.daily3.shortForecast, dailyForecast.daily3.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily3.shortForecast, dailyForecast.daily3.isDaytime).iconName,
           isDaytime: dailyForecast.daily3.isDaytime,
           number: dailyForecast.daily3.number,
@@ -667,7 +674,8 @@ function Weather(props) {
           startTime: dailyForecast.daily4.startTime,
           detailedForecast: dailyForecast.daily4.detailedForecast,
           endTime: dailyForecast.daily4.endTime,
-          icon: assignIcon(dailyForecast.daily4.shortForecast, dailyForecast.daily4.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily4.icon, dailyForecast.daily4.isDaytime),
+          //icon: assignIcon(dailyForecast.daily4.shortForecast, dailyForecast.daily4.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily4.shortForecast, dailyForecast.daily4.isDaytime).iconName,
           isDaytime: dailyForecast.daily4.isDaytime,
           number: dailyForecast.daily4.number,
@@ -683,7 +691,8 @@ function Weather(props) {
           startTime: dailyForecast.daily5.startTime,
           detailedForecast: dailyForecast.daily5.detailedForecast,
           endTime: dailyForecast.daily5.endTime,
-          icon: assignIcon(dailyForecast.daily5.shortForecast, dailyForecast.daily5.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily5.icon, dailyForecast.daily5.isDaytime),
+          //icon: assignIcon(dailyForecast.daily5.shortForecast, dailyForecast.daily5.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily5.shortForecast, dailyForecast.daily5.isDaytime).iconName,
           isDaytime: dailyForecast.daily5.isDaytime,
           number: dailyForecast.daily5.number,
@@ -699,7 +708,8 @@ function Weather(props) {
           startTime: dailyForecast.daily6.startTime,
           detailedForecast: dailyForecast.daily6.detailedForecast,
           endTime: dailyForecast.daily6.endTime,
-          icon: assignIcon(dailyForecast.daily6.shortForecast, dailyForecast.daily6.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily6.icon, dailyForecast.daily6.isDaytime),
+          //icon: assignIcon(dailyForecast.daily6.shortForecast, dailyForecast.daily6.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily6.shortForecast, dailyForecast.daily6.isDaytime).iconName,
           isDaytime: dailyForecast.daily6.isDaytime,
           number: dailyForecast.daily6.number,
@@ -715,7 +725,8 @@ function Weather(props) {
           startTime: dailyForecast.daily7.startTime,
           detailedForecast: dailyForecast.daily7.detailedForecast,
           endTime: dailyForecast.daily7.endTime,
-          icon: assignIcon(dailyForecast.daily7.shortForecast, dailyForecast.daily7.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily7.icon, dailyForecast.daily7.isDaytime),
+          //icon: assignIcon(dailyForecast.daily7.shortForecast, dailyForecast.daily7.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily7.shortForecast, dailyForecast.daily7.isDaytime).iconName,
           isDaytime: dailyForecast.daily7.isDaytime,
           number: dailyForecast.daily7.number,
@@ -731,7 +742,8 @@ function Weather(props) {
           startTime: dailyForecast.daily8.startTime,
           detailedForecast: dailyForecast.daily8.detailedForecast,
           endTime: dailyForecast.daily8.endTime,
-          icon: assignIcon(dailyForecast.daily8.shortForecast, dailyForecast.daily8.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily8.icon, dailyForecast.daily8.isDaytime),
+          //icon: assignIcon(dailyForecast.daily8.shortForecast, dailyForecast.daily8.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily8.shortForecast, dailyForecast.daily8.isDaytime).iconName,
           isDaytime: dailyForecast.daily8.isDaytime,
           number: dailyForecast.daily8.number,
@@ -747,7 +759,8 @@ function Weather(props) {
           startTime: dailyForecast.daily9.startTime,
           detailedForecast: dailyForecast.daily9.detailedForecast,
           endTime: dailyForecast.daily9.endTime,
-          icon: assignIcon(dailyForecast.daily9.shortForecast, dailyForecast.daily9.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily9.icon, dailyForecast.daily9.isDaytime),
+          //icon: assignIcon(dailyForecast.daily9.shortForecast, dailyForecast.daily9.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily9.shortForecast, dailyForecast.daily9.isDaytime).iconName,
           isDaytime: dailyForecast.daily9.isDaytime,
           number: dailyForecast.daily9.number,
@@ -763,7 +776,8 @@ function Weather(props) {
           startTime: dailyForecast.daily10.startTime,
           detailedForecast: dailyForecast.daily10.detailedForecast,
           endTime: dailyForecast.daily10.endTime,
-          icon: assignIcon(dailyForecast.daily10.shortForecast, dailyForecast.daily10.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily10.icon, dailyForecast.daily10.isDaytime),
+          //icon: assignIcon(dailyForecast.daily10.shortForecast, dailyForecast.daily10.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily10.shortForecast, dailyForecast.daily10.isDaytime).iconName,
           isDaytime: dailyForecast.daily10.isDaytime,
           number: dailyForecast.daily10.number,
@@ -779,7 +793,8 @@ function Weather(props) {
           startTime: dailyForecast.daily11.startTime,
           detailedForecast: dailyForecast.daily11.detailedForecast,
           endTime: dailyForecast.daily11.endTime,
-          icon: assignIcon(dailyForecast.daily11.shortForecast, dailyForecast.daily11.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily11.icon, dailyForecast.daily11.isDaytime),
+          //icon: assignIcon(dailyForecast.daily11.shortForecast, dailyForecast.daily11.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily11.shortForecast, dailyForecast.daily11.isDaytime).iconName,
           isDaytime: dailyForecast.daily11.isDaytime,
           number: dailyForecast.daily11.number,
@@ -795,7 +810,8 @@ function Weather(props) {
           startTime: dailyForecast.daily12.startTime,
           detailedForecast: dailyForecast.daily12.detailedForecast,
           endTime: dailyForecast.daily12.endTime,
-          icon: assignIcon(dailyForecast.daily12.shortForecast, dailyForecast.daily12.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily12.icon, dailyForecast.daily12.isDaytime),
+          //icon: assignIcon(dailyForecast.daily12.shortForecast, dailyForecast.daily12.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily12.shortForecast, dailyForecast.daily12.isDaytime).iconName,
           isDaytime: dailyForecast.daily12.isDaytime,
           number: dailyForecast.daily12.number,
@@ -811,7 +827,8 @@ function Weather(props) {
           startTime: dailyForecast.daily13.startTime,
           detailedForecast: dailyForecast.daily13.detailedForecast,
           endTime: dailyForecast.daily13.endTime,
-          icon: assignIcon(dailyForecast.daily12.shortForecast, dailyForecast.daily12.isDaytime).icon,
+          icon: NwsIcons(dailyForecast.daily13.icon, dailyForecast.daily13.isDaytime),
+          //icon: assignIcon(dailyForecast.daily12.shortForecast, dailyForecast.daily12.isDaytime).icon,
           condition: assignIcon(dailyForecast.daily12.shortForecast, dailyForecast.daily12.isDaytime).iconName,
           isDaytime: dailyForecast.daily13.isDaytime,
           number: dailyForecast.daily13.number,
@@ -841,7 +858,7 @@ function Weather(props) {
           <Timeline>
             {sections.map((element, index) => (
               <TimelineItem key={index}>
-                <TimelineOppositeContent alignitems="center">
+                <TimelineOppositeContent >
                   <Typography variant="body2" className="listItemLeftPadding text-white" 
                     data-aos="zoom-in-down" 
                     data-aos-delay={`${index}00`}
@@ -851,7 +868,7 @@ function Weather(props) {
                 </TimelineOppositeContent>
                 <TimelineSeparator>
                   <TimelineDot>
-                    <FlashOn />
+                    {/* <FlashOn /> */}
                   </TimelineDot>
                   <TimelineConnector />
                 </TimelineSeparator>

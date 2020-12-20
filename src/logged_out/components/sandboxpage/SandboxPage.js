@@ -194,7 +194,7 @@ function SandboxPage(props) {
           var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
           var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
           var locationResult = locationTest.exec(afdText);
-          console.log(locationResult);
+          //console.log(locationResult);
           var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
           var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
           var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
@@ -205,10 +205,10 @@ function SandboxPage(props) {
           var synopsisResult = afdSynopsis.exec(afdText);
           var sectionsResult = sectionsTest.exec(afdText);
           var nearTermResult = nearTermTest.exec(afdText);
-          console.log(nearTermResult);
+          //console.log(nearTermResult);
           var shortTermResult = shortTermTest.exec(afdText);
           var longTermResult = longTermTest.exec(afdText);
-          console.log(stationResult);
+          //console.log(stationResult);
           const stat = stationResult[0];
           const location = locationResult[1];
           const product = stationResult[3];
@@ -221,11 +221,11 @@ function SandboxPage(props) {
           const shortTB = shortTermResult[3];
           const longTT = longTermResult[2];
           const longTB = longTermResult[3];
-          console.log(stat);
-          console.log(synopsisResult);
-          sectionsResult.forEach((match, groupIndex) => {
-            console.log(`Found match, group ${groupIndex}: ${match}`);
-          });
+          //console.log(stat);
+          // console.log(synopsisResult);
+          // sectionsResult.forEach((match, groupIndex) => {
+          //   console.log(`Found match, group ${groupIndex}: ${match}`);
+          // });
           setAppState({
             loading: false, 
             data: afdText, 

@@ -10,6 +10,9 @@ const background = "#43182f";
 const warningLight = "#689ad8";
 const warningMain = "#D92F36";
 const warningDark = "#1e272c";
+const sunnyYellow = "#ffe747";
+const rainyBlue = "#2aadef";
+
 
 // border
 const borderWidth = 2;
