@@ -25,6 +25,9 @@ const styles = (theme) => ({
   cardContentInner: {
     marginTop: theme.spacing(-4),
   },
+  card: {
+    backgroundColor: theme.palette.primary.dark,
+  }
 });
 
 function labelFormatter(label) {
@@ -68,7 +71,7 @@ function CardChart(props) {
       case "1 Week":
         return "Last week";
       case "1 Month":
-        return "Last month";
+        return "7 Day Forecast";
       case "6 Months":
         return "Last 6 months";
       default:
@@ -115,12 +118,12 @@ function CardChart(props) {
 
   const isOpen = Boolean(anchorEl);
   return (
-    <Card>
+    <Card className={classes.card}>
       <Box pt={2} px={2} pb={4}>
         <Box display="flex" justifyContent="space-between">
           <div>
-            <Typography variant="subtitle1">{title}</Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="subtitle1" className="text-white">{title}</Typography>
+            <Typography variant="body2" color="secondary">
               {getSubtitle()}
             </Typography>
           </div>
@@ -142,6 +145,7 @@ function CardChart(props) {
                 style: {
                   maxHeight: itemHeight,
                   width: 200,
+                  backgroundColor: theme.palette.primary.main
                 },
               }}
               disableScrollLock
@@ -150,6 +154,7 @@ function CardChart(props) {
                 <MenuItem
                   key={option}
                   selected={option === selectedOption}
+                  className="text-white"
                   onClick={() => {
                     selectOption(option);
                   }}
@@ -174,7 +179,8 @@ function CardChart(props) {
               />
               <YAxis
                 domain={[calculateMin(data, "value", 0.05), "dataMax"]}
-                hide
+                label="Temperature"
+                //hide
               />
               <Area
                 type="monotone"
@@ -191,6 +197,7 @@ function CardChart(props) {
                   padding: theme.spacing(1),
                   borderRadius: theme.shape.borderRadius,
                   boxShadow: theme.shadows[1],
+                  backgroundColor: theme.palette.primary.main
                 }}
                 labelStyle={theme.typography.body1}
                 itemStyle={{

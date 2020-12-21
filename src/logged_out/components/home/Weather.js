@@ -262,8 +262,8 @@ WeatherAccordion.propTypes = {
 function Weather(props) {
     const { classes, displayType, } = props;
     const theme = useTheme();
-    const [accordionState, setAccordionState] = useState("Area Forecast Discussion - ");
-    const [accordionBody, setAccordionBody] = useState("- Click to view");
+    const [accordionState, setAccordionState] = useState("Area Forecast Discussion");
+    const [accordionBody, setAccordionBody] = useState("Click to view");
     const [dailyForecast, setDailyForecast] = useState({
       daily0: [],
       daily1: [],
@@ -280,21 +280,6 @@ function Weather(props) {
       daily12: [],
       daily13: [],
     });
-    // const [hourlyForecast, setHourlyForecast] = useState({
-    //   detailedForecast: null,
-    //   endTime: null,
-    //   icon: null,
-    //   isDaytime: null,
-    //   name: null,
-    //   number: null,
-    //   shortForecast: null,
-    //   startTime: null,
-    //   temperature: null,
-    //   temperatureTrend: null,
-    //   temperatureUnit: null,
-    //   windDirection: null,
-    //   windSpeed: null,
-    // });
 
     const [appState, setAppState] = useState({
         loading: false,
@@ -600,7 +585,7 @@ function Weather(props) {
         }
       ];
 
-      const fuckmylife = [
+    const fuckmylife = [
         {
           name: dailyForecast.daily0.name,
           startTime: dailyForecast.daily0.startTime,
@@ -929,19 +914,29 @@ function Weather(props) {
           </Grid>
         </div>
         <div hidden={displayType !== "button"}>
-        <Grid item>
-          <Box display="flex" justifyContent="center" align="center">
+        <Grid>
+          <Box display="flex" justifyContent="center" align="center" marginBottom="20px">
               <Button
               variant="contained"
-              color="secondary"
+              color="primary"
               size="large"
               align="center"
               onClick={parseWeather}
               >
-                  {accordionState}
-                  <Box>
-                    {accordionBody}
+                <Grid container direction="column">
+                  <Grid item>
+                  <Box className="box text-white" flexDirection="row">
+                    {accordionState}
                   </Box>
+                  </Grid>
+                  <Grid item>
+                  <Box margin="20px" textAlign="left">
+                    <Typography className="text-white">
+                      {accordionBody}
+                    </Typography>
+                  </Box>
+                  </Grid>
+                </Grid>
               </Button>
           </Box>
         </Grid>
@@ -995,22 +990,20 @@ function Weather(props) {
             ))}
           </Timeline>
           </Grid>
-        <AccordionDetails className={classes.AccordionDetails}>
-            <Box display="flex" align="center">
-              <IconButton
-                color="secondary"
-                align="center"
-                className={classes.IconButton}
-                onClick={() => {
-                  fetchWeather();
-                }}
-                aria-label="Refresh"
-              >
-                <RefreshOutlined />
-                <i className="wi wi-day-sunny"></i>
-              </IconButton>
-            </Box>
-          </AccordionDetails>
+          <Box className={classes.AccordionDetails} display="flex" align="center">
+            <IconButton
+              color="secondary"
+              align="center"
+              className={classes.IconButton}
+              onClick={() => {
+                fetchWeather();
+              }}
+              aria-label="Refresh"
+            >
+              <RefreshOutlined />
+              <i className="wi wi-day-sunny"></i>
+            </IconButton>
+          </Box>
       </section>
     );
 }

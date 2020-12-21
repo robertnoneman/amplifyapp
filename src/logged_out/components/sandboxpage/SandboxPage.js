@@ -161,7 +161,7 @@ function SandboxPage(props) {
     exit: theme.transitions.duration.leavingScreen,
   };
 
-  const DataLoading = withDataLoading(WeatherData);
+
   const [appState, setAppState] = useState({
     loading: false,
     data: "",
@@ -249,6 +249,8 @@ function SandboxPage(props) {
       selectSandbox();
     }, [selectSandbox]);
 
+    const DataLoading = withDataLoading(WeatherData);
+
     return (
       <Fragment>
         <div id='sandbox-top'>
@@ -275,6 +277,7 @@ function SandboxPage(props) {
                   <Tab label="Weather accordion" {...a11yProps(1)} />
                   <Tab label="Weather button" {...a11yProps(2)} />
                   <Tab label="Weather resizeable boxes" {...a11yProps(3)} />
+                  <Tab label="Hourly charts" {...a11yProps(4)} />
                 </Tabs>
               </AppBar>
 
@@ -291,6 +294,7 @@ function SandboxPage(props) {
                 </TabPanel>
                 <TabPanel value={value} index={2} dir={theme.direction}>
                   <Weather displayType="button"/>
+                  <DataLoading data={appState.data}/>
                 </TabPanel>
                 <TabPanel value={value} index={3} dir={theme.direction}>
                   <Grid 
@@ -317,9 +321,11 @@ function SandboxPage(props) {
                       />
                     </Box>
                     <Box className={classes.containerFix}>
-                      <DataLoading />
                     </Box>
                   </Grid>
+                </TabPanel>
+                <TabPanel value={value} index={4} dir={theme.direction}>
+                  <DataLoading data={appState.data}/>
                 </TabPanel>
               </SwipeableViews>
             </div>
