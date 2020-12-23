@@ -24,7 +24,7 @@ const styles = {
   },
 };
 
-const rowsPerPage = 25;
+const rowsPerPage = 10;
 
 function PostContent(props) {
   const {

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import PropTypes from "prop-types";
 import {Box, Typography, withTheme} from "@material-ui/core";
 import Axios from "axios";
@@ -67,7 +67,7 @@ function WeatherComponent(props) {
     tempChartData: []
   });
 
-  useEffect(() => {
+  const fetchWeatherData = useCallback(() => {
     Axios.get('https://api.weather.gov/gridpoints/LWX/97,70/forecast/hourly')
       .then((data) => {
         const hourlyData = data.data.properties.periods;
@@ -133,18 +133,23 @@ function WeatherComponent(props) {
       });
   }, [setHourlyData]);
 
+  useEffect(() => {
+    fetchWeatherData();
+  }, [fetchWeatherData]);
+
   return (
     <div>
               {/* HOURLY FORECAST */}
       <Box>
-        <CardChart 
+        {hourlyData.tempChartData.length >= 2 && (
+          <CardChart 
           data={hourlyData.tempChartData}
           color={theme.palette.primary.light}
-          height="70px"
+          height="370px"
           title="Hourly Temperature"
-        />
-        {/* <StatisticsArea CardChart={CardChart} data={hourlyData}>
-        </StatisticsArea> */}
+          />
+        )}
+
         <Timeline >
           {hourlyData.shortForecast.map((element, index) => (
             <TimelineItem key={index} data-aos="zoom-in-up">
@@ -168,8 +173,7 @@ function WeatherComponent(props) {
           ))}
         </Timeline>
       </Box>
-
-      <WeatherData data={getWeather()}/>
+      {/* <WeatherData data={getWeather()}/> */}
     </div>
   );
 }

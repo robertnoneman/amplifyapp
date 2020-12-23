@@ -1,18 +1,25 @@
 import { createMuiTheme, responsiveFontSizes } from "@material-ui/core";
 
 // colors
-const primary = "#6e3a48";
+//const primary = "#6e3a48";
+//const primary = "#E12C2C";
+const primary = "#ef6c2a"
 // const secondary = "#a3b18a";
-const secondary = "#689ad8";
+//const secondary = "#689ad8";
+const secondary = "#2aadef";
 const black = "#31353eff";
 const darkBlack = "#232222ff";
-const background = "#43182f";
+//const background = "#43182f";
+const background = "#1e272c";
 const warningLight = "#689ad8";
 const warningMain = "#D92F36";
+//const warningDark = "#43182f";
 const warningDark = "#1e272c";
 //const sunnyYellow = "#ffe747";
 //const rainyBlue = "#2aadef";
-const textPrimary = "#ddd"
+const textPrimary = "#eee";
+const textSecondary = "#73A397"
+const textDisabled = "#777";
 
 
 // border
@@ -37,7 +44,10 @@ const theme = createMuiTheme({
       light: warningMain,
       text: textPrimary 
     },
-    secondary: { main: secondary },
+    secondary: { 
+      main: secondary,
+      contrastText: textPrimary 
+    },
     common: {
       black,
       darkBlack: darkBlack,
@@ -48,15 +58,21 @@ const theme = createMuiTheme({
       main: warningMain,
       dark: warningDark
     },
-    textPrimary: {
-      default: textPrimary
+    text: {
+      primary: textPrimary,
+      secondary: secondary,
+      disabled: textDisabled
     },
     // Used to shift a color's luminance by approximately
     // two indexes within its tonal palette.
     // E.g., shift from Red 500 to Red 300 or Red 700.
     tonalOffset: 0.2,
     background: {
-      default: background
+      default: background,
+      paper: darkBlack
+    },
+    action: {
+      disabled: "rgba(255, 255, 255, 0.26)"
     },
     spacing
   },

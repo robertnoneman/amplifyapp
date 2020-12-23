@@ -7,33 +7,15 @@ import {
   Typography, 
   withWidth, 
   withStyles, 
-  // Accordion, 
-  // AccordionSummary, 
-  // AccordionDetails,
-  // MenuItem, 
-  // List, 
-  // ListItem, 
-  // ListItemText, 
-  // FormControl,
-  // ListItemSecondaryAction,
-  // Select,
-  // OutlinedInput,
-  // IconButton,
 } from "@material-ui/core";
-// import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-// import Bordered from "../../../shared/components/Bordered";
-// import calculateSpacing from "./calculateSpacing"
 import classNames from "classnames";
-//import theme from "../../../theme";
 import Sandbox from "./Sandbox";
 import Weather from "./Weather";
 import WeatherData from "../../../shared/functions/getWeather";
 import withDataLoading from "../../../shared/components/withDataLoading";
 import Axios from "axios";
-// import { RefreshOutlined } from "@material-ui/icons";
 import cheerio from "cheerio"
 
-// const cheerio = require('cheerio')
 
 const styles = theme => ({
   sandboxActive: {
@@ -166,7 +148,7 @@ function SandboxSection(props) {
         var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
         var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
         var locationResult = locationTest.exec(afdText);
-        console.log(locationResult);
+        //console.log(locationResult);
         var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
         var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
         var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
@@ -177,10 +159,10 @@ function SandboxSection(props) {
         var synopsisResult = afdSynopsis.exec(afdText);
         var sectionsResult = sectionsTest.exec(afdText);
         var nearTermResult = nearTermTest.exec(afdText);
-        console.log(nearTermResult);
+        //console.log(nearTermResult);
         var shortTermResult = shortTermTest.exec(afdText);
         var longTermResult = longTermTest.exec(afdText);
-        console.log(stationResult);
+        //console.log(stationResult);
         const stat = stationResult[0];
         const location = locationResult[1];
         const product = stationResult[3];
@@ -193,11 +175,11 @@ function SandboxSection(props) {
         const shortTB = shortTermResult[3];
         const longTT = longTermResult[2];
         const longTB = longTermResult[3];
-        console.log(stat);
-        console.log(synopsisResult);
-        sectionsResult.forEach((match, groupIndex) => {
-          console.log(`Found match, group ${groupIndex}: ${match}`);
-        });
+        //console.log(stat);
+        //console.log(synopsisResult);
+        // sectionsResult.forEach((match, groupIndex) => {
+        //   console.log(`Found match, group ${groupIndex}: ${match}`);
+        // });
         setAppState({
           loading: false, 
           data: afdText, 
@@ -254,9 +236,9 @@ function SandboxSection(props) {
             />
           </Box>
           <Box className={classes.containerFix}>
-            <DataLoading>
-
-            </DataLoading>
+            {appState.data >=2 && (
+              <DataLoading data={appState.data}/>
+            )}
           </Box>
         </Grid>
       </div>

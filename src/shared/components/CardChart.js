@@ -7,6 +7,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   YAxis,
+  CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 import format from "date-fns/format";
 import {
@@ -31,7 +33,7 @@ const styles = (theme) => ({
 });
 
 function labelFormatter(label) {
-  return format(new Date(label * 1000), "MMMM d, p yyyy");
+  return format(new Date(label * 1000), "MMM d, p");
 }
 
 function calculateMin(data, yKey, factor) {
@@ -43,14 +45,32 @@ function calculateMin(data, yKey, factor) {
   });
   return Math.round(max - max * factor);
 }
+function calculateMax(data, yKey, factor) {
+  let min = Number.NEGATIVE_INFINITY;
+  data.forEach((element) => {
+    if (min < element[yKey]) {
+      min = element[yKey];
+    }
+  });
+  return Math.round((min - min * factor) + 15);
+}
+
+function CustomizedAxisTick(props) {
+  const {x, y, stroke, payload} = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={16} textAnchor="end" fill="#666" fontSize={10} transform="rotate(-35)">{labelFormatter(payload.value)}</text>
+    </g>
+  );
+}
 
 const itemHeight = 216;
-const options = ["1 Week", "1 Month", "6 Months"];
+const options = ["1 Week", "1 Day", "12 Hours"];
 
 function CardChart(props) {
   const { color, data, title, classes, theme, height } = props;
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedOption, setSelectedOption] = useState("1 Month");
+  const [selectedOption, setSelectedOption] = useState("1 Week");
 
   const handleClick = useCallback(
     (event) => {
@@ -69,11 +89,11 @@ function CardChart(props) {
   const getSubtitle = useCallback(() => {
     switch (selectedOption) {
       case "1 Week":
-        return "Last week";
-      case "1 Month":
-        return "7 Day Forecast";
-      case "6 Months":
-        return "Last 6 months";
+        return "Next week";
+      case "1 Day":
+        return "Next Day";
+      case "12 Hours":
+        return "Next 12 Hours";
       default:
         throw new Error("No branch selected in switch-statement");
     }
@@ -85,11 +105,11 @@ function CardChart(props) {
       case "1 Week":
         seconds = 60 * 60 * 24 * 7;
         break;
-      case "1 Month":
-        seconds = 60 * 60 * 24 * 31;
+      case "1 Day":
+        seconds = 60 * 60 * 24;
         break;
-      case "6 Months":
-        seconds = 60 * 60 * 24 * 31 * 6;
+      case "12 Hours":
+        seconds = 60 * 60 * 12;
         break;
       default:
         throw new Error("No branch selected in switch-statement");
@@ -115,7 +135,6 @@ function CardChart(props) {
     },
     [setSelectedOption, handleClose]
   );
-
   const isOpen = Boolean(anchorEl);
   return (
     <Card className={classes.card}>
@@ -134,7 +153,7 @@ function CardChart(props) {
               aria-haspopup="true"
               onClick={handleClick}
             >
-              <MoreVertIcon />
+              <MoreVertIcon className="text-white"/>
             </IconButton>
             <Menu
               id="long-menu"
@@ -170,23 +189,38 @@ function CardChart(props) {
       <CardContent>
         <Box className={classes.cardContentInner} height={height}>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={processData()} type="number">
+            <AreaChart data={processData()} type="number" baseValue={0}>
+            <defs>
+              <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="1%" stopColor="#ae1313" stopOpacity={0.9}/>
+                <stop offset="25%" stopColor="#36db24" stopOpacity={0.95}/>
+                <stop offset="50%" stopColor="#137bae" stopOpacity={0.7}/>
+                <stop offset="85%" stopColor="#b857ef" stopOpacity={0.5}/>
+              </linearGradient>
+            </defs>
+              <ReferenceLine y="32" stroke="#137bae"/>
               <XAxis
                 dataKey="timestamp"
-                type="number"
+                //type="number"
+                tick={<CustomizedAxisTick/>}
+                tickFormatter={labelFormatter}
+                reversed
                 domain={["dataMin", "dataMax"]}
-                hide
+                height={100}
               />
               <YAxis
-                domain={[calculateMin(data, "value", 0.05), "dataMax"]}
-                label="Temperature"
+                // domain={[calculateMin(data, "value", 0.1), "dataMax"]}
+                domain={[calculateMin(data, "value", 0.01), calculateMax(data, "value", 0.05)]}
+                interval={0}
+                //label="Temperature"
                 //hide
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke={color}
-                fill={color}
+                stroke="url(#colorUv)"
+                fill="url(#colorUv)"
+                unit="°"
               />
               <Tooltip
                 labelFormatter={labelFormatter}
@@ -206,6 +240,7 @@ function CardChart(props) {
                   fontFamily: theme.typography.body1.fontFamily,
                   lineHeight: theme.typography.body1.lineHeight,
                   fontWeight: theme.typography.body1.fontWeight,
+                  color: "white"
                 }}
               />
             </AreaChart>

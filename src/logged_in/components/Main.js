@@ -290,6 +290,12 @@ function Main(props) {
     setHasFetchedDateTimePicker,
   ]);
 
+  const selectNotes = useCallback(() => {
+    smoothScrollTop();
+    document.title = "RN - Notes";
+    setSelectedTab("Notes");
+  }, [setSelectedTab]);
+
   const selectSubscription = useCallback(() => {
     smoothScrollTop();
     document.title = "RN - Subscription";
@@ -348,6 +354,7 @@ function Main(props) {
           targets={targets}
           selectDashboard={selectDashboard}
           selectPosts={selectPosts}
+          selectNotes={selectNotes}
           selectSubscription={selectSubscription}
           openAddBalanceDialog={openAddBalanceDialog}
           setTargets={setTargets}

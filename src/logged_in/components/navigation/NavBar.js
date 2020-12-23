@@ -30,11 +30,13 @@ import MessagePopperButton from "./MessagePopperButton";
 import SideDrawer from "./SideDrawer";
 import Balance from "./Balance";
 import NavigationDrawer from "../../../shared/components/NavigationDrawer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStickyNote } from "@fortawesome/free-solid-svg-icons";
 
 const styles = (theme) => ({
   appBar: {
     boxShadow: theme.shadows[6],
-    backgroundColor: theme.palette.common.white,
+    backgroundColor: theme.palette.common.darkBlack,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -201,6 +203,22 @@ function NavBar(props) {
       },
     },
     {
+      link: "/c/notes",
+      name: "Notes",
+      onClick: closeMobileDrawer,
+      icon: {
+        desktop: (
+          <FontAwesomeIcon icon={faStickyNote}
+            className={
+              selectedTab === "Notes" ? classes.textPrimary : "text-white"
+            }
+            fontSize="small"
+          />
+        ),
+        mobile: <FontAwesomeIcon icon={faStickyNote} className="text-white" />,
+      },
+    },
+    {
       link: "/",
       name: "Logout",
       icon: {
@@ -304,7 +322,7 @@ function NavBar(props) {
                 to={element.link}
                 className={classes.menuLink}
                 onClick={element.onClick}
-                key={index}
+                key={element.name}
                 ref={(node) => {
                   links.current[index] = node;
                 }}

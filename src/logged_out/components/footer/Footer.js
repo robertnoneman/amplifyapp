@@ -71,7 +71,8 @@ const styles = theme => ({
     }
   },
   whiteBg: {
-    backgroundColor: theme.palette.common.white
+    backgroundColor: theme.palette.common.white,
+    color: theme.palette.primary.dark
   }
 });
 

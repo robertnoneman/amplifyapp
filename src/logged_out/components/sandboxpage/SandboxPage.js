@@ -264,7 +264,7 @@ function SandboxPage(props) {
               <Box className={classes.containerFluid}>
                 <Typography className="text-white">Weather</Typography>
               </Box>
-              <AppBar position="relative">
+              <AppBar position="relative" color="inherit">
                 <Tabs
                   value={value}
                   onChange={handleChange}

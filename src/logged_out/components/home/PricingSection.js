@@ -147,7 +147,7 @@ function PricingSection(props) {
       </div>
       <WaveBorder
         lowerColor="#1e272c"
-        upperColor={theme.palette.warning.light}
+        upperColor={theme.palette.secondary.main}
         className={classes.waveBorder}
         animationNegativeDelay={2}
       />

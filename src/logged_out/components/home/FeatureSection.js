@@ -141,7 +141,7 @@ function FeatureSection(props) {
       </div>
       <WaveBorder
         upperColor="#31353eff"
-        lowerColor={theme.palette.warning.light}
+        lowerColor={theme.palette.secondary.main}
         className={classes.waveBorder}
         animationNegativeDelay={2}
       />

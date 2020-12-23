@@ -8,49 +8,49 @@ import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } fr
 import awsconfig from './aws-exports';
 // import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import 'react-pro-sidebar/dist/css/styles.css';
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faGem, faHeart } from '@fortawesome/free-solid-svg-icons';
+//import { library } from '@fortawesome/fontawesome-svg-core'
+//import { faGem, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import { MuiThemeProvider, CssBaseline } from "@material-ui/core";
+import { MuiThemeProvider, CssBaseline, Button, Grid, TextField } from "@material-ui/core";
 import theme from "./theme";
 import GlobalStyles from "./GlobalStyles";
 import * as serviceWorker from "./serviceWorker";
 import Pace from "./shared/components/Pace";
 
 Amplify.configure(awsconfig);
-library.add(faGem, faHeart);
+//library.add(faGem, faHeart);
 
-const initialFormState = { name: '', description: ''}
+//const initialFormState = { name: '', description: ''}
 
 const LoggedInComponent = lazy(() => import("./logged_in/components/Main"));
 
 const LoggedOutComponent = lazy(() => import("./logged_out/components/Main"));
 
 function App() {
-  const [notes, setNotes] = useState([]);
-  const [formData, setFormData] = useState(initialFormState);
+  // const [notes, setNotes] = useState([]);
+  // const [formData, setFormData] = useState(initialFormState);
 
-  useEffect(() => {
-    fetchNotes();
-  }, []);
+  // useEffect(() => {
+  //   fetchNotes();
+  // }, []);
 
-  async function fetchNotes() {
-    const apiData = await API.graphql({ query: listNotes });
-    setNotes(apiData.data.listNotes.items);
-  }
+  // async function fetchNotes() {
+  //   const apiData = await API.graphql({ query: listNotes });
+  //   setNotes(apiData.data.listNotes.items);
+  // }
 
-  async function createNote() {
-    if (!formData.name || !formData.description) return;
-    await API.graphql({ query: createNoteMutation, variables: { input: formData } });
-    setNotes([ ...notes, formData ]);
-    setFormData(initialFormState);
-  }
+  // async function createNote() {
+  //   if (!formData.name || !formData.description) return;
+  //   await API.graphql({ query: createNoteMutation, variables: { input: formData } });
+  //   setNotes([ ...notes, formData ]);
+  //   setFormData(initialFormState);
+  // }
 
-  async function deleteNote({ id }) {
-    const newNotesArray = notes.filter(note => note.id !== id);
-    setNotes(newNotesArray);
-    await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
-  }
+  // async function deleteNote({ id }) {
+  //   const newNotesArray = notes.filter(note => note.id !== id);
+  //   setNotes(newNotesArray);
+  //   await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
+  // }
 
   return (
     <div className="App">
@@ -82,28 +82,69 @@ function App() {
           -Robert Noneman
         </p>
       </header>
-      <input
-        onChange={e => setFormData({...formData, 'name': e.target.value})}
-        placeholder="Note name"
-        value={formData.name}
-      />
-      <input
-        onChange={e => setFormData({...formData, 'description': e.target.value})}
-        placeholder="Note description"
-        value={formData.description}
-      />
-      <button onClick={createNote}>Create Note</button>
-      <div style={{marginBottom: 30}}>
-        {
-          notes.map(note => (
-            <div key={note.id || note.name}>
-              <h2>{note.name}</h2>
-              <p>{note.description}</p>
-              <button onClick={() => deleteNote(note)}>Delete note</button>
-            </div>
-          ))
-        }
-      </div>
+      {/* <Grid spacing={0} container>
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          lg={12}
+          className="relative"
+        >
+          <TextField
+            fullWidth
+            multiline
+            variant="outlined"
+            rows={1}
+            className="text-white"
+            onChange={e => setFormData({...formData, 'name': e.target.value})}
+            placeholder="Note name"
+            value={formData.name}
+          />
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          lg={12}
+          className="relative"
+        >
+          <TextField
+            fullWidth
+            multiline
+            variant="outlined"
+            rows={3}
+            className="text-white"
+            onChange={e => setFormData({...formData, 'description': e.target.value})}
+            placeholder="Note description"
+            value={formData.description}
+          />
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          lg={12}
+          className="relative"
+        >
+          <Button 
+            variant="contained"
+            color="secondary"
+            className="text-white"
+            onClick={createNote}>Create Note
+          </Button>
+        </Grid>
+        <div style={{marginBottom: 30}}>
+          {
+            notes.map(note => (
+              <div key={note.id || note.name}>
+                <h2>{note.name}</h2>
+                <p>{note.description}</p>
+                <button onClick={() => deleteNote(note)}>Delete note</button>
+              </div>
+            ))
+          }
+        </div>
+      </Grid> */}
       <a
         className="App-link"
         href="https://reactjs.org"

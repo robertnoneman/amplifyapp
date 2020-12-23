@@ -1,7 +1,8 @@
 import { faCloudSun, faSun, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { 
+import {
+    WiDaySunny, 
     WiDaySunnyOvercast, 
     WiDayCloudyHigh,
     WiDust, 
@@ -27,7 +28,9 @@ import {
     WiSnowWind,
     WiFog,
     WiNightClear,
-    WiNightAltCloudy, WiNightPartlyCloudy, WiNightAltPartlyCloudy,
+    WiNightAltCloudy, 
+    WiNightPartlyCloudy, 
+    WiNightAltPartlyCloudy,
  } from "weather-icons-react";
 
 export default function NwsIcons(iconURL, isDay) {
@@ -46,24 +49,19 @@ export default function NwsIcons(iconURL, isDay) {
 
     switch (iconCode) {
         case "skc": {
-            if (!isDay) {
-                return <WiNightClear size={24}/>;
-            } 
-            return <FontAwesomeIcon icon={faSun} size="lg"/>;
+            return (isDay? <WiDaySunny size={24}/> : <WiNightClear size={24}/>)
         }
         case "few": {
-            return (isDay? <WiDaySunnyOvercast size={24}/> : <WiNightAltPartlyCloudy size={24}/>)
+            return (isDay? <WiDaySunny size={24}/> : <WiNightClear size={24}/>)
             //altIcon: <FontAwesomeIcon icon={faCloudSun}/>
         }
         case "sct": {
             //"description": "Partly cloudy",
-            if (!isDay) { return <WiNightPartlyCloudy size={24}/>;}
-            return <FontAwesomeIcon icon={faCloudSun} size="lg"/>
+            return (isDay? <WiDaySunnyOvercast size={24}/> : <WiNightPartlyCloudy size={24}/>)
         }
         case "bkn": {
             //"description": "Mostly cloudy",
-            if (!isDay) {return <WiNightAltCloudy size={24}/>;}
-            else return <WiDayCloudyHigh size={24}/>
+            return (isDay? <WiDayCloudyHigh size={24}/> : <WiNightAltCloudy size={24}/>)
         }
         case "ovc": {
             //"description": "Overcast",
