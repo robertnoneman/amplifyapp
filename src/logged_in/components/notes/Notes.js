@@ -31,7 +31,8 @@ const styles = (theme) => ({
     border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: theme.shape.borderRadius * 2,
     background: 'linear-gradient(30deg, #2196f325 30%, #21cbf325 90%)',
-    justifyContent: "flex-end"
+    maxWidth: '430px',
+    // justifyContent: "flex-end"
     //marginTop: theme.spacing(2),
   },
   title: {
@@ -52,6 +53,10 @@ const styles = (theme) => ({
     color: theme.palette.primary.main,
     backgroundColor: theme.palette.primary.main,
     margin: theme.spacing(1),
+  },
+  toolbar: {
+    marginRight: theme.spacing(2),
+    // display: grid
   }
 });
 
@@ -140,6 +145,9 @@ function Notes(props) {
 
       for (var i=0; i< noteCols.length; i++)
       {
+        if(element.colIndex === null){
+          element.colIndex = 0;
+        }
         // var inColumn = noteCols[i].includes(element);
         if(i === element.colIndex){
           noteCols[i].push(element);
@@ -308,24 +316,25 @@ function Notes(props) {
       </Paper>
 
         <Paper className="lg-mg-top">
-          <Toolbar>
-            <Typography variant="h4">Your Notes</Typography>
+          <Grid container direction="column" alignItems="stretch">
+            <Typography variant="h4">Your Tasks</Typography>
             <Button
               variant="contained"
               color="secondary"
-              style={{display: "flex"}}
+              // style={{display: "flex-end"}}
               onClick={(fetchNotes, printNote)}
             >
-              Print notes to console
+              Load tasks from server
             </Button>
-          </Toolbar>
+          </Grid>
           <Divider />
-          <Grid container spacing={1}>
+          {/* <Grid container spacing={1}> */}
 
             <DragDropContext onDragEnd={(onDragEnd)}>
             <Box p={1}>
-              <Grid container spacing={1}>
+              <Grid container spacing={1} justify="flex-start">
                 {state.map((el, ind) => (
+                <Grid container item xs key={ind}>
                   <Droppable key={ind} droppableId={`${ind}`}>
                     {(provided, snapshot) => (
                       <div
@@ -333,7 +342,9 @@ function Notes(props) {
                         // style={getListStyle(snapshot.isDraggingOver)}
                         {...provided.droppableProps}
                       >
+                        {/* <Grid container spacing={1} direction="column"> */}
                         {el.length > 0 && el.map((note, index) => (
+                          <Grid item key={index}>
                             <Draggable key={note.id} draggableId={note.id} index={index}>
                               {(provided, snapshot) => (
                                 <div
@@ -341,7 +352,6 @@ function Notes(props) {
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
                                 >
-                                  <Grid item md={12}>
                                     <Card className={classes.card}>
                                       <Typography variant="h6">{note.index}</Typography>
                                       <Typography variant="h5">{note.id}</Typography>
@@ -355,21 +365,23 @@ function Notes(props) {
                                         Delete note
                                       </Button>
                                     </Card>
-                                  </Grid>
+                                  {/*  */}
                                   </div>
                             )}
                             </Draggable>
+                          </Grid>
                         ))}
                         {provided.placeholder}
                       </div>
                     )}
                   </Droppable>
+                </Grid>
                 ))}
                   
               </Grid>
             </Box>
             </DragDropContext>
-          </Grid>
+          {/* </Grid> */}
         </Paper>
 
     </Fragment>
