@@ -7,16 +7,14 @@ import {
   Paper,
   Typography, 
   withWidth,
-  isWidthUp, 
   withStyles, 
   Accordion, 
   AccordionSummary, 
   AccordionDetails,
   IconButton,
   Button,
-  Zoom
 } from "@material-ui/core";
-import {useTheme} from '@material-ui/core/styles'
+//import {useTheme} from '@material-ui/core/styles'
 import Timeline from '@material-ui/lab/Timeline';
 import TimelineItem from '@material-ui/lab/TimelineItem';
 import TimelineSeparator from '@material-ui/lab/TimelineSeparator';
@@ -26,9 +24,8 @@ import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import TimelineDot from '@material-ui/lab/TimelineDot';
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Bordered from "../../../shared/components/Bordered";
-import calculateSpacing from "./calculateSpacing";
 import Axios from "axios";
-import { AcUnit, Brightness3, Brightness5, CloudQueue, Dialpad, FilterDrama, Flare, FlashOn, Grain, InvertColors, NightsStay, RefreshOutlined, WbCloudy, WbSunny, } from "@material-ui/icons";
+import { FlashOn, RefreshOutlined, } from "@material-ui/icons";
 import assignIcon from "../../../shared/functions/assignIcon";
 import NwsIcons from "../../../shared/components/NwsIcons"
 //import "weather-icons";
@@ -119,20 +116,6 @@ const styles = theme => ({
     },
 });
 
-const weatherIconMapping = {
-  snow: <AcUnit />,
-  sun: <Brightness5 />,
-  sun2: <Flare />,
-  sun3: <WbSunny />,
-  clearNight: <Brightness3 />,
-  cloudy: <CloudQueue />,
-  cloudy2: <FilterDrama />,
-  cloudy3: <WbCloudy />,
-  rain: <InvertColors />,
-  rain2: <Dialpad />,
-  partlyCloudyNight: <NightsStay />,
-}
-
 const weatherLinks = {
   locations: 'https://forecast.weather.gov/product_sites.php?site=NWS&product=AFD',
   afd: (location) => `https://forecast.weather.gov/product.php?site=NWS&issuedby=${location}&product=AFD`,
@@ -147,14 +130,6 @@ const weatherLinks = {
   weatherAPI: 'https://www.weather.gov/documentation/services-web-api',
   productList: 'https://api.weather.gov/products?location=LWX',
   productTypes: 'https://api.weather.gov/products/locations/LWX/types'
-}
-
-const weatherProducts = {
-  detailedForecast: {
-    id: 'detailed-forecast',
-    link: 'https://forecast.weather.gov/MapClick.php?lat=38.895&lon=-77.0373&lg=english&&FcstType=text&dd=1#.X9bh_9hKiUm',
-    parsed: (cheerioObj) => `${cheerioObj}('detailed-forecast').text()`
-  }
 }
 
 const regexTests = [
@@ -177,7 +152,7 @@ const regexTests = [
 ];
 
 function WeatherTimeline(props) {
-  const { data, classes, children, value, index, ...other} = props;
+  const { data, classes } = props;
   return (
     <div>
       <Timeline>
@@ -228,7 +203,7 @@ WeatherTimeline.propTypes = {
 };
 
 function WeatherAccordion(props) {
-  const { data, classes, children, value, index, ...other} = props;
+  const { data } = props;
   return (
     <Box>
     {data.map((element, index) => (
@@ -261,7 +236,7 @@ WeatherAccordion.propTypes = {
 
 function Weather(props) {
     const { classes, displayType, } = props;
-    const theme = useTheme();
+    //const theme = useTheme();
     const [accordionState, setAccordionState] = useState("Area Forecast Discussion");
     const [accordionBody, setAccordionBody] = useState("Click to view");
     const [dailyForecast, setDailyForecast] = useState({
@@ -385,10 +360,10 @@ function Weather(props) {
           });
     }, [setAppState]);
 
-    const transitionDuration = {
-      enter: theme.transitions.duration.enteringScreen,
-      exit: theme.transitions.duration.leavingScreen,
-    };
+    // const transitionDuration = {
+    //   enter: theme.transitions.duration.enteringScreen,
+    //   exit: theme.transitions.duration.leavingScreen,
+    // };
 
     const parseWeather = useCallback(() => {
         const titleResult = regexTests[0].test.exec(appState.data);
@@ -432,59 +407,6 @@ function Weather(props) {
             daily13: dailyConst[13],
           });
         });
-
-        // Axios.get(weatherLinks.forecastHourlyJSON)
-        // .then((data) => {
-        //   //console.log(data);
-        //   // const json = JSON.parse(data);
-        //   const periods = Object.keys(data.data.properties.periods);
-        //   const detailedForecast = [];
-        //   const endTime= [];
-        //   const icon= [];
-        //   const isDaytime= [];
-        //   const name= [];
-        //   const number= [];
-        //   const shortForecast= [];
-        //   const startTime= [];
-        //   const temperature= [];
-        //   const temperatureTrend= [];
-        //   const temperatureUnit= [];
-        //   const windDirection= [];
-        //   const windSpeed= [];
-        //   //console.log(periods);
-        //   const hourlyData = data.data.properties.periods;
-        //   var tempHourly =[];
-        //   for(var i=0; i< hourlyData.length; i++){
-        //     var period = hourlyData[i];
-        //     tempHourly.push(period);
-        //     temperature.push(hourlyData[i].temperature);
-        //     shortForecast.push(hourlyData[i].shortForecast);
-        //     name.push(hourlyData[i].name);
-        //     startTime.push(hourlyData[i].startTime);
-        //     endTime.push(hourlyData[i].endTime);
-        //     icon.push(hourlyData[i].icon);
-        //     isDaytime.push(hourlyData[i].isDaytime);
-        //     number.push(hourlyData[i].number);
-        //     temperatureTrend.push(hourlyData[i].temperatureTrend);
-        //     temperatureUnit.push(hourlyData[i].temperatureUnit);
-        //     windDirection.push(hourlyData[i].windDirection);
-        //     windSpeed.push(hourlyData[i].windSpeed);
-        //   }
-        //   console.log(tempHourly);
-        //   setHourlyForecast({
-        //     endTime: endTime, 
-        //     icon:icon, 
-        //     isDaytime:isDaytime, 
-        //     number:number, 
-        //     temperatureTrend:temperatureTrend,
-        //     temperatureUnit:temperatureUnit,
-        //     windDirection:windDirection,
-        //     windSpeed:windSpeed, 
-        //     name: name, 
-        //     shortForecast: shortForecast, 
-        //     startTime: startTime, 
-        //     temperature: temperature});
-        // });
 
         const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
         Axios.get(afdUrl)

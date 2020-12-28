@@ -1,4 +1,4 @@
-import { faCloudSun, faSun, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import {
@@ -30,7 +30,6 @@ import {
     WiNightClear,
     WiNightAltCloudy, 
     WiNightPartlyCloudy, 
-    WiNightAltPartlyCloudy,
  } from "weather-icons-react";
 
 export default function NwsIcons(iconURL, isDay) {

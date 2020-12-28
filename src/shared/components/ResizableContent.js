@@ -13,9 +13,14 @@ const ResizableContent = props => {
     left,
     width,
     height,
-    position: 'absolute',
-    border: "5px solid black",
-    transform: `rotate(${rotateAngle}deg)`
+    display: 'flex-inline',
+    // position: 'relative',
+    // border: "5px solid black",
+    transform: `rotate(${rotateAngle}deg)`,
+    '&:gblcbk': {
+      position: 'relative'
+    }
+
   }
 
   const handleResize = (style, isShiftKey, type) => {

@@ -1,7 +1,7 @@
 import React from "react";
 //import PropTypes from "prop-types";
 
-import { AcUnit, NightsStayTwoTone, Brightness3, Brightness5, Brightness7, CloudCircle, CloudQueue, FilterDrama, Flare, Grain, Warning, WbCloudy, WbSunny, FilterDramaTwoTone, CloudTwoTone, Cloud } from "@material-ui/icons";
+import { AcUnit, NightsStayTwoTone, Brightness7, Flare, Warning, WbSunny, Cloud } from "@material-ui/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCloudShowersHeavy, faCloudSun } from "@fortawesome/free-solid-svg-icons";
 //import weatherIcons from "weather-icons"

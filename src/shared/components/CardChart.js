@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   YAxis,
-  CartesianGrid,
   ReferenceLine,
 } from "recharts";
 import format from "date-fns/format";
@@ -56,7 +55,7 @@ function calculateMax(data, yKey, factor) {
 }
 
 function CustomizedAxisTick(props) {
-  const {x, y, stroke, payload} = props;
+  const {x, y, payload} = props;
   return (
     <g transform={`translate(${x},${y})`}>
       <text x={0} y={0} dy={16} textAnchor="end" fill="#666" fontSize={10} transform="rotate(-35)">{labelFormatter(payload.value)}</text>
@@ -68,7 +67,7 @@ const itemHeight = 216;
 const options = ["1 Week", "1 Day", "12 Hours"];
 
 function CardChart(props) {
-  const { color, data, title, classes, theme, height } = props;
+  const { data, title, classes, theme, height } = props;
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOption, setSelectedOption] = useState("1 Week");
 

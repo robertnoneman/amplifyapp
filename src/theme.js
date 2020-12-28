@@ -18,7 +18,7 @@ const warningDark = "#1e272c";
 //const sunnyYellow = "#ffe747";
 //const rainyBlue = "#2aadef";
 const textPrimary = "#eee";
-const textSecondary = "#73A397"
+//const textSecondary = "#73A397"
 const textDisabled = "#777";
 
 

@@ -64,7 +64,7 @@ function NavBar(props) {
   } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [hover, setHover] = useState(false);
+  //const [hover, setHover] = useState(false);
 
   const handlePopoverOpen = (event) => {
     setAnchorEl(event.currentTarget);

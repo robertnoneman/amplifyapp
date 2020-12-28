@@ -156,10 +156,10 @@ function SandboxPage(props) {
     setValue(index);
   };
 
-  const transitionDuration = {
-    enter: theme.transitions.duration.enteringScreen,
-    exit: theme.transitions.duration.leavingScreen,
-  };
+  // const transitionDuration = {
+  //   enter: theme.transitions.duration.enteringScreen,
+  //   exit: theme.transitions.duration.leavingScreen,
+  // };
 
 
   const [appState, setAppState] = useState({

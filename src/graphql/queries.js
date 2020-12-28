@@ -9,6 +9,9 @@ export const getNote = /* GraphQL */ `
       description
       createdAt
       updatedAt
+      index
+      colName
+      colIndex
     }
   }
 `;
@@ -25,6 +28,9 @@ export const listNotes = /* GraphQL */ `
         description
         createdAt
         updatedAt
+        index
+        colName
+        colIndex
       }
       nextToken
     }

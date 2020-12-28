@@ -12,6 +12,8 @@ export const createNote = /* GraphQL */ `
       description
       createdAt
       updatedAt
+      colName
+      colIndex
     }
   }
 `;
@@ -26,6 +28,9 @@ export const updateNote = /* GraphQL */ `
       description
       createdAt
       updatedAt
+      index
+      colName
+      colIndex
     }
   }
 `;
