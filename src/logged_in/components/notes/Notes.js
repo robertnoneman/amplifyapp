@@ -64,7 +64,15 @@ const styles = (theme) => ({
   }
 });
 
-const initialFormState = { name: '', description: ''};
+// const initialFormState = { name: '', description: ''};
+const initialFormState = { 
+  name: '', 
+  description: '',
+  index: 0,
+  colIndex: 0,
+  colName: "Todo",
+};
+
 
 const initialDescription = [
   {
@@ -183,6 +191,8 @@ function Notes(props) {
     if (!formData.name || !formData.description) return;
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
     setNotes([ ...notes, formData ]);
+    setState([ ...state, formData ]);
+    fetchNotes();
     setFormData(initialFormState);
   };
 
@@ -313,7 +323,7 @@ function Notes(props) {
       </Paper>
 
         <Paper className="lg-mg-top">
-          <Grid container direction="row" alignItems="stretch">
+          <Grid container spacing={3} direction="row" alignItems="stretch">
             <Grid item xs={12}>
               <Typography variant="h4">Your Tasks</Typography>
             </Grid>
@@ -347,15 +357,16 @@ function Notes(props) {
               <Grid container spacing={1} justify="flex-start">
                 {state.map((el, ind) => (
                 <Grid container direction="column" justify="flex-start" item xs key={ind}>
-                  <Grid item><Box className={classes.cardTitle}><Typography align="center">{colName[ind]}</Typography></Box></Grid>
                   <Droppable key={ind} droppableId={`${ind}`}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
+                        style={{ minHeight: "1000px" }}
                         // style={getListStyle(snapshot.isDraggingOver)}
                         {...provided.droppableProps}
                       >
                         {/* <Grid container spacing={1} direction="column"> */}
+                        <Grid item><Box className={classes.cardTitle}><Typography variant="h4" align="center">{colName[ind]}</Typography></Box></Grid>
                         {el.length > 0 && el.map((note, index) => (
                           <Grid item key={index}>
                             <Draggable key={note.id} draggableId={note.id} index={index}>
@@ -366,7 +377,7 @@ function Notes(props) {
                                   {...provided.dragHandleProps}
                                 >
                                     <Card className={classes.card}>
-                                      <Typography variant="h6">{note.colIndex} | {note.index} </Typography>
+                                      <Typography variant="subtitle1">{note.colIndex} | {note.index} </Typography>
                                       <Typography variant="h5">{note.name}</Typography>
                                       <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
                                       <Typography align="left" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{note.description}</Typography>
