@@ -26,14 +26,18 @@ const styles = (theme) => ({
     boxShadow: theme.shadows[2],
     paddingTop: theme.spacing(2),
     paddingBottom: theme.spacing(2),
-    paddingLeft: theme.spacing(4),
-    paddingRight: theme.spacing(4),
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
     border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: theme.shape.borderRadius * 2,
     background: 'linear-gradient(30deg, #2196f325 30%, #21cbf325 90%)',
-    maxWidth: '430px',
+    // maxWidth: '430px',
     // justifyContent: "flex-end"
     //marginTop: theme.spacing(2),
+  },
+  cardTitle: {
+    background: 'linear-gradient(30deg, #2196f3aa 30%, #21cbf3bb 90%)',
+    marginBottom: theme.spacing(2),
   },
   title: {
     transition: theme.transitions.create(["background-color"], {
@@ -80,6 +84,8 @@ const initialDescription = [
   }
 ];
 
+const colNames = ["Todo", "In Progress", "Done"];
+
 const getItems = (count, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map((k) => ({
     id: `item-${k + offset}-${new Date().getTime()}`,
@@ -117,24 +123,13 @@ function Notes(props) {
   const [state, setState] = useState([getItems(10), getItems(5, 10)]);
   const [formData, setFormData] = useState(initialFormState);
   const [loaded, hasLoaded] = useState(false);
-  const [loading, isLoading] = useState(true);
+  const [colName, setColNames] = useState(colNames);
   
-  //////////////// IDEAS
-  /*
-  1. in fetch notes, call a function that sets a state variable ONLY the first time (using a bool), then use THAT state variable for all of your tasks
-  */
-
   async function fetchNotes() {
-    isLoading(true);
     const apiData = await API.graphql({ query: listNotes });
     setNotes(apiData.data.listNotes.items);
-    
-    //console.log(`Notes: ${apiData.data.listNotes.items}`)
-
-    //const nameDescriptions = [];
     const tempNotes = apiData.data.listNotes.items;
     const noteCols = [[], [], []];
-    //setState([...notes, tempNotes]);
     tempNotes.forEach(element => {
       // console.log(`Note index: ${element.index}`)
       // console.log(`Col index: ${element.colIndex}`)
@@ -154,7 +149,10 @@ function Notes(props) {
         }
       }
     });
-
+    // for (var j = 0; j < noteCols.length; j++)
+    // {
+    //   setNoteCards([...noteCards, noteCols[j]])
+    // }
     setNoteCards([noteCols[0], noteCols[1], noteCols[2]]);
   };
     // setState([tempNotes]);
@@ -189,16 +187,26 @@ function Notes(props) {
   };
 
   async function updateNote(result) {
-    isLoading(true);
     const { source, destination } = result;
     const id = +source.droppableId;
     if (!destination) return;
     const index = destination.index;
     
     await API.graphql({ query: updateNoteMutation, variables: { input: { id: result.draggableId, index: index, colIndex: id } }});
-    isLoading(false);
-    //setNotes([ ...notes]);
-    //fetchNotes();
+  }
+
+  async function saveNotes() {
+    const noteCardsClone = Array.from(state);
+    for (var i=0; i< state.length; i++) {
+      for (var k=0; k < state[i].length; k++) {
+        if (!noteCards[i][k] || noteCards[i][k].colIndex !== i || noteCards[i][k].index !== k) {
+          await API.graphql({ query: updateNoteMutation, variables: { input: { id: state[i][k].id, index: k, colIndex: i } }});
+          noteCardsClone[i][k].index = k;
+          noteCardsClone[i][k].colIndex = i;
+        }
+      }
+    }
+    setNoteCards(noteCardsClone, ...noteCardsClone);
   }
 
   async function deleteNote({ id }) {
@@ -209,22 +217,11 @@ function Notes(props) {
 
   async function printNote() {
     setState(noteCards, ...noteCards);
-
-        // for(var i=0; i< notes.length; i++){
-        //   console.log(`Notes: ${notes[i].name} - ${notes[i].description}`)
-        // };
-        // for(var j=0; j< description.length; j++){
-        //   console.log(`Description: ${description[j].name} - ${description[j].description}`)
-        // };
-        // for(var k=0; k< initialDescription.length; k++){
-        // console.log(`initialDescription: ${initialDescription[k].name} - ${initialDescription[k].description}`)
-        // };
-        // setNoteCards(description)
+    hasLoaded(true);
   };
 
   function onDragEnd(result) {
     const { source, destination } = result;
-    //updateNote(result);
 
     // dropped outside the list
     if (!destination) {
@@ -246,7 +243,7 @@ function Notes(props) {
       newState[dInd] = result[dInd];
 
       // setState(newState.filter(group => group.length));
-      setState(newState.filter(group => group.length));
+      setState(newState);
     }
 
   }
@@ -316,8 +313,11 @@ function Notes(props) {
       </Paper>
 
         <Paper className="lg-mg-top">
-          <Grid container direction="column" alignItems="stretch">
-            <Typography variant="h4">Your Tasks</Typography>
+          <Grid container direction="row" alignItems="stretch">
+            <Grid item xs={12}>
+              <Typography variant="h4">Your Tasks</Typography>
+            </Grid>
+            <Grid item xs>
             <Button
               variant="contained"
               color="secondary"
@@ -326,6 +326,18 @@ function Notes(props) {
             >
               Load tasks from server
             </Button>
+            </Grid>
+            <Grid item xs>
+            <Button
+              variant="contained"
+              color="secondary"
+              disabled={loaded? false : true}
+              // style={{display: "flex-end"}}
+              onClick={(saveNotes)}
+            >
+              Save notes to server
+            </Button>
+            </Grid>
           </Grid>
           <Divider />
           {/* <Grid container spacing={1}> */}
@@ -334,7 +346,8 @@ function Notes(props) {
             <Box p={1}>
               <Grid container spacing={1} justify="flex-start">
                 {state.map((el, ind) => (
-                <Grid container item xs key={ind}>
+                <Grid container direction="column" justify="flex-start" item xs key={ind}>
+                  <Grid item><Box className={classes.cardTitle}><Typography align="center">{colName[ind]}</Typography></Box></Grid>
                   <Droppable key={ind} droppableId={`${ind}`}>
                     {(provided, snapshot) => (
                       <div
@@ -353,8 +366,8 @@ function Notes(props) {
                                   {...provided.dragHandleProps}
                                 >
                                     <Card className={classes.card}>
-                                      <Typography variant="h6">{note.index}</Typography>
-                                      <Typography variant="h5">{note.id}</Typography>
+                                      <Typography variant="h6">{note.colIndex} | {note.index} </Typography>
+                                      <Typography variant="h5">{note.name}</Typography>
                                       <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
                                       <Typography align="left" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{note.description}</Typography>
                                       <Button 
