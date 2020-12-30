@@ -157,6 +157,7 @@ function Notes(props) {
         }
       }
     });
+
     // for (var j = 0; j < noteCols.length; j++)
     // {
     //   setNoteCards([...noteCards, noteCols[j]])
@@ -190,8 +191,20 @@ function Notes(props) {
   async function createNote() {
     if (!formData.name || !formData.description) return;
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
+    // Copy the 'Todo' column so that we can append it.
+    const items = state[0];
+    // Add the new note to the todo column
+    formData.id = `newLocalNote ${new Date().getTime()}`;
+    items.push(formData);
+    // Copy the current state.
+    const newState = [...state];
+    // Insert the updated Todo column
+    newState[0] = items;
+    // Set the state variable (tracks locally)
+    setState(newState);
+
     setNotes([ ...notes, formData ]);
-    setState([ ...state, formData ]);
+    // setState([ ...state, formData ]);
     fetchNotes();
     setFormData(initialFormState);
   };
@@ -226,7 +239,18 @@ function Notes(props) {
   };
 
   async function printNote() {
-    setState(noteCards, ...noteCards);
+    const sortedCols = [...noteCards];
+    for (var j = 0; j < noteCards.length; j++)
+    {
+      const sorted = sortedCols[j];
+      if(sortedCols[j] !== null && sortedCols[j].length > 0)
+      {
+        sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
+      }
+      // sortedCols[j] = sorted;
+    }
+    // setState(noteCards, ...noteCards);
+    setState(sortedCols);
     hasLoaded(true);
   };
 
