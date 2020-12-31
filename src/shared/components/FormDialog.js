@@ -6,10 +6,10 @@ import DialogTitleWithCloseIcon from "./DialogTitleWithCloseIcon";
 const styles = theme => ({
   dialogPaper: {
     display: "flex",
-    flexDirection: "column",
+    // flexDirection: "column",
     alignItems: "center",
     paddingBottom: theme.spacing(3),
-    maxWidth: 420
+    maxWidth: 1080
   },
   actions: {
     marginTop: theme.spacing(2)
@@ -19,7 +19,9 @@ const styles = theme => ({
   },
   dialogContent: {
     paddingTop: 0,
-    paddingBottom: 0
+    paddingBottom: 0,
+    // display: "flex",
+    width: "100%",
   }
 });
 
@@ -37,7 +39,8 @@ function FormDialog(props) {
     onFormSubmit,
     content,
     actions,
-    hideBackdrop
+    hideBackdrop,
+    disablePadding
   } = props;
   return (
     <Dialog
@@ -55,6 +58,7 @@ function FormDialog(props) {
         title={headline}
         onClose={onClose}
         disabled={loading}
+        disablePadding={disablePadding}
       />
       <DialogContent className={classes.dialogContent}>
         <form onSubmit={onFormSubmit}>

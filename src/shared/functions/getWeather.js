@@ -109,7 +109,7 @@ function WeatherComponent(props) {
         {hourlyData.tempChartData.length >= 2 && (
           <CardChart 
           data={hourlyData.tempChartData}
-          color={theme.palette.primary.light}
+          color={theme.palette.common.black}
           height="370px"
           title="Hourly Temperature"
           />

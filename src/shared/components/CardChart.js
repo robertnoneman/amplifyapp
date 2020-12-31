@@ -27,7 +27,7 @@ const styles = (theme) => ({
     marginTop: theme.spacing(-4),
   },
   card: {
-    backgroundColor: theme.palette.primary.dark,
+    backgroundColor: theme.palette.common.black,
   }
 });
 

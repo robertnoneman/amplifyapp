@@ -1,18 +1,14 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React, { useState } from "react";
 import { 
-  Box,
-  Button,
   Card,
   Divider,
-  Grid,
   IconButton,
-  Paper,
-  TextField,
-  //Toolbar,
   Typography,
   withStyles,
-} from "@material-ui/core"
+} from "@material-ui/core";
+import MuiAccordion from '@material-ui/core/Accordion';
+import MuiAccordionSummary from '@material-ui/core/AccordionSummary';
+import MuiAccordionDetails from '@material-ui/core/AccordionDetails';
 import { DeleteOutline, EditOutlined } from "@material-ui/icons";
 
 const styles = theme => ({
@@ -59,32 +55,93 @@ const styles = theme => ({
     marginRight: theme.spacing(2),
     // display: grid
   },
+  timeStamp: {
+    fontSize: "11px",
+    // alignSelf: "flex-start" // NOTE: Doesn't seem to do anything
+  },
   cardFooter: {
     display: "flex",
     justifyContent: "flex-end",
   }
 });
 
+const Accordion = withStyles({
+  root: {
+    border: '1px solid rgba(0, 0, 0, .125)',
+    backgroundColor: 'rgba(0, 0, 0, .125)',
+    borderRadius: "4px",
+    boxShadow: 'none',
+    '&:not(:last-child)': {
+      borderBottom: 0,
+    },
+    '&:before': {
+      display: 'none',
+    },
+    '&$expanded': {
+      margin: 'auto',
+    },
+  },
+  expanded: {},
+})(MuiAccordion);
+
+const AccordionSummary = withStyles({
+  root: {
+    backgroundColor: 'rgba(0, 0, 0, .001)',
+    borderBottom: '1px solid rgba(0, 0, 0, .125)',
+    marginBottom: -1,
+    minHeight: 56,
+    '&$expanded': {
+      minHeight: 56,
+    },
+  },
+  content: {
+    '&$expanded': {
+      margin: '12px 0',
+    },
+  },
+  expanded: {},
+})(MuiAccordionSummary);
+
+const AccordionDetails = withStyles((theme) => ({
+  root: {
+    padding: theme.spacing(2),
+  },
+}))(MuiAccordionDetails);
+
 function TaskCard(props) {
-  const { classes, index, colIndex, name, description, createdAt, theme, deleteNote, openEditForm, } = props;
+  const { classes, name, description, createdAt, theme, deleteNote, openEditForm, } = props;
+  const [expanded, setExpanded] = useState('false');
+
+  const handleChange = (panel) => (event, newExpanded) => {
+    setExpanded(newExpanded ? panel : false);
+  };
+
   return (
     <Card className={classes.card}>
-      <Typography variant="subtitle2" align="right">{createdAt}</Typography>
-      <Typography variant="h6" align="left">{name}</Typography>
-      <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
-      <Typography align="left" variant="subtitle2" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{description}</Typography>
+      <Typography className={classes.timeStamp} align="right">{createdAt}</Typography>
+      <Accordion square expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+        <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
+          <Typography variant="subtitle1" align="left">{name}</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
+          <Typography align="left" variant="body2" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{description}</Typography>
+        </AccordionDetails>
+      </Accordion>
       <div className={classes.cardFooter}>
         <IconButton
+          size="small"
           onClick={openEditForm}
         >
-          <EditOutlined color="primary"/>
+          <EditOutlined fontSize="small" color="primary"/>
         </IconButton> 
         <IconButton
           onClick={deleteNote}
+          size="small"
           align="right"
           justify="right"
         >
-          <DeleteOutline color="primary"/>
+          <DeleteOutline fontSize="inherit" color="primary"/>
         </IconButton>
       </div>
     </Card>

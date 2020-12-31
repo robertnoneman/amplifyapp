@@ -885,7 +885,7 @@ function Weather(props) {
                   <TimelineDot className={element.condition === "dayCloudy" ? classes.weatherDotCloudyDay : element.condition === "dayRain" ? classes.weatherDotCloudyDay : element.condition === "daySnow" ? classes.weatherDotCloudyDay : element.isDaytime ? classes.weatherDotClearDay : classes.weatherDotClearNight}>
                   {/* <TimelineDot className={element.condition}> */}
                     {element.icon}
-                    <img src={element.icon} alt=""/>
+                    {/* <img src={element.icon} alt=""/> */}
                   </TimelineDot>
                   <TimelineConnector />
                 </TimelineSeparator>

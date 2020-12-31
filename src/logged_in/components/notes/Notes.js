@@ -30,6 +30,14 @@ const styles = (theme) => ({
   newNote: {
     paddingBottom: theme.spacing(2),
   },
+  notePaper: {
+    paddingTop: theme.spacing(2),
+  },
+  taskColumn: {
+    background: theme.palette.common.black,
+    border: `1px solid ${theme.palette.common.darkBlack}`,
+    borderRadius: theme.shape.borderRadius * 2,
+  },
   card: {
     boxShadow: theme.shadows[2],
     paddingTop: theme.spacing(2),
@@ -44,7 +52,7 @@ const styles = (theme) => ({
     //marginTop: theme.spacing(2),
   },
   cardTitle: {
-    background: 'linear-gradient(30deg, #2196f3aa 30%, #21cbf3bb 90%)',
+    // background: 'linear-gradient(30deg, #2196f3aa 30%, #21cbf3bb 90%)',
     marginBottom: theme.spacing(2),
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
@@ -147,6 +155,7 @@ function Notes(props) {
     setIsOpen(false);
     setFormData(initialFormState);
     setCurrentTask(initialFormState);
+    fetchNotes();
   }, [setIsOpen]);
   
   async function fetchNotes() {
@@ -221,17 +230,32 @@ function Notes(props) {
   }
 
   async function saveNotes() {
-    const noteCardsClone = Array.from(state);
+    const noteCardsClone = Array.from(noteCards);
+    var changed;
     for (var i=0; i< state.length; i++) {
       for (var k=0; k < state[i].length; k++) {
-        if (!noteCards[i][k] || noteCards[i][k].colIndex !== i || noteCards[i][k].index !== k) {
+        if (!noteCards[i][k] || 
+            noteCards[i][k].colIndex !== i || 
+            noteCards[i][k].index !== k ||
+            noteCards[i][k].id !== state[i][k].id
+            // || noteCards[i][k].colIndex !== state[i][k].index 
+            // || noteCards[i][k].index !== state[i][k].index
+            ) {
+          changed = true;
           await API.graphql({ query: updateNoteMutation, variables: { input: { id: state[i][k].id, index: k, colIndex: i } }});
+          
           noteCardsClone[i][k].index = k;
           noteCardsClone[i][k].colIndex = i;
         }
       }
     }
-    setNoteCards(noteCardsClone, ...noteCardsClone);
+    if (changed) fetchNotes();
+    // const timeout = setTimeout(() => {
+    //   setNoteCards(state, ...state);
+    // }, 750);
+    // return () => {
+    //   clearTimeout(timeout);
+    // }
   }
 
   async function deleteNote({ id }) {
@@ -245,6 +269,7 @@ function Notes(props) {
   };
 
   async function printNote() {
+    fetchNotes();
     const sortedCols = [...noteCards];
     for (var j = 0; j < noteCards.length; j++)
     {
@@ -274,6 +299,7 @@ function Notes(props) {
       const newState = [...state];
       newState[sInd] = items;
       setState(newState);
+      saveNotes();
     } else {
       const result = move(state[sInd], state[dInd], source, destination);
       const newState = [...state];
@@ -281,6 +307,16 @@ function Notes(props) {
       newState[dInd] = result[dInd];
       // setState(newState.filter(group => group.length));
       setState(newState);
+      saveNotes();
+    }
+  }
+
+  async function delayedSave() {
+    const timeout = setTimeout(() => {
+      saveNotes();
+    }, 100);
+    return () => {
+      clearTimeout(timeout);
     }
   }
 
@@ -292,10 +328,11 @@ function Notes(props) {
   useEffect(selectNotes, [selectNotes]);
 
   useEffect(() => {
+    // fetchNotes();
     const timeoutID = setTimeout(() => {
       // printNote();
       const sortedCols = [...noteCards];
-      for (var j = 0; j < noteCards.length; j++)
+      for (var j = 0; j < sortedCols.length; j++)
       {
         const sorted = sortedCols[j];
         if(sortedCols[j] !== null && sortedCols[j].length > 0)
@@ -321,8 +358,8 @@ function Notes(props) {
         createNote={createNewNote}
         editNote={editNote}
       />
-        <Paper className="lg-mg-top">
-          <Grid container spacing={3} direction="row" alignItems="stretch">
+        {/* <Paper className={classes.notePaper}> */}
+          {/* <Grid container spacing={3} direction="row" alignItems="stretch" >
             <Grid item xs={12}>
               <Typography variant="h4">Your Tasks</Typography>
             </Grid>
@@ -346,24 +383,25 @@ function Notes(props) {
             </Button>
             </Grid>
           </Grid>
-          <Divider />
+          <Divider /> */}
           {/* <Grid container spacing={1}> */}
             <DragDropContext onDragEnd={(onDragEnd)}>
             <Box p={1}>
               <Grid container spacing={1} justify="flex-start">
                 {state.map((el, ind) => (
                 <Grid container direction="column" justify="flex-start" item xs key={ind}>
+                  <Box display="flex" alignItems="center" justifyContent="center" className={classes.taskColumn}>
                   <Droppable key={ind} droppableId={`${ind}`}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
-                        style={{ minHeight: "1000px" }}
+                        style={{ minHeight: "1000px", }}
                         // style={getListStyle(snapshot.isDraggingOver)}
                         {...provided.droppableProps}
                       >
                         {/* <Grid container spacing={1} direction="column"> */}
-                        <Grid item><Box className={classes.cardTitle}><Typography variant="h5" align="left">{colName[ind]}</Typography></Box></Grid>
-                        <Grid item container spacing={1} direction="column" xs>
+                        <Grid item><Box className={classes.cardTitle}><Typography variant="h6" align="left">{colName[ind]}</Typography></Box></Grid>
+                        <Grid item container spacing={1} direction="column" xs justify="center">
                           {el.length > 0 && el.map((note, index) => (
                             <Grid item key={index}>
                               <Draggable key={note.id} draggableId={note.id} index={index}>
@@ -392,13 +430,14 @@ function Notes(props) {
                       </div>
                     )}
                   </Droppable>
+                  </Box>
                 </Grid>
                 ))}
               </Grid>
             </Box>
             </DragDropContext>
           {/* </Grid> */}
-        </Paper>
+        {/* </Paper> */}
 
         <Paper className={classes.newNote}>
         <Grid spacing={0} container>

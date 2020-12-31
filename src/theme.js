@@ -40,8 +40,8 @@ const theme = createMuiTheme({
   palette: {
     primary: { 
       main: primary,
-      dark: darkBlack,
-      light: warningMain,
+      // dark: darkBlack,
+      // light: warningMain,
       text: textPrimary 
     },
     secondary: { 
@@ -49,7 +49,7 @@ const theme = createMuiTheme({
       contrastText: textPrimary 
     },
     common: {
-      black,
+      black: black,
       darkBlack: darkBlack,
       background: background,
     },
@@ -135,7 +135,7 @@ const theme = createMuiTheme({
     MuiDialog: {
       paper: {
         width: "100%",
-        maxWidth: 430,
+        maxWidth: 1080,
         marginLeft: spacing,
         marginRight: spacing
       }
