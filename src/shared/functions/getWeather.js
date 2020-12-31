@@ -13,41 +13,6 @@ import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import TimelineDot from '@material-ui/lab/TimelineDot';
 import CardChart from "../components/CardChart"
 
-
-// const cheerio = require('cheerio')
-
-// const WeatherData = (props) => {
-//   const {data} = props;
- 
-//   if (!data) return <p>No data, sorry</p>
-//   return (
-//     <Typography>{data}</Typography>
-//   )
-// }
-
-// function getWeather(props) {
-//   Axios.get('https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD').then((response) => {
-//     const $ = cheerio.load(response.data)
-//     const afd = $('pre.glossaryProduct')
-//     if (afd) {
-//       const afdText = afd.text();
-//       const text = afdText;
-//       //console.log(text);
-//       //data = afdText;
-//       // console.log(afdText);
-//       // return afdText;
-//       return text;
-//     }
-//     else 
-//     {
-//       return $('pre.glossaryProduct').text();
-//     }
-//     // console.log(response.data);
-//   })
-// }
-
-
-
 function WeatherComponent(props) {
   const { theme } = props;
   const [hourlyData, setHourlyData] = useState({

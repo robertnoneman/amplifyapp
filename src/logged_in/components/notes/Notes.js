@@ -1,7 +1,9 @@
-import React, { useState, useEffect, Fragment, } from "react";
+import React, { useState, useEffect, Fragment, useRef, useCallback, } from "react";
 import { API } from 'aws-amplify';
 import { listNotes } from '../../../graphql/queries';
-import { createNote as createNoteMutation, updateNote as updateNoteMutation, deleteNote as deleteNoteMutation, updateNote } from '../../../graphql/mutations';
+import { createNote as createNoteMutation, updateNote as updateNoteMutation, deleteNote as deleteNoteMutation, 
+  // updateNote, 
+} from '../../../graphql/mutations';
 // import awsconfig from '../../../aws-exports';
 import PropTypes from "prop-types";
 import { 
@@ -10,13 +12,19 @@ import {
   Card,
   Divider,
   Grid,
+  IconButton,
   Paper,
   TextField,
-  Toolbar,
+  //Toolbar,
   Typography,
   withStyles,
 } from "@material-ui/core"
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import TaskCard from "./TaskCard";
+import { DeleteOutline, Edit, EditOutlined } from "@material-ui/icons";
+import format from "date-fns/format";
+import EditTaskForm from "./EditTaskForm";
+
 
 const styles = (theme) => ({
   newNote: {
@@ -38,6 +46,10 @@ const styles = (theme) => ({
   cardTitle: {
     background: 'linear-gradient(30deg, #2196f3aa 30%, #21cbf3bb 90%)',
     marginBottom: theme.spacing(2),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
   },
   title: {
     transition: theme.transitions.create(["background-color"], {
@@ -61,7 +73,12 @@ const styles = (theme) => ({
   toolbar: {
     marginRight: theme.spacing(2),
     // display: grid
+  },
+  cardFooter: {
+    display: "flex",
+    justifyContent: "flex-end",
   }
+  
 });
 
 // const initialFormState = { name: '', description: ''};
@@ -73,26 +90,11 @@ const initialFormState = {
   colName: "Todo",
 };
 
-
-const initialDescription = [
-  {
-    id: "placeholder0",
-    name: "todo",
-    description: ["Read chapters for next class"]
-  },
-  {
-    id: "placeholder1",
-    name: "doing",
-    description: ["Complete in-class activity", "Brainsotrm project ideas"]
-  },
-  {
-    id: "placeholder2",
-    name: "done",
-    description: []
-  }
-];
-
 const colNames = ["Todo", "In Progress", "Done"];
+
+function labelFormatter(label) {
+  return format(new Date(label * 1000), "MMM d, p");
+}
 
 const getItems = (count, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map((k) => ({
@@ -101,8 +103,6 @@ const getItems = (count, offset = 0) =>
   }));
 
 const reorder = (list, startIndex, endIndex) => {
-  //updateNote();
-  //if (!list) return;
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
   result.splice(endIndex, 0, removed);
@@ -125,13 +125,29 @@ const move = (source, destination, droppableSource, droppableDestination) => {
 };
 
 function Notes(props) {
-  const { classes, theme, selectNotes } = props;
+  const { classes, theme, selectNotes, } = props;
   const [notes, setNotes] = useState([]);
   const [noteCards, setNoteCards] = useState([getItems(10), getItems(5, 10)]);
   const [state, setState] = useState([getItems(10), getItems(5, 10)]);
   const [formData, setFormData] = useState(initialFormState);
   const [loaded, hasLoaded] = useState(false);
   const [colName, setColNames] = useState(colNames);
+  const [currentTask, setCurrentTask] = useState(initialFormState);
+  const [isNew, setIsNew] = useState(false);
+
+  const anchorEl = useRef();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClick = useCallback((noteData) => {
+    setIsOpen(!isOpen);
+    setCurrentTask(noteData);
+  }, [isOpen, setIsOpen]);
+
+  const handleClickAway = useCallback(() => {
+    setIsOpen(false);
+    setFormData(initialFormState);
+    setCurrentTask(initialFormState);
+  }, [setIsOpen]);
   
   async function fetchNotes() {
     const apiData = await API.graphql({ query: listNotes });
@@ -145,48 +161,18 @@ function Notes(props) {
       if (!nameExists) {
         noteCols.push(element.colName);
       }
-
       for (var i=0; i< noteCols.length; i++)
       {
-        if(element.colIndex === null){
+        if (element.colIndex === null) {
           element.colIndex = 0;
         }
-        // var inColumn = noteCols[i].includes(element);
-        if(i === element.colIndex){
+        if (i === element.colIndex) {
           noteCols[i].push(element);
         }
       }
     });
-
-    // for (var j = 0; j < noteCols.length; j++)
-    // {
-    //   setNoteCards([...noteCards, noteCols[j]])
-    // }
     setNoteCards([noteCols[0], noteCols[1], noteCols[2]]);
   };
-    // setState([tempNotes]);
-    // tempNotes.map((note, index) => (
-      //   nameDescriptions[index] = {
-      //     name: note.name,
-      //     description: note.description
-      //   }
-      // ))
-
-      //console.log(`nameDescpriptions: ${nameDescriptions}`);
-    // setState([tempNotes])
-    // for (var i=0; i< noteCols.length; i++) {
-    //   setState([noteCols]);
-    // }
-    // if(!loaded)
-    // {
-    //   setState([noteCols[0], noteCols[1], noteCols[2]]);
-    //   hasLoaded(true);
-    // }
-    
-    // isLoading(false);
-    // setNotes([noteCols[0], noteCols[1], noteCols[2]]);
-    // setNoteCards([...noteCols]);
-  // };
 
   async function createNote() {
     if (!formData.name || !formData.description) return;
@@ -202,20 +188,36 @@ function Notes(props) {
     newState[0] = items;
     // Set the state variable (tracks locally)
     setState(newState);
-
+    setNotes([ ...notes, formData ]);
+    // setState([ ...state, formData ]);
+    fetchNotes();
+    setFormData(initialFormState);
+  };
+  async function createNewNote() {
+    if (!formData.name || !formData.description) return;
+    await API.graphql({ query: createNoteMutation, variables: { input: formData } });
+    // Copy the 'Todo' column so that we can append it.
+    const items = state[0];
+    // Add the new note to the todo column
+    formData.id = `newLocalNote ${new Date().getTime()}`;
+    items.push(formData);
+    // Copy the current state.
+    const newState = [...state];
+    // Insert the updated Todo column
+    newState[0] = items;
+    // Set the state variable (tracks locally)
+    setState(newState);
     setNotes([ ...notes, formData ]);
     // setState([ ...state, formData ]);
     fetchNotes();
     setFormData(initialFormState);
   };
 
-  async function updateNote(result) {
-    const { source, destination } = result;
-    const id = +source.droppableId;
-    if (!destination) return;
-    const index = destination.index;
-    
-    await API.graphql({ query: updateNoteMutation, variables: { input: { id: result.draggableId, index: index, colIndex: id } }});
+  // TODO: Create new form component similar to "create note" area, 
+  //       Render it on the note itself or open a modal edit form
+  async function editNote(noteData) {
+
+    await API.graphql({ query: updateNoteMutation, variables: { input: noteData }});
   }
 
   async function saveNotes() {
@@ -234,7 +236,11 @@ function Notes(props) {
 
   async function deleteNote({ id }) {
     const newNotesArray = notes.filter(note => note.id !== id);
+    const newNotesClone = Array.from(state);
+    const newTasksArray = newNotesClone.filter(note => note.id !== id);
     setNotes(newNotesArray);
+    // NOTE: This might break things!!
+    setNoteCards(newTasksArray);
     await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
   };
 
@@ -247,7 +253,6 @@ function Notes(props) {
       {
         sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
       }
-      // sortedCols[j] = sorted;
     }
     // setState(noteCards, ...noteCards);
     setState(sortedCols);
@@ -268,18 +273,15 @@ function Notes(props) {
       const items = reorder(state[sInd], source.index, destination.index);
       const newState = [...state];
       newState[sInd] = items;
-      // setState(newState);
       setState(newState);
     } else {
       const result = move(state[sInd], state[dInd], source, destination);
       const newState = [...state];
       newState[sInd] = result[sInd];
       newState[dInd] = result[dInd];
-
       // setState(newState.filter(group => group.length));
       setState(newState);
     }
-
   }
 
   useEffect(() => {
@@ -289,9 +291,116 @@ function Notes(props) {
 
   useEffect(selectNotes, [selectNotes]);
 
+  useEffect(() => {
+    const timeoutID = setTimeout(() => {
+      // printNote();
+      const sortedCols = [...noteCards];
+      for (var j = 0; j < noteCards.length; j++)
+      {
+        const sorted = sortedCols[j];
+        if(sortedCols[j] !== null && sortedCols[j].length > 0)
+        {
+          sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
+        }
+      }
+      // setState(noteCards, ...noteCards);
+      setState(sortedCols);
+      hasLoaded(true);
+    }, 750);
+    return () => {
+      clearTimeout(timeoutID);
+    }
+  }, [noteCards]);
+
   return (
     <Fragment>
-      <Paper className={classes.newNote}>
+      <EditTaskForm
+        open={isOpen}
+        onClose={handleClickAway}
+        taskData={currentTask}
+        createNote={createNewNote}
+        editNote={editNote}
+      />
+        <Paper className="lg-mg-top">
+          <Grid container spacing={3} direction="row" alignItems="stretch">
+            <Grid item xs={12}>
+              <Typography variant="h4">Your Tasks</Typography>
+            </Grid>
+            <Grid item xs>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={(fetchNotes, printNote)}
+            >
+              Load tasks from server
+            </Button>
+            </Grid>
+            <Grid item xs>
+            <Button
+              variant="contained"
+              color="secondary"
+              disabled={loaded? false : true}
+              onClick={(saveNotes)}
+            >
+              Save notes to server
+            </Button>
+            </Grid>
+          </Grid>
+          <Divider />
+          {/* <Grid container spacing={1}> */}
+            <DragDropContext onDragEnd={(onDragEnd)}>
+            <Box p={1}>
+              <Grid container spacing={1} justify="flex-start">
+                {state.map((el, ind) => (
+                <Grid container direction="column" justify="flex-start" item xs key={ind}>
+                  <Droppable key={ind} droppableId={`${ind}`}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        style={{ minHeight: "1000px" }}
+                        // style={getListStyle(snapshot.isDraggingOver)}
+                        {...provided.droppableProps}
+                      >
+                        {/* <Grid container spacing={1} direction="column"> */}
+                        <Grid item><Box className={classes.cardTitle}><Typography variant="h5" align="left">{colName[ind]}</Typography></Box></Grid>
+                        <Grid item container spacing={1} direction="column" xs>
+                          {el.length > 0 && el.map((note, index) => (
+                            <Grid item key={index}>
+                              <Draggable key={note.id} draggableId={note.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                  >
+                                      <TaskCard
+                                        index={note.index}
+                                        colIndex={note.colIndex}
+                                        name={note.name}
+                                        description={note.description}
+                                        createdAt={note.createdAt}
+                                        openEditForm={() => handleClick(note)}
+                                        deleteNote={() => deleteNote(note)} 
+                                      />
+                                  </div>
+                                )}
+                              </Draggable>
+                            </Grid>
+                          ))}
+                        </Grid>
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </Grid>
+                ))}
+              </Grid>
+            </Box>
+            </DragDropContext>
+          {/* </Grid> */}
+        </Paper>
+
+        <Paper className={classes.newNote}>
         <Grid spacing={0} container>
           <Grid
             item
@@ -345,93 +454,6 @@ function Notes(props) {
           </Grid>
         </Grid>
       </Paper>
-
-        <Paper className="lg-mg-top">
-          <Grid container spacing={3} direction="row" alignItems="stretch">
-            <Grid item xs={12}>
-              <Typography variant="h4">Your Tasks</Typography>
-            </Grid>
-            <Grid item xs>
-            <Button
-              variant="contained"
-              color="secondary"
-              // style={{display: "flex-end"}}
-              onClick={(fetchNotes, printNote)}
-            >
-              Load tasks from server
-            </Button>
-            </Grid>
-            <Grid item xs>
-            <Button
-              variant="contained"
-              color="secondary"
-              disabled={loaded? false : true}
-              // style={{display: "flex-end"}}
-              onClick={(saveNotes)}
-            >
-              Save notes to server
-            </Button>
-            </Grid>
-          </Grid>
-          <Divider />
-          {/* <Grid container spacing={1}> */}
-
-            <DragDropContext onDragEnd={(onDragEnd)}>
-            <Box p={1}>
-              <Grid container spacing={1} justify="flex-start">
-                {state.map((el, ind) => (
-                <Grid container direction="column" justify="flex-start" item xs key={ind}>
-                  <Droppable key={ind} droppableId={`${ind}`}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        style={{ minHeight: "1000px" }}
-                        // style={getListStyle(snapshot.isDraggingOver)}
-                        {...provided.droppableProps}
-                      >
-                        {/* <Grid container spacing={1} direction="column"> */}
-                        <Grid item><Box className={classes.cardTitle}><Typography variant="h4" align="center">{colName[ind]}</Typography></Box></Grid>
-                        {el.length > 0 && el.map((note, index) => (
-                          <Grid item key={index}>
-                            <Draggable key={note.id} draggableId={note.id} index={index}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                >
-                                    <Card className={classes.card}>
-                                      <Typography variant="subtitle1">{note.colIndex} | {note.index} </Typography>
-                                      <Typography variant="h5">{note.name}</Typography>
-                                      <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
-                                      <Typography align="left" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{note.description}</Typography>
-                                      <Button 
-                                        variant="outlined"
-                                        color="primary"
-                                        onClick={() => deleteNote(note)}
-                                      >
-                                        Delete note
-                                      </Button>
-                                    </Card>
-                                  {/*  */}
-                                  </div>
-                            )}
-                            </Draggable>
-                          </Grid>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </Grid>
-                ))}
-                  
-              </Grid>
-            </Box>
-            </DragDropContext>
-          {/* </Grid> */}
-        </Paper>
-
     </Fragment>
   )
 };
@@ -441,3 +463,28 @@ Notes.propTypes = {
 }
 
 export default withStyles(styles, { withTheme: true })(Notes);
+
+
+// {/* <Card className={classes.card}>
+// <Typography variant="subtitle2" align="right">
+//   {/* {note.colIndex} | {note.index}  */}
+//   {note.createdAt}
+// </Typography>
+// <Typography variant="h6" align="left">{note.name}</Typography>
+// <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
+// <Typography align="left" variant="subtitle2" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{note.description}</Typography>
+// <div className={classes.cardFooter}>
+//   <IconButton
+//     // onClick={() => editNote(note)}
+//   >
+//     <EditOutlined color="primary"/>
+//   </IconButton> 
+//   <IconButton
+//     onClick={() => deleteNote(note)}
+//     align="right"
+//     justify="right"
+//   >
+//     <DeleteOutline color="primary"/>
+//   </IconButton>
+// </div>
+// </Card> */}
