@@ -10,6 +10,8 @@ import MuiAccordion from '@material-ui/core/Accordion';
 import MuiAccordionSummary from '@material-ui/core/AccordionSummary';
 import MuiAccordionDetails from '@material-ui/core/AccordionDetails';
 import { DeleteOutline, EditOutlined } from "@material-ui/icons";
+import ReactMarkdown from "react-markdown";
+import gfm from "remark-gfm"
 
 const styles = theme => ({
   newNote: {
@@ -21,7 +23,7 @@ const styles = theme => ({
     // paddingBottom: theme.spacing(1),
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(2),
-    border: `1px solid ${theme.palette.secondary.main}`,
+    // border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: theme.shape.borderRadius * 1,
     background: 'linear-gradient(30deg, #2196f325 30%, #21cbf325 90%)',
     // maxWidth: '430px',
@@ -56,7 +58,9 @@ const styles = theme => ({
     // display: grid
   },
   timeStamp: {
-    fontSize: "11px",
+    fontSize: "10.5px",
+    alignItems: "flex-start",
+    marginTop: "-10px",
     // alignSelf: "flex-start" // NOTE: Doesn't seem to do anything
   },
   cardFooter: {
@@ -72,7 +76,7 @@ const Accordion = withStyles({
     borderRadius: "4px",
     boxShadow: 'none',
     '&:not(:last-child)': {
-      borderBottom: 0,
+      borderBottom: 1,
     },
     '&:before': {
       display: 'none',
@@ -87,7 +91,7 @@ const Accordion = withStyles({
 const AccordionSummary = withStyles({
   root: {
     backgroundColor: 'rgba(0, 0, 0, .001)',
-    borderBottom: '1px solid rgba(0, 0, 0, .125)',
+    borderBottom: '1px solid #ef6c2a',
     marginBottom: -1,
     minHeight: 56,
     '&$expanded': {
@@ -96,7 +100,7 @@ const AccordionSummary = withStyles({
   },
   content: {
     '&$expanded': {
-      margin: '12px 0',
+      margin: '6px 0',
     },
   },
   expanded: {},
@@ -104,7 +108,8 @@ const AccordionSummary = withStyles({
 
 const AccordionDetails = withStyles((theme) => ({
   root: {
-    padding: theme.spacing(2),
+    padding: theme.spacing(0),
+    textAlign: 'left'
   },
 }))(MuiAccordionDetails);
 
@@ -119,15 +124,17 @@ function TaskCard(props) {
   return (
     <Card className={classes.card}>
       <Typography className={classes.timeStamp} align="right">{createdAt}</Typography>
-      <Typography className={classes.timeStamp} align="left">stored column index: {noteData.colIndex}, Stored pos index: {noteData.index} </Typography>
-      <Typography className={classes.timeStamp} align="left">Local column index: {colIndex}, Local pos index: {index} </Typography>
+      {/* <Typography className={classes.timeStamp} align="left">stored column index: {noteData.colIndex}, Stored pos index: {noteData.index} </Typography> */}
+      {/* <Typography className={classes.timeStamp} align="left">Local column index: {colIndex}, Local pos index: {index} </Typography> */}
       <Accordion square expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
         <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
           <Typography variant="subtitle1" align="left">{name}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
-          <Typography align="left" variant="body2" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{description}</Typography>
+          <ReactMarkdown align='left' plugins={[[gfm, {singleTilde: true}]]} children={description} />
+            {/* <Typography align="left" variant="body2" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{description}</Typography> */}
+          {/* </ReactMarkdown> */}
         </AccordionDetails>
       </Accordion>
       <div className={classes.cardFooter}>

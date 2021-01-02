@@ -343,7 +343,7 @@ function Notes(props) {
       />
       <DragDropContext onDragEnd={(onDragEnd)}>
         <Box p={1}>
-          <Grid container spacing={1} justify="flex-start">
+          <Grid container spacing={6} justify="flex-start">
             {state.map((el, ind) => (
             <Grid container direction="column" justify="flex-start" item xs key={ind}>
               <Box display="flex" alignItems="center" justifyContent="center" className={classes.taskColumn}>
@@ -355,7 +355,7 @@ function Notes(props) {
                       // style={getListStyle(snapshot.isDraggingOver)}
                       {...provided.droppableProps}
                     >
-                      <Grid item><Box className={classes.cardTitle}><Typography variant="h6" align="left">{colName[ind]}</Typography></Box></Grid>
+                      <Grid item><Box className={classes.cardTitle}><Typography variant="h6" align="left">{colNames[ind]}</Typography></Box></Grid>
                       <Grid item container spacing={1} direction="column" xs justify="center">
                         {el.length > 0 && el.map((note, index) => (
                           <Grid item key={index}>
