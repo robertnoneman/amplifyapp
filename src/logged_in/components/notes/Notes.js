@@ -317,10 +317,10 @@ function Notes(props) {
       />
       <DragDropContext onDragEnd={(onDragEnd)}>
         <Box p={1}>
-          <Grid container spacing={6} justify="flex-start">
+          <Grid container spacing={6} justify="flex-start" style={{}}>
             {state.map((el, ind) => (
-            <Grid container direction="column" justify="flex-start" item xs key={ind} >
-              <Box display="flex" alignItems="center" justifyContent="center" className={classes.taskColumn} p={1}>
+            <Grid container direction="column" justify="flex-start" item xs key={ind} style={{}}>
+              <Box alignItems="center" justifyContent="center" className={classes.taskColumn} p={1}>
                 <Droppable key={colName[ind]} droppableId={`${colName[ind]}`}>
                   {(provided, snapshot) => (
                     <div
@@ -330,9 +330,9 @@ function Notes(props) {
                       {...provided.droppableProps}
                     >
                       <Grid item><Box className={classes.cardTitle}><Typography variant="h6" align="left">{colNames[ind]}</Typography></Box></Grid>
-                      <Grid item container spacing={1} direction="column" xs justify="center">
+                      <Grid item container spacing={1} direction="column" justify="center">
                         {el.length > 0 && el.map((note, index) => (
-                          <Grid item key={index}>
+                          <Grid item xs key={index}>
                             <Draggable key={note.id} draggableId={note.id} index={index}>
                               {(provided, snapshot) => (
                                 <div

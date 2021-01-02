@@ -20,13 +20,14 @@ const styles = theme => ({
   card: {
     boxShadow: theme.shadows[2],
     paddingTop: theme.spacing(2),
-    // paddingBottom: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(2),
     // border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: theme.shape.borderRadius * 1,
     background: 'linear-gradient(30deg, #2196f325 30%, #21cbf325 90%)',
-    // display: "flex"
+    display: "flex",
+    flexDirection: "column"
     // maxWidth: '430px',
     // justifyContent: "flex-end"
     //marginTop: theme.spacing(2),
@@ -83,7 +84,7 @@ const Accordion = withStyles({
       display: 'none',
     },
     '&$expanded': {
-      margin: 'auto',
+      // margin: 'auto',
     },
   },
   expanded: {},
