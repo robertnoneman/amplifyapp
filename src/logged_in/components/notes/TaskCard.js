@@ -109,7 +109,7 @@ const AccordionDetails = withStyles((theme) => ({
 }))(MuiAccordionDetails);
 
 function TaskCard(props) {
-  const { classes, name, description, createdAt, theme, deleteNote, openEditForm, } = props;
+  const { classes, name, description, createdAt, theme, deleteNote, openEditForm, noteData, colIndex, index} = props;
   const [expanded, setExpanded] = useState('false');
 
   const handleChange = (panel) => (event, newExpanded) => {
@@ -119,6 +119,8 @@ function TaskCard(props) {
   return (
     <Card className={classes.card}>
       <Typography className={classes.timeStamp} align="right">{createdAt}</Typography>
+      <Typography className={classes.timeStamp} align="left">stored column index: {noteData.colIndex}, Stored pos index: {noteData.index} </Typography>
+      <Typography className={classes.timeStamp} align="left">Local column index: {colIndex}, Local pos index: {index} </Typography>
       <Accordion square expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
         <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
           <Typography variant="subtitle1" align="left">{name}</Typography>

@@ -784,15 +784,19 @@ function Weather(props) {
                     </Typography>
                     <Accordion className={classes.accordion}
                     >
-                      <AccordionSummary expandIcon={<ExpandMoreIcon color="primary"/>} >
+                      <AccordionSummary  expandIcon={<ExpandMoreIcon color="primary"/>} >
+                        {/* <Box component="div" display="block" overflow="hidden" textOverflow="ellipsis"> */}
                         <Typography 
                           className={classes.text} 
                           align="left"
                           data-aos="zoom-in-up" 
                           data-aos-delay={index === 4 ? "500" : `${index}00`}
                         >
-                            {element.sectionName}...</Typography>
-                        </AccordionSummary>
+                          {/* {element.body} */}
+                          {element.sectionName}...
+                        </Typography>
+                        {/* </Box> */}
+                      </AccordionSummary>
 
                       {/* <Bordered > */}
                         <AccordionDetails >

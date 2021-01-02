@@ -42,6 +42,7 @@ function EditTaskForm(props) {
       onFormSubmit={(e) => {
         e.preventDefault(); 
         isNew ? createNote(formData) : editNote(formData);
+        setFormData(initialFormState);
       }}
       style={{paddingBottom: 0}}
       className={classes.editTaskPaper}
@@ -55,7 +56,7 @@ function EditTaskForm(props) {
             required
             // rows={1}
             className="text-white"
-            onChange={e => setFormData({...taskData, 'name': e.target.value})}
+            onChange={isNew? e => setFormData({...formData, 'name': e.target.value}) : e => setFormData({...taskData, 'name': e.target.value})}
             placeholder={taskData.name}
             defaultValue={taskData.name}
             inputRef={title}
@@ -68,9 +69,10 @@ function EditTaskForm(props) {
             required
             // rows={1}
             className="text-white"
-            onChange={e => setFormData({...taskData, 'description': e.target.value})}
+            onChange={isNew? e => setFormData({...formData, 'description': e.target.value}) : e => setFormData({...taskData, 'description': e.target.value})}
             placeholder={taskData.description}
             defaultValue={taskData.description}
+            // value={formData.description}
             inputRef={description}
           />
         </>
