@@ -11,7 +11,8 @@ import MuiAccordionSummary from '@material-ui/core/AccordionSummary';
 import MuiAccordionDetails from '@material-ui/core/AccordionDetails';
 import { DeleteOutline, EditOutlined } from "@material-ui/icons";
 import ReactMarkdown from "react-markdown";
-import gfm from "remark-gfm"
+import gfm from "remark-gfm";
+import format from "date-fns/format";
 
 const styles = theme => ({
   newNote: {
@@ -108,10 +109,20 @@ const AccordionSummary = withStyles({
 
 const AccordionDetails = withStyles((theme) => ({
   root: {
-    padding: theme.spacing(0),
-    textAlign: 'left'
+    padding: theme.spacing(1),
+    textAlign: 'left',
+    flexDirection: 'column',
   },
 }))(MuiAccordionDetails);
+
+function labelFormatter(label) {
+  if (!label) return;
+  var labelString = label.toString();
+  var clipped = labelString.slice(0, labelString.length - 5)
+  console.log(`Clipped: ${clipped}`)
+  let seconds = Date.parse(clipped);
+  return format(new Date(seconds), "MMM d, p");
+}
 
 function TaskCard(props) {
   const { classes, name, description, createdAt, theme, deleteNote, openEditForm, noteData, colIndex, index} = props;
@@ -123,7 +134,13 @@ function TaskCard(props) {
 
   return (
     <Card className={classes.card}>
-      <Typography className={classes.timeStamp} align="right">{createdAt}</Typography>
+      <Typography className={classes.timeStamp} align="right">
+        {/* {createdAt} */}
+        {labelFormatter(createdAt)}
+        {/* {format(new Date(Date.parse(createdAt) * 1000), "PPP", {
+          awareOfUnicodeTokens: true,
+          })} */}
+      </Typography>
       {/* <Typography className={classes.timeStamp} align="left">stored column index: {noteData.colIndex}, Stored pos index: {noteData.index} </Typography> */}
       {/* <Typography className={classes.timeStamp} align="left">Local column index: {colIndex}, Local pos index: {index} </Typography> */}
       <Accordion square expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
@@ -131,7 +148,7 @@ function TaskCard(props) {
           <Typography variant="subtitle1" align="left">{name}</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/>
+          {/* <Divider className={classes.divider} style={{backgroundColor: theme.palette.primary.main}}/> */}
           <ReactMarkdown align='left' plugins={[[gfm, {singleTilde: true}]]} children={description} />
             {/* <Typography align="left" variant="body2" style={{paddingBottom: theme.spacing(2)}} gutterBottom>{description}</Typography> */}
           {/* </ReactMarkdown> */}
