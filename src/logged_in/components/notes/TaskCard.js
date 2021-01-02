@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { 
   Card,
-  Divider,
   IconButton,
   Typography,
   withStyles,
@@ -126,7 +125,7 @@ function labelFormatter(label) {
 }
 
 function TaskCard(props) {
-  const { classes, name, description, createdAt, theme, deleteNote, openEditForm, noteData, colIndex, index} = props;
+  const { classes, name, description, createdAt, deleteNote, openEditForm, noteData, colIndex, index} = props;
   const [expanded, setExpanded] = useState('false');
 
   const handleChange = (panel) => (event, newExpanded) => {

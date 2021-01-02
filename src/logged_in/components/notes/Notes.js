@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment, useRef, useCallback, } from "react";
+import React, { useState, useEffect, Fragment, useCallback, } from "react";
 import { API } from 'aws-amplify';
 import { listNotes } from '../../../graphql/queries';
 import { createNote as createNoteMutation, updateNote as updateNoteMutation, deleteNote as deleteNoteMutation, 
@@ -16,7 +16,6 @@ import {
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskCard from "./TaskCard";
 import { AddCircleOutline,  } from "@material-ui/icons";
-import format from "date-fns/format";
 import EditTaskForm from "./EditTaskForm";
 
 
