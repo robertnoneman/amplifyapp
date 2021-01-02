@@ -37,6 +37,9 @@ const styles = (theme) => ({
     paddintTop: theme.spacing(0),
     justifyContent: "flex-end",
   },
+  expandMoreIcon: {
+    color: theme.palette.secondary.light,
+  }
 });
 const inputOptions = ["None", "Slow", "Normal", "Fast"];
 

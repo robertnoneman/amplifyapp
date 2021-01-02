@@ -27,6 +27,7 @@ const styles = theme => ({
     // border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: theme.shape.borderRadius * 1,
     background: 'linear-gradient(30deg, #2196f325 30%, #21cbf325 90%)',
+    // display: "flex"
     // maxWidth: '430px',
     // justifyContent: "flex-end"
     //marginTop: theme.spacing(2),
@@ -119,7 +120,7 @@ function labelFormatter(label) {
   if (!label) return;
   var labelString = label.toString();
   var clipped = labelString.slice(0, labelString.length - 5)
-  console.log(`Clipped: ${clipped}`)
+  // console.log(`Clipped: ${clipped}`)
   let seconds = Date.parse(clipped);
   return format(new Date(seconds), "MMM d, p");
 }

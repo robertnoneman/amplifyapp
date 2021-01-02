@@ -163,7 +163,7 @@ function CardChart(props) {
                 style: {
                   maxHeight: itemHeight,
                   width: 200,
-                  backgroundColor: theme.palette.primary.main
+                  backgroundColor: theme.palette.secondary.dark
                 },
               }}
               disableScrollLock

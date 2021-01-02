@@ -6,7 +6,8 @@ import { createMuiTheme, responsiveFontSizes } from "@material-ui/core";
 const primary = "#ef6c2a"
 // const secondary = "#a3b18a";
 //const secondary = "#689ad8";
-const secondary = "#2aadef";
+// const secondary = "#2aadef";
+const secondary = '#195f86';
 const black = "#31353eff";
 const darkBlack = "#232222ff";
 //const background = "#43182f";
@@ -152,7 +153,23 @@ const theme = createMuiTheme({
           paddingRight: spacing
         }
       }
-    }
+    },
+    MuiAccordionSummary: {
+      expandIcon: {
+        color: secondary,
+        expandMoreIcon: {
+          htmlColor: primary,
+        }
+      }
+    },
+    MuiSelect: {
+      colorPrimary: secondary,
+      color: secondary,
+      icon: {
+        colorPrimary: primary,
+        color: secondary,
+      }
+    },
   },
   typography: {
     useNextVariants: true

@@ -8,20 +8,14 @@ import { createNote as createNoteMutation, updateNote as updateNoteMutation, del
 import PropTypes from "prop-types";
 import { 
   Box,
-  Button,
-  Card,
-  Divider,
   Grid,
   IconButton,
-  Paper,
-  TextField,
-  //Toolbar,
   Typography,
   withStyles,
 } from "@material-ui/core"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskCard from "./TaskCard";
-import { AddCircleOutline, DeleteOutline, Edit, EditOutlined } from "@material-ui/icons";
+import { AddCircleOutline,  } from "@material-ui/icons";
 import format from "date-fns/format";
 import EditTaskForm from "./EditTaskForm";
 
@@ -37,6 +31,7 @@ const styles = (theme) => ({
     background: theme.palette.common.black,
     border: `1px solid ${theme.palette.common.darkBlack}`,
     borderRadius: theme.shape.borderRadius * 2,
+    width: "100%"
   },
   card: {
     boxShadow: theme.shadows[2],
@@ -47,6 +42,7 @@ const styles = (theme) => ({
     border: `1px solid ${theme.palette.secondary.main}`,
     borderRadius: theme.shape.borderRadius * 2,
     background: 'linear-gradient(30deg, #2196f325 30%, #21cbf325 90%)',
+    width: "100%"
     // maxWidth: '430px',
     // justifyContent: "flex-end"
     //marginTop: theme.spacing(2),
@@ -73,20 +69,6 @@ const styles = (theme) => ({
       color: theme.palette.primary.dark,
     },
   },
-  divider: {
-    color: theme.palette.primary.main,
-    backgroundColor: theme.palette.primary.main,
-    margin: theme.spacing(1),
-  },
-  toolbar: {
-    marginRight: theme.spacing(2),
-    // display: grid
-  },
-  cardFooter: {
-    display: "flex",
-    justifyContent: "flex-end",
-  }
-  
 });
 
 // const initialFormState = { name: '', description: ''};
@@ -99,10 +81,6 @@ const initialFormState = {
 };
 
 const colNames = ["Todo", "In Progress", "Done"];
-
-function labelFormatter(label) {
-  return format(new Date(label * 1000), "MMM d, p");
-}
 
 const getItems = (count, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map((k) => ({
@@ -133,18 +111,18 @@ const move = (source, destination, droppableSource, droppableDestination) => {
 };
 
 function Notes(props) {
-  const { classes, theme, selectNotes, } = props;
+  const { classes, selectNotes, } = props;
   const [notes, setNotes] = useState([]);
   const [noteCards, setNoteCards] = useState([getItems(10), getItems(5, 10)]);
   const [state, setState] = useState([getItems(10), getItems(5, 10)]);
   const [formData, setFormData] = useState(initialFormState);
   const [loaded, hasLoaded] = useState(false);
-  const [loading, isLoading] = useState(false);
+  // const [loading, isLoading] = useState(false);
   const [colName, setColNames] = useState([0,1,2]);
   const [currentTask, setCurrentTask] = useState(initialFormState);
   const [isNew, setIsNew] = useState(false);
 
-  const anchorEl = useRef();
+  // const anchorEl = useRef();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = useCallback((noteData, isNewNote) => {
@@ -188,26 +166,25 @@ function Notes(props) {
     });
     setNoteCards([noteCols[0], noteCols[1], noteCols[2]]);
   };
-
-  async function createNote() {
-    if (!formData.name || !formData.description) return;
-    await API.graphql({ query: createNoteMutation, variables: { input: formData } });
-    // Copy the 'Todo' column so that we can append it.
-    const items = state[0];
-    // Add the new note to the todo column
-    formData.id = `newLocalNote ${new Date().getTime()}`;
-    items.push(formData);
-    // Copy the current state.
-    const newState = [...state];
-    // Insert the updated Todo column
-    newState[0] = items;
-    // Set the state variable (tracks locally)
-    setState(newState);
-    setNotes([ ...notes, formData ]);
-    // setState([ ...state, formData ]);
-    fetchNotes();
-    setFormData(initialFormState);
-  };
+  // async function createNote() {
+  //   if (!formData.name || !formData.description) return;
+  //   await API.graphql({ query: createNoteMutation, variables: { input: formData } });
+  //   // Copy the 'Todo' column so that we can append it.
+  //   const items = state[0];
+  //   // Add the new note to the todo column
+  //   formData.id = `newLocalNote ${new Date().getTime()}`;
+  //   items.push(formData);
+  //   // Copy the current state.
+  //   const newState = [...state];
+  //   // Insert the updated Todo column
+  //   newState[0] = items;
+  //   // Set the state variable (tracks locally)
+  //   setState(newState);
+  //   setNotes([ ...notes, formData ]);
+  //   // setState([ ...state, formData ]);
+  //   fetchNotes();
+  //   setFormData(initialFormState);
+  // };
   async function createNewNote(noteData) {
     if (!noteData.name || !noteData.description) return;
     noteData.index = state[0].length;
@@ -233,7 +210,6 @@ function Notes(props) {
   };
 
   async function editNote(noteData) {
-
     await API.graphql({ query: updateNoteMutation, variables: { input: noteData }});
   };
 
@@ -249,19 +225,19 @@ function Notes(props) {
     fetchNotes();
   };
 
-  async function printNote() {
-    fetchNotes();
-    const sortedCols = [...noteCards];
-    for (var j = 0; j < noteCards.length; j++) {
-      const sorted = sortedCols[j];
-      if(sortedCols[j] !== null && sortedCols[j].length > 0)
-      {
-        sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
-      }
-    };
-    setState(sortedCols);
-    hasLoaded(true);
-  };
+  // async function printNote() {
+  //   fetchNotes();
+  //   const sortedCols = [...noteCards];
+  //   for (var j = 0; j < noteCards.length; j++) {
+  //     const sorted = sortedCols[j];
+  //     if(sortedCols[j] !== null && sortedCols[j].length > 0)
+  //     {
+  //       sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
+  //     }
+  //   };
+  //   setState(sortedCols);
+  //   hasLoaded(true);
+  // };
 
   // TODO: Make the for loop for updating when changing columns (should update every element affected in each column)
   async function onDragEnd(result) {
@@ -298,7 +274,6 @@ function Notes(props) {
       setState(newState);
       await API.graphql({ query: updateNoteMutation, variables: { input: { id: newState[dInd][destination.index].id, index: destination.index, colIndex: dInd } }});
     }
-    
     fetchNotes();
   }
 
@@ -345,8 +320,8 @@ function Notes(props) {
         <Box p={1}>
           <Grid container spacing={6} justify="flex-start">
             {state.map((el, ind) => (
-            <Grid container direction="column" justify="flex-start" item xs key={ind}>
-              <Box display="flex" alignItems="center" justifyContent="center" className={classes.taskColumn}>
+            <Grid container direction="column" justify="flex-start" item xs key={ind} >
+              <Box display="flex" alignItems="center" justifyContent="center" className={classes.taskColumn} p={1}>
                 <Droppable key={colName[ind]} droppableId={`${colName[ind]}`}>
                   {(provided, snapshot) => (
                     <div

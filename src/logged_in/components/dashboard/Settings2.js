@@ -219,10 +219,12 @@ function Settings2(props) {
               className={classes.numberInput}
               classes={{ input: classes.numberInputInput }}
               name="option6"
+              htmlColor="#195f86"
+              IconComponent={`${<ExpandMoreIcon htmlColor="#195f86"/>}`}
             />
           }
         >
-          <MenuItem value="Both">Both</MenuItem>
+          <MenuItem value="Both" color="#195f86">Both</MenuItem>
           <MenuItem value="Male+">Male+</MenuItem>
           <MenuItem value="Female+">Female+</MenuItem>
           <MenuItem value="Only male">Only male</MenuItem>
@@ -264,7 +266,7 @@ function Settings2(props) {
 
   return (
     <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor="#195f86"/>}>
         <Typography>Settings 2</Typography>
       </AccordionSummary>
       <AccordionDetails className={classes.dBlock}>

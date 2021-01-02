@@ -172,7 +172,7 @@ function CustomTable(props) {
 
   return (
     <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor="#195f86"/>}>
         <Typography>Some user data</Typography>
       </AccordionSummary>
       <ConfirmationDialog
@@ -255,7 +255,7 @@ function CustomTable(props) {
                               }}
                               aria-label="Resume"
                             >
-                              <PlayCirlceOutlineIcon />
+                              <PlayCirlceOutlineIcon htmlColor="#195f86"/>
                             </IconButton>
                           )}
                           <IconButton

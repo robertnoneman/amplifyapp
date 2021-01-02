@@ -9,7 +9,8 @@ import {
   ListItemIcon,
   Switch,
   Box,
-  withStyles
+  withStyles,
+  withTheme
 } from "@material-ui/core";
 import LoopIcon from "@material-ui/icons/Loop";
 
@@ -31,7 +32,8 @@ const styles = theme => ({
 });
 
 function AccountInformationArea(props) {
-  const { classes, toggleAccountActivation, isAccountActivated } = props;
+  const { classes, toggleAccountActivation, isAccountActivated, theme } = props;
+  // const theme = useTheme();
   return (
     <Paper className={classes.paper}>
       <Toolbar className={classes.toolbar}>
@@ -49,6 +51,8 @@ function AccountInformationArea(props) {
                 isAccountActivated ? classes.spin : null,
                 classes.scaleMinus
               )}
+              htmlColor={isAccountActivated ? "#ef6c2a" : "#195f86"}
+              // color="#195f86"
             />
           </ListItemIcon>
         </Box>

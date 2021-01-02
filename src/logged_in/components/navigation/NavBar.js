@@ -181,7 +181,9 @@ function NavBar(props) {
             fontSize="small"
           />
         ),
-        mobile: <ImageIcon className="text-white" />,
+        mobile: <ImageIcon className={
+          selectedTab === "Posts" ? classes.textPrimary : "text-white"
+        } />,
       },
     },
     {
@@ -215,7 +217,9 @@ function NavBar(props) {
             fontSize="small"
           />
         ),
-        mobile: <FontAwesomeIcon icon={faStickyNote} className="text-white" />,
+        mobile: <FontAwesomeIcon icon={faStickyNote} className={
+          selectedTab === "Posts" ? classes.textPrimary : "text-white"
+        } />,
       },
     },
     {
