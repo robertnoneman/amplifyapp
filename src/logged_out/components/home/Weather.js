@@ -34,12 +34,15 @@ const cheerio = require('cheerio')
 
 const styles = theme => ({
     accordion: {
-      backgroundColor: theme.palette.primary.dark,
+      backgroundColor: theme.palette.secondary.dark,
       [theme.breakpoints.up("xs")]: {
         marginLeft: "auto",
         marginRight: "auto",
         maxWidth: 940
-      }
+      },
+      justify: "center",
+      direction: "column",
+      alignItems: "center"
     },
     cardWrapper: {
       [theme.breakpoints.up("xs")]: {
@@ -49,6 +52,9 @@ const styles = theme => ({
       },
       backgroundColor: theme.palette.warning.dark,
       background: theme.palette.common.black,
+      justify: "center",
+      direction: "column",
+      alignItems: "center"
     },
     containerFluid:{
       background: theme.palette.common.black,
@@ -753,20 +759,28 @@ function Weather(props) {
       
         <div hidden={displayType !== "timeline"}>
           <Grid 
+            container
             item
+            direction="column"
             xs={12}
             sm={6}
             lg={3}
             className={classes.cardWrapper}
           >          
-          <Box className={classes.containerFluid}>
-            <Typography className="text-white">Area Forecast Discussion</Typography>
+          {/* <Box className={classes.containerFluid}> */}
+          {/* <Grid item> */}
+          <Box className={classes.containerFluid} width="100%">
+            <Typography align="center" justify="center" className="text-white">Area Forecast Discussion</Typography>
           </Box>
+          {/* </Grid> */}
           <Timeline>
             {sections.map((element, index) => (
+              <Grid item key={`${element.title}${index}`}>
               <TimelineItem key={index}>
                 <TimelineOppositeContent >
-                  <Typography variant="body2" className="listItemLeftPadding text-white" 
+                  <Typography variant="body2" 
+                    // className="listItemLeftPadding text-white"
+                    className="text-white"  
                     data-aos="zoom-in-down" 
                     data-aos-delay={`${index}00`}
                   >
@@ -784,13 +798,15 @@ function Weather(props) {
                     </Typography>
                     <Accordion className={classes.accordion}
                     >
-                      <AccordionSummary  expandIcon={<ExpandMoreIcon color="primary"/>} >
+                      <AccordionSummary  expandIcon={<ExpandMoreIcon color="secondary"/>} >
                         {/* <Box component="div" display="block" overflow="hidden" textOverflow="ellipsis"> */}
                         <Typography 
                           className={classes.text} 
                           align="left"
+                          noWrap={true}
                           data-aos="zoom-in-up" 
                           data-aos-delay={index === 4 ? "500" : `${index}00`}
+                          display="block"
                         >
                           {/* {element.body} */}
                           {element.sectionName}...
@@ -809,6 +825,7 @@ function Weather(props) {
                     </Accordion>
                 </TimelineContent>
               </TimelineItem>
+              </Grid>
             ))}
           </Timeline>
           </Grid>

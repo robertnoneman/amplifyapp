@@ -252,7 +252,7 @@ function SandboxPage(props) {
             <div className={classNames("container-fluid lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
               <section id='SandboxPage'>
                 <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
-                Sandbox Section!
+                Weather Playground
                 </Typography>
               </section>              
               <Box className={classes.containerFluid}>
@@ -264,8 +264,10 @@ function SandboxPage(props) {
                   onChange={handleChange}
                   indicatorColor="primary"
                   textColor="secondary"
-                  variant="fullWidth"
+                  variant="scrollable"
                   aria-label="action tabs example"
+                  // centered={true}
+                  style={{width: "100%", flexGrow: 1, }}
                 >
                   <Tab label="Weather timeline" {...a11yProps(0)} />
                   <Tab label="Weather accordion" {...a11yProps(1)} />
