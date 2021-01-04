@@ -13,9 +13,15 @@ import {
   Tooltip,
   ReferenceArea
 } from "recharts";
+import { withStyles } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
 
+const styles = (theme) => ({
+  card: {
+    backgroundColor: theme.palette.common.black,
+  }
+});
 // Returns hello.
 // unix => "hello";
 
@@ -23,6 +29,24 @@ function formatTime(unix, offset) {
   const secs = unix * 1000;
   const seconds = secs - offset;
   return format(new Date(seconds), "MMM d hh:mm:ss");
+}
+
+function labelFormatter(label) {
+  // const secs = label * 1000;
+  // const seconds = secs - 18000;
+  if (label === null || label < 0 || label === -Infinity || label === Infinity) return;
+  const tempLabel = label * 1000 * 1000;
+  // console.log(`Time label: ${label}`);
+  return format(new Date(tempLabel), "MMM d, p");
+}
+
+function CustomizedAxisTick(props) {
+  const {x, y, payload} = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={0} textAnchor="end" fill="#666" fontSize={10} transform="rotate(-15)">{labelFormatter(payload.value)}</text>
+    </g>
+  );
 }
 
 function toCelsius(f) {
@@ -34,17 +58,6 @@ function setLocation(lat, lon) {
 }
 
 const myLocation = { lat: 38.889708, lon: -76.995119 };
-
-const getAxisYDomain = (data, from, to, ref, offset) => {
-  const refData = data.slice(from - 1, to);
-  let [bottom, top] = [refData[0][ref], refData[0][ref]];
-  refData.forEach((d) => {
-    if (d[ref] > top) top = d[ref];
-    if (d[ref] < bottom) bottom = d[ref];
-  });
-
-  return [(bottom | 0) - offset, (top | 0) + offset];
-};
 
 const initialStateData = {
   data: [],
@@ -60,28 +73,12 @@ const initialStateData = {
 };
 
 function HourlyForecast(props) {
-  const [state, setState] = useState(initialStateData
-    // data: "",
-    // left: "dataMin",
-    // right: "dataMax",
-    // refAreaLeft: "",
-    // refAreaRight: "",
-    // top: "dataMax+1",
-    // bottom: "dataMin-1",
-    // top2: "dataMax+20",
-    // bottom2: "dataMin-20",
-    // animation: true
-  );
-
-  const [fetchedData, setFetchedData] = useState();
+  const { title, classes, theme } = props;
+  const [state, setState] = useState(initialStateData);
   const [loaded, setLoaded] = useState(false);
-  // const [fetchedData, setFetchedData] = useState(() => {
-  //   const initialState = fetchWeatherData();
-  //   return initialState;
-  // });
   const getAxisYDomain = (data, from, to, ref, offset) => {
     // console.log(data[0][ref]);
-    const refData = Array.from(data); //.slice(from - 1, to);
+    const refData = Array.from(data);
     refData.slice(from - 1, to);
     let [bottom, top] = [refData[0][ref], refData[0][ref]];
     refData.forEach((d) => {
@@ -91,6 +88,16 @@ function HourlyForecast(props) {
   
     return [(bottom | 0) - offset, (top | 0) + offset];
   };
+
+  const formatter = useCallback(
+    (value, name) => {
+      // switch(title){
+      //   case (poop):
+      // }
+      return [value, name, title];
+    },
+    [title]
+  );
 
   const zoom = useCallback(() => {
     // const refAreaLeft = state.refAreaLeft;
@@ -154,25 +161,6 @@ function HourlyForecast(props) {
     })
   }, [state, setState]);
 
-  // function fetchWeatherData() {
-  //   const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=39216f4b9137de2e4d5f35aa5bdbde04`;
-  //   Axios.get(apiUrl).then((data) => {
-  //     const tOffset = data.data.timezone_offset;
-  //     const hourly = data.data.hourly;
-  //     const merged = [];
-  //     hourly.forEach((element, index) => {
-  //       const timestamp = formatTime(element.dt, tOffset);
-  //       // const rawTimestamp = (element.dt - tOffset) * 1000;
-  //       merged[index] = {
-  //         time: timestamp,
-  //         temp: element.temp,
-  //         humidity: element.humidity
-  //       };
-  //     });
-  //   setFetchedData(merged);
-  //   });
-  // }
-
   const fetchWeatherData = useCallback(() => {
     if (loaded) return;
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=39216f4b9137de2e4d5f35aa5bdbde04`;
@@ -201,7 +189,7 @@ function HourlyForecast(props) {
   }, [fetchWeatherData]);
 
   return (
-    <div className="highlight-bar-charts" style={{ userSelect: "none" }}>
+    <div className="highlight-bar-charts" style={{ userSelect: "none", margin: "100px" }}>
       <button 
         className="btn update"
         onClick={zoomOut}
@@ -232,9 +220,12 @@ function HourlyForecast(props) {
         <XAxis
           allowDataOverflow
           // dataKey="name"
+          style={{margin: "50px"}}
           dataKey="time"
           domain={[state.left, state.right]}
           type="number"
+          tick={<CustomizedAxisTick/>}
+          tickFormatter={labelFormatter}
         />
         <YAxis
           allowDataOverflow
@@ -249,7 +240,28 @@ function HourlyForecast(props) {
           type="number"
           yAxisId="2"
         />
-        <Tooltip />
+        {/* <Tooltip /> */}
+        <Tooltip
+          labelFormatter={labelFormatter}
+          formatter={formatter}
+          cursor={false}
+          contentStyle={{
+            border: "none",
+            padding: theme.spacing(1),
+            borderRadius: theme.shape.borderRadius,
+            boxShadow: theme.shadows[1],
+            backgroundColor: theme.palette.primary.main
+          }}
+          labelStyle={theme.typography.body1}
+          itemStyle={{
+            fontSize: theme.typography.body1.fontSize,
+            letterSpacing: theme.typography.body1.letterSpacing,
+            fontFamily: theme.typography.body1.fontFamily,
+            lineHeight: theme.typography.body1.lineHeight,
+            fontWeight: theme.typography.body1.fontWeight,
+            color: "white"
+          }}
+        />
         <Line
           yAxisId="1"
           type="natural"
@@ -278,4 +290,4 @@ function HourlyForecast(props) {
   );
 }
 
-export default HourlyForecast;
+export default withStyles(styles, { withTheme: true })(HourlyForecast);

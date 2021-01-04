@@ -320,8 +320,12 @@ function SandboxPage(props) {
                 </Grid>
               </TabPanel>
               <TabPanel value={value} index={4} dir={theme.direction}>
-                <HourlyForecast/>
-                <DataLoading data={appState.data}/>
+                <Box className="box" m={3} p={theme.spacing(3)}>
+                  <HourlyForecast title={["temp", "humidity"]}/>
+                </Box>
+                <Box m={theme.spacing(3)}>
+                  <DataLoading data={appState.data}/>
+                </Box>
               </TabPanel>
             </SwipeableViews>
           </div>
