@@ -204,12 +204,14 @@ function Notes(props) {
     setState(newState);
     setNotes([ ...notes, noteData ]);
     // setState([ ...state, formData ]);
-    fetchNotes();
-    setFormData(initialFormState);
+    // fetchNotes();
+    // setFormData(initialFormState);
+    handleClickAway();
   };
 
   async function editNote(noteData) {
     await API.graphql({ query: updateNoteMutation, variables: { input: noteData }});
+    handleClickAway();
   };
 
   async function deleteNote({ id }) {

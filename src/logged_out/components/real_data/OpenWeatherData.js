@@ -234,7 +234,7 @@ function HourlyForecast(props) {
     if (loaded) return;
 
     // const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=39216f4b9137de2e4d5f35aa5bdbde04`;
-    const API_KEY = process.env.REACT_APP_OPEN_WEATHER_API_KEY;
+    const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
       const tOffset = data.data.timezone_offset;
