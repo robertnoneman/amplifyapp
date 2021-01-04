@@ -27,7 +27,7 @@ const styles = (theme) => ({
     marginTop: theme.spacing(-4),
   },
   card: {
-    backgroundColor: theme.palette.common.black,
+    // backgroundColor: theme.palette.common.black,
   }
 });
 
@@ -230,7 +230,7 @@ function CardChart(props) {
                   padding: theme.spacing(1),
                   borderRadius: theme.shape.borderRadius,
                   boxShadow: theme.shadows[1],
-                  backgroundColor: theme.palette.primary.main
+                  backgroundColor: theme.palette.secondary.dark
                 }}
                 labelStyle={theme.typography.body1}
                 itemStyle={{

@@ -91,7 +91,7 @@ const styles = theme => ({
     },
     wrapper: {
       position: "relative",
-      backgroundColor: theme.palette.warning.dark,
+      // backgroundColor: theme.palette.warning.dark,
       marginTop: theme.spacing(1),
       paddingBottom: theme.spacing(1),
     },
@@ -115,7 +115,7 @@ const styles = theme => ({
     },
     containerFluid:{
       background: theme.palette.common.black,
-      border: `1px solid ${theme.palette.primary.dark}`,
+      borderBottom: `1px solid ${theme.palette.primary.dark}`,
       borderRadius: theme.shape.borderRadius
     },
     accordion: {
@@ -268,6 +268,8 @@ function SandboxPage(props) {
                 aria-label="action tabs example"
                 // centered={true}
                 style={{width: "100%", flexGrow: 1, }}
+                // style={{flexGrow: 1, }}
+                // orientation="vertical"
               >
                 <Tab label="Weather timeline" {...a11yProps(0)} />
                 <Tab label="Weather accordion" {...a11yProps(1)} />
@@ -282,6 +284,7 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
             >
               <TabPanel value={value} index={0} dir={theme.direction}>
+                <HourlyForecast title={["Temp", "Humidity"]}/>
                 <Weather displayType="timeline"/>
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>
@@ -320,10 +323,10 @@ function SandboxPage(props) {
                 </Grid>
               </TabPanel>
               <TabPanel value={value} index={4} dir={theme.direction}>
-                <Box className="box" m={3} p={theme.spacing(3)}>
+                <Box m={theme.spacing(-2)} p={theme.spacing(1)}>
                   <HourlyForecast title={["temp", "humidity"]}/>
                 </Box>
-                <Box m={theme.spacing(3)}>
+                <Box m={theme.spacing(1)}>
                   <DataLoading data={appState.data}/>
                 </Box>
               </TabPanel>

@@ -11,19 +11,92 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  ReferenceArea
+  ReferenceArea,
+  ResponsiveContainer,
+  Legend
 } from "recharts";
-import { withStyles } from "@material-ui/core";
+import { Box, Button, withStyles } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
+// import AWS from "@aw"
+import SecretsManager from "@aws-sdk/client-secrets-manager"
 
 const styles = (theme) => ({
   card: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: theme.palette.common.darkBlack,
+    display: "flex",
+    justifyContent: "center",
+    flexDirection: "column",
+    alignItems: "center"
+  },
+  chartBox: {
+
   }
 });
+
+
 // Returns hello.
 // unix => "hello";
+
+// function fetchApiKey() {
+//     // Use this code snippet in your app.
+//   // If you need more information about configurations or implementing the sample code, visit the AWS docs:
+//   // https://aws.amazon.com/developers/getting-started/nodejs/
+
+//   // Load the AWS SDK
+//   var AWS = require('@aws-sdk/client-secrets-manager'),
+//   region = "us-east-1",
+//   secretName = "OpenWeatherMapApi",
+//   secret,
+//   decodedBinarySecret;
+
+//   // Create a Secrets Manager client
+//   var client = new AWS.SecretsManager({
+//   region: region
+//   });
+
+//   // In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
+//   // See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+//   // We rethrow the exception by default.
+
+//   client.getSecretValue({SecretId: secretName}, function(err, data) {
+//   if (err) {
+//       if (err.code === 'DecryptionFailureException')
+//           // Secrets Manager can't decrypt the protected secret text using the provided KMS key.
+//           // Deal with the exception here, and/or rethrow at your discretion.
+//           throw err;
+//       else if (err.code === 'InternalServiceErrorException')
+//           // An error occurred on the server side.
+//           // Deal with the exception here, and/or rethrow at your discretion.
+//           throw err;
+//       else if (err.code === 'InvalidParameterException')
+//           // You provided an invalid value for a parameter.
+//           // Deal with the exception here, and/or rethrow at your discretion.
+//           throw err;
+//       else if (err.code === 'InvalidRequestException')
+//           // You provided a parameter value that is not valid for the current state of the resource.
+//           // Deal with the exception here, and/or rethrow at your discretion.
+//           throw err;
+//       else if (err.code === 'ResourceNotFoundException')
+//           // We can't find the resource that you asked for.
+//           // Deal with the exception here, and/or rethrow at your discretion.
+//           throw err;
+//   }
+//   else {
+//       // Decrypts secret using the associated KMS CMK.
+//       // Depending on whether the secret is a string or binary, one of these fields will be populated.
+//       if ('SecretString' in data) {
+//           secret = data.SecretString;
+//       } else {
+//           let buff = new Buffer(data.SecretBinary, 'base64');
+//           decodedBinarySecret = buff.toString('ascii');
+//       }
+//   }
+
+//   // Your code goes here.
+//   return secret; 
+//   });
+// }
 
 function formatTime(unix, offset) {
   const secs = unix * 1000;
@@ -32,11 +105,8 @@ function formatTime(unix, offset) {
 }
 
 function labelFormatter(label) {
-  // const secs = label * 1000;
-  // const seconds = secs - 18000;
   if (label === null || label < 0 || label === -Infinity || label === Infinity) return;
   const tempLabel = label * 1000 * 1000;
-  // console.log(`Time label: ${label}`);
   return format(new Date(tempLabel), "MMM d, p");
 }
 
@@ -44,7 +114,7 @@ function CustomizedAxisTick(props) {
   const {x, y, payload} = props;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={0} textAnchor="end" fill="#666" fontSize={10} transform="rotate(-15)">{labelFormatter(payload.value)}</text>
+      <text x={0} y={0} dy={10} textAnchor="end" fill="#666" fontSize={10} transform="rotate(-25)">{labelFormatter(payload.value)}</text>
     </g>
   );
 }
@@ -67,8 +137,8 @@ const initialStateData = {
   refAreaRight: "",
   top: "dataMax+1",
   bottom: "dataMin-1",
-  top2: "dataMax+20",
-  bottom2: "dataMin-20",
+  top2: "dataMax",
+  bottom2: "dataMin",
   animation: true
 };
 
@@ -76,8 +146,10 @@ function HourlyForecast(props) {
   const { title, classes, theme } = props;
   const [state, setState] = useState(initialStateData);
   const [loaded, setLoaded] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
   const getAxisYDomain = (data, from, to, ref, offset) => {
-    // console.log(data[0][ref]);
     const refData = Array.from(data);
     refData.slice(from - 1, to);
     let [bottom, top] = [refData[0][ref], refData[0][ref]];
@@ -91,9 +163,6 @@ function HourlyForecast(props) {
 
   const formatter = useCallback(
     (value, name) => {
-      // switch(title){
-      //   case (poop):
-      // }
       return [value, name, title];
     },
     [title]
@@ -156,14 +225,17 @@ function HourlyForecast(props) {
       right: "dataMax",
       top: "dataMax+1",
       bottom: "dataMin",
-      top2: "dataMax+50",
+      top2: "dataMax+5",
       bottom2: "dataMin+50"
     })
   }, [state, setState]);
 
   const fetchWeatherData = useCallback(() => {
     if (loaded) return;
-    const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=39216f4b9137de2e4d5f35aa5bdbde04`;
+
+    // const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=39216f4b9137de2e4d5f35aa5bdbde04`;
+    const API_KEY = process.env.REACT_APP_OPEN_WEATHER_API_KEY;
+    const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
       const tOffset = data.data.timezone_offset;
       const hourly = data.data.hourly;
@@ -189,17 +261,18 @@ function HourlyForecast(props) {
   }, [fetchWeatherData]);
 
   return (
-    <div className="highlight-bar-charts" style={{ userSelect: "none", margin: "100px" }}>
-      <button 
+    <Box className={classes.card} style={{ userSelect: "none", }} m={theme.spacing(1)}>
+      <Button
         className="btn update"
         onClick={zoomOut}
       >
         Zoom Out
-      </button>
-
+      </Button>
+    {/* <ResponsiveContainer width="100%" height="100%"> */}
       <LineChart
         width={800}
         height={400}
+        margin={{bottom: 10}}
         data={state.data}
         onMouseDown={(e) =>
           setState({
@@ -208,7 +281,7 @@ function HourlyForecast(props) {
           })
         }
         onMouseMove={(e) =>
-          state.refAreaLeft &&
+          state.refAreaLeft && e.activeLabel &&
           setState({
             ...state,
             refAreaRight: e.activeLabel,
@@ -216,27 +289,36 @@ function HourlyForecast(props) {
         }
         onMouseUp={zoom}
       >
+        <defs>
+              <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="1%" stopColor="#ae1313" stopOpacity={0.9}/>
+                <stop offset="25%" stopColor="#36db24" stopOpacity={0.95}/>
+                <stop offset="50%" stopColor="#137bae" stopOpacity={0.7}/>
+                <stop offset="85%" stopColor="#b857ef" stopOpacity={0.5}/>
+              </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           allowDataOverflow
           // dataKey="name"
-          style={{margin: "50px"}}
+          // style={{margin: "50px"}}
           dataKey="time"
           domain={[state.left, state.right]}
           type="number"
           tick={<CustomizedAxisTick/>}
           tickFormatter={labelFormatter}
+          interval="preserveStartEnd"
         />
         <YAxis
           allowDataOverflow
-          domain={[state.bottom, state.top]}
+          domain={[(state.bottom | 0), (state.top | 100)]}
           type="number"
           yAxisId="1"
         />
         <YAxis
           orientation="right"
           allowDataOverflow
-          domain={[state.bottom2, state.top2]}
+          domain={[(state.bottom2 | 0), state.top2 | 100]}
           type="number"
           yAxisId="2"
         />
@@ -250,7 +332,7 @@ function HourlyForecast(props) {
             padding: theme.spacing(1),
             borderRadius: theme.shape.borderRadius,
             boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.primary.main
+            backgroundColor: theme.palette.secondary.dark
           }}
           labelStyle={theme.typography.body1}
           itemStyle={{
@@ -262,18 +344,21 @@ function HourlyForecast(props) {
             color: "white"
           }}
         />
+        <Legend />
         <Line
           yAxisId="1"
           type="natural"
           dataKey="temp"
-          stroke="#8884d8"
+          stroke={theme.palette.secondary.light} //"#8884d8"
+          dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
           animationDuration={300}
         />
         <Line
           yAxisId="2"
           type="natural"
           dataKey="humidity"
-          stroke="#82ca9d"
+          stroke={theme.palette.primary.light} //"#82ca9d"
+          dot={{ fill: `${theme.palette.primary.main}`, stroke: `${theme.palette.primary.main}`, r: 2}}
           animationDuration={300}
         />
 
@@ -286,7 +371,8 @@ function HourlyForecast(props) {
           />
         ) : null}
       </LineChart>
-    </div>
+      {/* </ResponsiveContainer> */}
+    </Box>
   );
 }
 
