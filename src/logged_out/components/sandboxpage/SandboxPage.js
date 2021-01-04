@@ -21,6 +21,7 @@ import withDataLoading from "../../../shared/components/withDataLoading";
 import Axios from "axios";
 import cheerio from "cheerio"
 import SwipeableViews from "react-swipeable-views";
+import HourlyForecast from "../real_data/OpenWeatherData";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -161,7 +162,6 @@ function SandboxPage(props) {
   //   exit: theme.transitions.duration.leavingScreen,
   // };
 
-
   const [appState, setAppState] = useState({
     loading: false,
     data: "",
@@ -181,164 +181,164 @@ function SandboxPage(props) {
     longTermB: "",
   });
     
-    useEffect(() => {
-      setAppState({loading: true});
-      const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
-      Axios.get(afdUrl)
-        .then((data) => {
-          const allData = cheerio.load(data.data);
-          const afd = allData('pre.glossaryProduct')
-          const afdText = afd.text();
-          var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
-          var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
-          var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
-          var locationResult = locationTest.exec(afdText);
-          var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
-          var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-          var stationResult = stationTest.exec(afdText);
-          var dateResult = dateTest.exec(afdText);
-          var synopsisResult = afdSynopsis.exec(afdText);
-          var sectionsResult = sectionsTest.exec(afdText);
-          var nearTermResult = nearTermTest.exec(afdText);
-          var shortTermResult = shortTermTest.exec(afdText);
-          var longTermResult = longTermTest.exec(afdText);
-          const stat = stationResult[0];
-          const location = locationResult[1];
-          const product = stationResult[3];
-          const date = dateResult[0];
-          const synopT = synopsisResult[0];
-          const synopB = sectionsResult[3];
-          const nearTT = nearTermResult[2];
-          const nearTB = nearTermResult[3];
-          const shortTT = shortTermResult[2];
-          const shortTB = shortTermResult[3];
-          const longTT = longTermResult[2];
-          const longTB = longTermResult[3];
-          // sectionsResult.forEach((match, groupIndex) => {
-          //   console.log(`Found match, group ${groupIndex}: ${match}`);
-          // });
-          setAppState({
-            loading: false, 
-            data: afdText, 
-            station: stat,
-            date: date,
-            product: product,
-            location: location, 
-            synopsisT: synopT, 
-            synopsisB: synopB, 
-            nearTermT: nearTT,
-            nearTermB: nearTB,
-            shortTermT: shortTT,
-            shortTermB: shortTB,
-            longTermT: longTT,
-            longTermB: longTB
-          });
+  useEffect(() => {
+    setAppState({loading: true});
+    const afdUrl = 'https://forecast.weather.gov/product.php?site=NWS&issuedby=LWX&product=AFD';
+    Axios.get(afdUrl)
+      .then((data) => {
+        const allData = cheerio.load(data.data);
+        const afd = allData('pre.glossaryProduct')
+        const afdText = afd.text();
+        var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
+        var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
+        var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
+        var locationResult = locationTest.exec(afdText);
+        var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
+        var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        var stationResult = stationTest.exec(afdText);
+        var dateResult = dateTest.exec(afdText);
+        var synopsisResult = afdSynopsis.exec(afdText);
+        var sectionsResult = sectionsTest.exec(afdText);
+        var nearTermResult = nearTermTest.exec(afdText);
+        var shortTermResult = shortTermTest.exec(afdText);
+        var longTermResult = longTermTest.exec(afdText);
+        const stat = stationResult[0];
+        const location = locationResult[1];
+        const product = stationResult[3];
+        const date = dateResult[0];
+        const synopT = synopsisResult[0];
+        const synopB = sectionsResult[3];
+        const nearTT = nearTermResult[2];
+        const nearTB = nearTermResult[3];
+        const shortTT = shortTermResult[2];
+        const shortTB = shortTermResult[3];
+        const longTT = longTermResult[2];
+        const longTB = longTermResult[3];
+        // sectionsResult.forEach((match, groupIndex) => {
+        //   console.log(`Found match, group ${groupIndex}: ${match}`);
+        // });
+        setAppState({
+          loading: false, 
+          data: afdText, 
+          station: stat,
+          date: date,
+          product: product,
+          location: location, 
+          synopsisT: synopT, 
+          synopsisB: synopB, 
+          nearTermT: nearTT,
+          nearTermB: nearTB,
+          shortTermT: shortTT,
+          shortTermB: shortTB,
+          longTermT: longTT,
+          longTermB: longTB
         });
-    }, [setAppState]);
-    
-    useEffect(() => {
-      selectSandbox();
-    }, [selectSandbox]);
+      });
+  }, [setAppState]);
+  
+  useEffect(() => {
+    selectSandbox();
+  }, [selectSandbox]);
 
-    const DataLoading = withDataLoading(WeatherData);
+  const DataLoading = withDataLoading(WeatherData);
 
-    return (
-      <Fragment>
-        <div id='sandbox-top'>
-          <div > {/*className={classNames(classes.wrapper)}*/}
-            <div className={classNames("container-fluid lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
-              <section id='SandboxPage'>
-                <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
+  return (
+    <Fragment>
+      <div id='sandbox-top'>
+        <div > {/*className={classNames(classes.wrapper)}*/}
+          <div className={classNames("container-fluid lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
+            <section id='SandboxPage'>
+              <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
                 Weather Playground
-                </Typography>
-              </section>              
-              <Box className={classes.containerFluid}>
-                <Typography className="text-white">Weather</Typography>
-              </Box>
-              <AppBar position="relative" color="inherit">
-                <Tabs
-                  value={value}
-                  onChange={handleChange}
-                  indicatorColor="primary"
-                  textColor="secondary"
-                  variant="scrollable"
-                  aria-label="action tabs example"
-                  // centered={true}
-                  style={{width: "100%", flexGrow: 1, }}
-                >
-                  <Tab label="Weather timeline" {...a11yProps(0)} />
-                  <Tab label="Weather accordion" {...a11yProps(1)} />
-                  <Tab label="Weather button" {...a11yProps(2)} />
-                  <Tab label="Weather resizeable boxes" {...a11yProps(3)} />
-                  <Tab label="Hourly charts" {...a11yProps(4)} />
-                </Tabs>
-              </AppBar>
-
-              <SwipeableViews
-                axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
-                index={value}
-                onChangeIndex={handleChangeIndex}
+              </Typography>
+            </section>              
+            <Box className={classes.containerFluid}>
+              <Typography className="text-white">Weather</Typography>
+            </Box>
+            <AppBar position="relative" color="inherit">
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                indicatorColor="primary"
+                textColor="secondary"
+                variant="scrollable"
+                aria-label="action tabs example"
+                // centered={true}
+                style={{width: "100%", flexGrow: 1, }}
               >
-                <TabPanel value={value} index={0} dir={theme.direction}>
-                  <Weather displayType="timeline"/>
-                </TabPanel>
-                <TabPanel value={value} index={1} dir={theme.direction}>
-                  <Weather displayType="accordion"/>             
-                </TabPanel>
-                <TabPanel value={value} index={2} dir={theme.direction}>
-                  <Weather displayType="button"/>
-                  <DataLoading data={appState.data}/>
-                </TabPanel>
-                <TabPanel value={value} index={3} dir={theme.direction}>
-                  <Grid 
-                    item
-                    className={classNames(classes.card, classes.containerFluid)}
-                    >
-                    <Box mb={4} justifyContent="center">
-                      <Sandbox
-                        title={appState.synopsisT}
-                        content={appState.synopsisB}
-                        highlighted={appState.loading}
-                      />
-                      <Sandbox
-                        title={appState.nearTermT}
-                        content={appState.nearTermB}
-                        highlighted={appState.loading}
-                      />
-                    </Box>
-                    <Box className={classes.containerFix}>
-                      <Sandbox
-                        highlighted
-                        title={appState.station}
-                        content={appState.date}
-                      />
-                    </Box>
-                    <Box className={classes.containerFix}>
-                    </Box>
-                  </Grid>
-                </TabPanel>
-                <TabPanel value={value} index={4} dir={theme.direction}>
-                  <DataLoading data={appState.data}/>
-                </TabPanel>
-              </SwipeableViews>
-            </div>
+                <Tab label="Weather timeline" {...a11yProps(0)} />
+                <Tab label="Weather accordion" {...a11yProps(1)} />
+                <Tab label="Weather button" {...a11yProps(2)} />
+                <Tab label="Weather resizeable boxes" {...a11yProps(3)} />
+                <Tab label="Hourly charts" {...a11yProps(4)} />
+              </Tabs>
+            </AppBar>
+            <SwipeableViews
+              axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
+              index={value}
+              onChangeIndex={handleChangeIndex}
+            >
+              <TabPanel value={value} index={0} dir={theme.direction}>
+                <Weather displayType="timeline"/>
+              </TabPanel>
+              <TabPanel value={value} index={1} dir={theme.direction}>
+                <Weather displayType="accordion"/>             
+              </TabPanel>
+              <TabPanel value={value} index={2} dir={theme.direction}>
+                <Weather displayType="button"/>
+                <DataLoading data={appState.data}/>
+              </TabPanel>
+              <TabPanel value={value} index={3} dir={theme.direction}>
+                <Grid 
+                  item
+                  className={classNames(classes.card, classes.containerFluid)}
+                  >
+                  <Box mb={4} justifyContent="center">
+                    <Sandbox
+                      title={appState.synopsisT}
+                      content={appState.synopsisB}
+                      highlighted={appState.loading}
+                    />
+                    <Sandbox
+                      title={appState.nearTermT}
+                      content={appState.nearTermB}
+                      highlighted={appState.loading}
+                    />
+                  </Box>
+                  <Box className={classes.containerFix}>
+                    <Sandbox
+                      highlighted
+                      title={appState.station}
+                      content={appState.date}
+                    />
+                  </Box>
+                  <Box className={classes.containerFix}>
+                  </Box>
+                </Grid>
+              </TabPanel>
+              <TabPanel value={value} index={4} dir={theme.direction}>
+                <HourlyForecast/>
+                <DataLoading data={appState.data}/>
+              </TabPanel>
+            </SwipeableViews>
           </div>
         </div>
-      </Fragment>
-    );
-  }
-  
-  SandboxPage.propTypes = {
-    width: PropTypes.string.isRequired,
-    classes: PropTypes.object,
-    theme: PropTypes.object,
-    selectSandbox: PropTypes.func.isRequired
-    // pushMessageToSnackbar: PropTypes.func,
-  };
-  
-  export default withStyles(styles, { withTheme: true })(
-    withWidth()(SandboxPage)
+      </div>
+    </Fragment>
   );
+}
+  
+SandboxPage.propTypes = {
+  width: PropTypes.string.isRequired,
+  classes: PropTypes.object,
+  theme: PropTypes.object,
+  selectSandbox: PropTypes.func.isRequired
+  // pushMessageToSnackbar: PropTypes.func,
+};
+  
+export default withStyles(styles, { withTheme: true })(
+  withWidth()(SandboxPage)
+);
