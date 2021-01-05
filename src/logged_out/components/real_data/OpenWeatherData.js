@@ -18,8 +18,6 @@ import {
 import { Box, Button, withStyles } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
-// import AWS from "@aw"
-import SecretsManager from "@aws-sdk/client-secrets-manager"
 
 const styles = (theme) => ({
   card: {
@@ -38,70 +36,11 @@ const styles = (theme) => ({
 // Returns hello.
 // unix => "hello";
 
-// function fetchApiKey() {
-//     // Use this code snippet in your app.
-//   // If you need more information about configurations or implementing the sample code, visit the AWS docs:
-//   // https://aws.amazon.com/developers/getting-started/nodejs/
-
-//   // Load the AWS SDK
-//   var AWS = require('@aws-sdk/client-secrets-manager'),
-//   region = "us-east-1",
-//   secretName = "OpenWeatherMapApi",
-//   secret,
-//   decodedBinarySecret;
-
-//   // Create a Secrets Manager client
-//   var client = new AWS.SecretsManager({
-//   region: region
-//   });
-
-//   // In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
-//   // See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-//   // We rethrow the exception by default.
-
-//   client.getSecretValue({SecretId: secretName}, function(err, data) {
-//   if (err) {
-//       if (err.code === 'DecryptionFailureException')
-//           // Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-//           // Deal with the exception here, and/or rethrow at your discretion.
-//           throw err;
-//       else if (err.code === 'InternalServiceErrorException')
-//           // An error occurred on the server side.
-//           // Deal with the exception here, and/or rethrow at your discretion.
-//           throw err;
-//       else if (err.code === 'InvalidParameterException')
-//           // You provided an invalid value for a parameter.
-//           // Deal with the exception here, and/or rethrow at your discretion.
-//           throw err;
-//       else if (err.code === 'InvalidRequestException')
-//           // You provided a parameter value that is not valid for the current state of the resource.
-//           // Deal with the exception here, and/or rethrow at your discretion.
-//           throw err;
-//       else if (err.code === 'ResourceNotFoundException')
-//           // We can't find the resource that you asked for.
-//           // Deal with the exception here, and/or rethrow at your discretion.
-//           throw err;
-//   }
-//   else {
-//       // Decrypts secret using the associated KMS CMK.
-//       // Depending on whether the secret is a string or binary, one of these fields will be populated.
-//       if ('SecretString' in data) {
-//           secret = data.SecretString;
-//       } else {
-//           let buff = new Buffer(data.SecretBinary, 'base64');
-//           decodedBinarySecret = buff.toString('ascii');
-//       }
-//   }
-
-//   // Your code goes here.
-//   return secret; 
-//   });
-// }
-
 function formatTime(unix, offset) {
-  const secs = unix * 1000;
-  const seconds = secs - offset;
-  return format(new Date(seconds), "MMM d hh:mm:ss");
+  const seconds = unix - offset;
+  const secs = seconds * 1000;
+  
+  return format(new Date(secs), "MMM d hh:mm:ss");
 }
 
 function labelFormatter(label) {
@@ -186,8 +125,8 @@ function HourlyForecast(props) {
     if (refAreaLeft > refAreaRight) [refAreaLeft, refAreaRight] = [refAreaRight, refAreaLeft];
 
     // yAxis domain
-    if (state.data === null || !state.data) console.log(`WTF WHERE IS THE DATA ${state.data}`);
-    console.log(`WTF WHERE IS THE DATA ${state.data[0].temp}`);
+    // if (state.data === null || !state.data) console.log(`WTF WHERE IS THE DATA ${state.data}`);
+    // console.log(`WTF WHERE IS THE DATA ${state.data[0].temp}`);
     const [bottom, top] = getAxisYDomain(
       state.data,
       refAreaLeft,
@@ -221,7 +160,7 @@ function HourlyForecast(props) {
       data: data.slice(),
       refAreaLeft: "",
       refAreaRight: "",
-      left: "dataMin",
+      left: "dataMin-5",
       right: "dataMax",
       top: "dataMax+1",
       bottom: "dataMin",
@@ -238,11 +177,12 @@ function HourlyForecast(props) {
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
       const tOffset = data.data.timezone_offset;
+      console.log(tOffset);
       const hourly = data.data.hourly;
       const merged = [];
       hourly.forEach((element, index) => {
         const timestamp = formatTime(element.dt, tOffset);
-        const rawTimestamp = (element.dt - tOffset) / 1000;
+        const rawTimestamp = (element.dt) / 1000;
         merged[index] = {
           // time: timestamp,
           time: rawTimestamp,
