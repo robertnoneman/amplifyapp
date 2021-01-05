@@ -219,8 +219,8 @@ function Settings2(props) {
               className={classes.numberInput}
               classes={{ input: classes.numberInputInput }}
               name="option6"
-              htmlColor="#195f86"
-              IconComponent={`${<ExpandMoreIcon htmlColor="#195f86"/>}`}
+              // htmlColor="#195f86"
+              // iconComponent={`${<ExpandMoreIcon htmlColor="#195f86"/>}`}
             />
           }
         >

@@ -39,12 +39,40 @@ const styles = (theme) => ({
       animation: "$moveForever 4s cubic-bezier(0.62, 0.5, 0.38, 0.5) infinite",
       animationDelay: props => `-${props.animationNegativeDelay}s`
     }
+  },
+  expand: {
+    transform: 'rotate(0deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  expandOpen: {
+    transform: 'rotate(180deg)',
+  },
+  pourIcon: {
+    animation: "pour 5s linear"
+  },
+  "@keyframes pour": {
+    "0%": {
+      transform: "scale(1) rotate(-45deg)"
+    },
+    "25%": {
+      transform: "rotate(-45deg) scale(0.6)",
+      bottom: "-100px"
+    },
+    "50%": {
+      transform: "scale(0.1) rotate(-45deg)",
+      bottom: "200px",
+      opacity: "0.01"
+    }
   }
 }); 
 
 const features = [
   {
     color: "#fe9800",
+    link: "https://console.aws.amazon.com/console/home?region=us-east-1",
     headline: "AWS Backend",
     text:
       "Commits to master branch are automatically deployed. If this text isn't two lines, these items look misaligned.",
@@ -84,6 +112,7 @@ const features = [
   {
     color: "#e96d49",
     headline: "Weather Data",
+    link: "/sandboxpage",
     text:
       "Weather data obtained from OpenWeatherMap, NWS REST API, and by scrapping NWS HTML.",
     // icon: <ComputerIcon style={{ fontSize: iconSize }} />,
@@ -94,12 +123,18 @@ const features = [
   {
     color: "#DD2C00",
     headline: "Experiments",
+    link: "/sandboxpage",
     text:
       "The sandbox section has several experiments with interesting frontend packages.",
     // icon: <BarChartIcon style={{ fontSize: iconSize }} />,
-    icon: <FontAwesomeIcon icon={faVial} style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faVial} style={{ 
+      fontSize: iconSize,
+      animation: "pour 5s linear infinite",
+      animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
+     }} />,
     mdDelay: "200",
-    smDelay: "0"
+    smDelay: "0",
+    className: "pourIcon"
   },
   {
     color: "#8bc500",
@@ -113,6 +148,7 @@ const features = [
   {
     color: "#304FFE",
     headline: "Todo/kanban",
+    link: "/c/notes",
     text:
       "Drag and drop functionality. Kanban cards also support github-flavored markup.",
     // icon: <CloudIcon style={{ fontSize: iconSize }} />,
@@ -139,7 +175,7 @@ const features = [
     // icon: <CancelIcon style={{ fontSize: iconSize }} />,
     icon: <VpnKey style={{ fontSize: iconSize }} />,
     mdDelay: "400",
-    smDelay: "0"
+    smDelay: "0",
   }
 ];
 
@@ -169,7 +205,7 @@ function FeatureSection(props) {
                   color={element.color}
                   headline={element.headline}
                   text={element.text}
-                  className="text-white"
+                  className={element.headline === "Experiments" ? classes.pourIcon : "text-white"}
                 />
               </Grid>
             ))}

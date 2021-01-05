@@ -163,10 +163,10 @@ const theme = createMuiTheme({
       }
     },
     MuiSelect: {
-      colorPrimary: secondary,
-      color: secondary,
+      // colorPrimary: secondary,
+      // color: secondary,
       icon: {
-        colorPrimary: primary,
+        // colorPrimary: primary,
         color: secondary,
       }
     },

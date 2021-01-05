@@ -90,10 +90,12 @@ function Main(props) {
   const fetchRandomStatistics = useCallback(() => {
     const statistics = { profit: [], views: [] };
     const iterations = 300;
+    const futureIterations = 300;
     const oneYearSeconds = 60 * 60 * 24 * 365;
     let curProfit = Math.round(3000 + Math.random() * 1000);
     let curViews = Math.round(3000 + Math.random() * 1000);
     let curUnix = Math.round(new Date().getTime() / 1000) - oneYearSeconds;
+    let futureUnix = Math.round(new Date().getTime() / 1000) + oneYearSeconds;
     for (let i = 0; i < iterations; i += 1) {
       curUnix += Math.round(oneYearSeconds / iterations);
       curProfit += Math.round((Math.random() * 2 - 1) * 10);
@@ -106,7 +108,20 @@ function Main(props) {
         value: curViews,
         timestamp: curUnix,
       });
-    }
+    };
+    for (let i = 0; i < futureIterations; i += 1) {
+      futureUnix -= Math.round(oneYearSeconds / futureIterations);
+      curProfit += Math.round((Math.random() * 2 - 1) * 10);
+      curViews += Math.round((Math.random() * 2 - 1) * 10);
+      statistics.profit.unshift({
+        value: curProfit,
+        timestamp: futureUnix,
+      });
+      statistics.views.unshift({
+        value: curViews,
+        timestamp: futureUnix,
+      });
+    };
     setStatistics(statistics);
   }, [setStatistics]);
 

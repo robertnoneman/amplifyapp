@@ -13,6 +13,7 @@ function StatisticsArea(props) {
           <CardChart
             data={data.profit}
             color={theme.palette.secondary.light}
+            reversed={false}
             height="70px"
             title="Profit"
           />

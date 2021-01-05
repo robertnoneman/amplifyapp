@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 import PropTypes from "prop-types";
-import { Typography, withStyles } from "@material-ui/core";
+import { Button, IconButton, Typography, withStyles } from "@material-ui/core";
 
 const styles = theme => ({
   iconWrapper: {
@@ -42,6 +42,14 @@ function FeatureCard(props) {
     <Fragment>
       <div
         // We will set color and fill here, due to some prios complications
+        // className={classes.iconWrapper}
+        // style={{
+        //   color: color,
+        //   backgroundColor: shadeColor(color, 0.5),
+        //   fill: color
+        // }}
+      >
+      <IconButton
         className={classes.iconWrapper}
         style={{
           color: color,
@@ -50,6 +58,7 @@ function FeatureCard(props) {
         }}
       >
         {Icon}
+      </IconButton>
       </div>
       <Typography variant="h5" className="text-white" paragraph>
         {headline}

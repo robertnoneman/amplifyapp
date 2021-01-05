@@ -21,6 +21,8 @@ import {
   Box,
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import { min } from "date-fns";
+import { arrayIncludes } from "@material-ui/pickers/_helpers/utils";
 
 const styles = (theme) => ({
   cardContentInner: {
@@ -32,7 +34,7 @@ const styles = (theme) => ({
 });
 
 function labelFormatter(label) {
-  return format(new Date(label * 1000), "MMM d, p");
+  return format(new Date(label * 1000), "MMM d, p yyyy");
 }
 
 function calculateMin(data, yKey, factor) {
@@ -64,12 +66,13 @@ function CustomizedAxisTick(props) {
 }
 
 const itemHeight = 216;
-const options = ["1 Week", "1 Day", "12 Hours"];
+const options = ["Last Year", "Last 6 Months", "Last Week", "Last Day", "Last 12 Hours", "12 Hours", "1 Day", "1 Week", "6 Months", "1 Year",  ];
 
 function CardChart(props) {
-  const { data, title, classes, theme, height } = props;
+  const { data, title, classes, theme, height, reversed } = props;
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedOption, setSelectedOption] = useState("1 Week");
+  const [selectedOption, setSelectedOption] = useState("Last Week");
+  const [isReversed, setIsReversed] = useState(false);
 
   const handleClick = useCallback(
     (event) => {
@@ -87,12 +90,26 @@ function CardChart(props) {
 
   const getSubtitle = useCallback(() => {
     switch (selectedOption) {
-      case "1 Week":
-        return "Next week";
-      case "1 Day":
-        return "Next Day";
+      case "Last Year":
+        return "Last year";
+      case "Last 6 Months":
+        return "Last 6 Months";
+      case "Last Week":
+        return "Last week";
+      case "Last Day":
+        return "Last Day";
+      case "Last 12 Hours":
+        return "Last 12 Hours";
       case "12 Hours":
         return "Next 12 Hours";
+      case "1 Day":
+        return "Next Day";
+      case "1 Week":
+        return "Next week";
+      case "6 Months":
+        return "Next 6 Months";
+      case "1 Year":
+        return "Next year";
       default:
         throw new Error("No branch selected in switch-statement");
     }
@@ -101,27 +118,64 @@ function CardChart(props) {
   const processData = useCallback(() => {
     let seconds;
     switch (selectedOption) {
-      case "1 Week":
+      case "Last Year":
+        seconds = 60 * 60 * 24 * 31 * 12;
+        break;
+      case "Last 6 Months":
+        seconds = 60 * 60 * 24 * 31 * 6;
+        break;
+      case "Last Week":
         seconds = 60 * 60 * 24 * 7;
         break;
-      case "1 Day":
+      case "Last Day":
         seconds = 60 * 60 * 24;
         break;
-      case "12 Hours":
+      case "Last 12 Hours":
         seconds = 60 * 60 * 12;
         break;
+      case "12 Hours":
+        seconds = (60 * 60 * 12);
+        break;
+      case "1 Day":
+        seconds = (60 * 60 * 24);
+        break;
+      case "1 Week":
+        seconds = (60 * 60 * 24 * 7);
+        break;
+      case "6 Months":
+        seconds = (60 * 60 * 24 * 31 * 6);
+        break;
+      case "1 Year":
+        seconds = (60 * 60 * 24 * 31 * 12);
+        break;
+
       default:
         throw new Error("No branch selected in switch-statement");
     }
-    const minSeconds = new Date() / 1000 - seconds;
+    console.log(`Seconds: ${seconds}`);
+    const minSeconds = (new Date().getTime() / 1000) - seconds;
+    console.log(`min seconds: ${minSeconds}`);
+    const currentSeconds = new Date().getTime() / 1000;
+    console.log(`Current seconds: ${currentSeconds}`);
+    const maxSeconds = (new Date().getTime() / 1000) + seconds;
+    console.log(`max seconds: ${maxSeconds}`);
+ 
     const arr = [];
     for (let i = 0; i < data.length; i += 1) {
-      if (minSeconds < data[i].timestamp) {
-        arr.unshift(data[i]);
+      if (isReversed) {
+        if (minSeconds < data[i].timestamp) {
+          arr.unshift(data[i]);
+          // arr.shift(data[i]);
+        }
+      }
+      if (!isReversed) {
+        if (data[i].timestamp < maxSeconds && data[i].timestamp > currentSeconds) {
+          arr.push(data[i]);
+        }
       }
     }
     return arr;
-  }, [data, selectedOption]);
+  }, [data, selectedOption, isReversed]);
 
   const handleClose = useCallback(() => {
     setAnchorEl(null);
@@ -129,10 +183,12 @@ function CardChart(props) {
 
   const selectOption = useCallback(
     (selectedOption) => {
+      var shouldReverse = new RegExp(/^Last/, 'gm').test(selectedOption);
+      setIsReversed(shouldReverse);
       setSelectedOption(selectedOption);
       handleClose();
     },
-    [setSelectedOption, handleClose]
+    [setSelectedOption, setIsReversed, handleClose]
   );
   const isOpen = Boolean(anchorEl);
   return (
@@ -203,9 +259,9 @@ function CardChart(props) {
                 //type="number"
                 tick={<CustomizedAxisTick/>}
                 tickFormatter={labelFormatter}
-                reversed
+                reversed={reversed}
                 domain={["dataMin", "dataMax"]}
-                height={100}
+                // height={100}
               />
               <YAxis
                 // domain={[calculateMin(data, "value", 0.1), "dataMax"]}

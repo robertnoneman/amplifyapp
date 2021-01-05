@@ -142,6 +142,37 @@ const styles = theme => ({
         } 
       }
     },
+    ".pourIcon": {
+      animation: "pour 5s linear"
+    },
+    "@keyframes pour": {
+      "0%": {
+        transform: "rotate(-45deg) scale(0.1)",
+        bottom: "-100px",
+        opacity: "0.01"
+      },
+      "20%": {
+        transform: "rotate(-40deg)",
+      },
+      "25%": {
+        transform: "scale(1) rotate(-30deg)",
+        opacity: "1"
+      },
+      "50%": {
+        transform: "scale(1) rotate(0deg)",
+        bottom: "200px",
+        opacity: "1"
+      },
+      "65%": {
+        transform: "rotate(-45deg)",
+        bottom: "250px",
+        opactiy: "1"
+      },
+      "100%": {
+        opacity: "0.5",
+        transform: "scale(0.01) rotate(-45deg)"
+      }
+    },
     ".absolutely-positioned": {
       position: 'absolute !important',
     },
