@@ -13,6 +13,16 @@ import CancelIcon from "@material-ui/icons/Cancel";
 import calculateSpacing from "./calculateSpacing";
 import FeatureCard from "./FeatureCard";
 import WaveBorder from "../../../shared/components/WaveBorder";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faReact, 
+  faAws,
+  faNodeJs,
+  faConnectdevelop,
+
+} from "@fortawesome/free-brands-svg-icons";
+import { faCloudSunRain, faProjectDiagram, faVial } from "@fortawesome/free-solid-svg-icons";
+import { AssignmentTurnedIn, VpnKey } from "@material-ui/icons";
 
 const iconSize = 30;
 
@@ -20,87 +30,114 @@ const styles = (theme) => ({
   waveBorder: {
     paddingTop: theme.spacing(4),
   },
+  "@keyframes moveForever": {
+    from: { transform: "translate3d(-90px, 0, 0)" },
+    to: { transform: "translate3d(85px, 0, 0)" }
+  },
+  parallax: {
+    "& > use": {
+      animation: "$moveForever 4s cubic-bezier(0.62, 0.5, 0.38, 0.5) infinite",
+      animationDelay: props => `-${props.animationNegativeDelay}s`
+    }
+  }
 }); 
 
 const features = [
   {
-    color: "#ea7843",
-    headline: "Feature 1",
+    color: "#fe9800",
+    headline: "AWS Backend",
     text:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <BuildIcon style={{ fontSize: iconSize }} />,
+      "Commits to master branch are automatically deployed. If this text isn't two lines, these items look misaligned.",
+    // icon: <BuildIcon style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faAws} style={{ fontSize: iconSize }}/>,
     mdDelay: "0",
     smDelay: "0"
   },
   {
     color: "#6200EA",
-    headline: "Feature 2",
+    headline: "Fun Animations",
     text:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <CalendarTodayIcon style={{ fontSize: iconSize }} />,
+    icon: <CalendarTodayIcon style={{ 
+      fontSize: iconSize,
+      animation: "App-logo-spin infinite 10s linear",
+      keyframes: {
+        from: { transform: "rotate(0deg)" },
+        to: { transform: "rotate(360deg)"}
+      }
+      }} 
+    />,
     mdDelay: "200",
     smDelay: "200"
   },
   {
-    color: "#0091EA",
-    headline: "Feature 3",
+    color: "#61dafb",
+    headline: "React Frontend",
     text:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <MeassageIcon style={{ fontSize: iconSize }} />,
+    // icon: <MeassageIcon style={{ fontSize: iconSize }} />,
+    // icon: <FontAwesomeIcon icon={['fab', 'fa-react']} style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faReact} style={{ fontSize: iconSize }} />,
     mdDelay: "400",
     smDelay: "0"
   },
   {
-    color: "#d50000",
-    headline: "Feature 4",
+    color: "#e96d49",
+    headline: "Weather Data",
     text:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <ComputerIcon style={{ fontSize: iconSize }} />,
+      "Weather data obtained from OpenWeatherMap, NWS REST API, and by scrapping NWS HTML.",
+    // icon: <ComputerIcon style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faCloudSunRain} style={{ fontSize: iconSize }} />,
     mdDelay: "0",
     smDelay: "200"
   },
   {
     color: "#DD2C00",
-    headline: "Feature 5",
+    headline: "Experiments",
     text:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <BarChartIcon style={{ fontSize: iconSize }} />,
+      "The sandbox section has several experiments with interesting frontend packages.",
+    // icon: <BarChartIcon style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faVial} style={{ fontSize: iconSize }} />,
     mdDelay: "200",
     smDelay: "0"
   },
   {
-    color: "#64DD17",
-    headline: "Feature 6",
+    color: "#8bc500",
+    headline: "NODEjs",
     text:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <HeadsetMicIcon style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faNodeJs} style={{ fontSize: iconSize }} />,
     mdDelay: "400",
     smDelay: "200"
   },
   {
     color: "#304FFE",
-    headline: "Feature 7",
+    headline: "Todo/kanban",
     text:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <CloudIcon style={{ fontSize: iconSize }} />,
+      "Drag and drop functionality. Kanban cards also support github-flavored markup.",
+    // icon: <CloudIcon style={{ fontSize: iconSize }} />,
+    icon: <AssignmentTurnedIn style={{ fontSize: iconSize }} />,
     mdDelay: "0",
     smDelay: "0"
   },
   {
-    color: "#C51162",
-    headline: "Feature 8",
+    color: "#de33a6",
+    headline: "graphql API",
     text:
       "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <CodeIcon style={{ fontSize: iconSize }} />,
+    // icon: <CodeIcon style={{ fontSize: iconSize }} />,
+    // icon: <FontAwesomeIcon icon={faProjectDiagram} style={{ fontSize: iconSize }} />,
+    icon: <FontAwesomeIcon icon={faConnectdevelop} style={{ fontSize: iconSize }} />,
     mdDelay: "200",
     smDelay: "200"
   },
   {
     color: "#00B8D4",
-    headline: "Feature 9",
+    headline: "Authentification",
     text:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et.",
-    icon: <CancelIcon style={{ fontSize: iconSize }} />,
+      "Sort of..",
+    // icon: <CancelIcon style={{ fontSize: iconSize }} />,
+    icon: <VpnKey style={{ fontSize: iconSize }} />,
     mdDelay: "400",
     smDelay: "0"
   }
