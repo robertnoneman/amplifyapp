@@ -15,9 +15,12 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { Box, Button, withStyles } from "@material-ui/core";
+import { Box, Button, Container, SvgIcon, withStyles } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
+import { ArrowDropDownCircle, ArrowForward, Navigation } from "@material-ui/icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
 const styles = (theme) => ({
   card: {
@@ -29,6 +32,9 @@ const styles = (theme) => ({
   },
   chartBox: {
 
+  },
+  windArrow: {
+    transform: 'rotate(0deg)',
   }
 });
 
@@ -81,6 +87,68 @@ const initialStateData = {
   animation: true
 };
 
+const CustomizedDot = (props) => {
+  const {
+    cx, cy, stroke, payload, value, 
+  } = props;
+
+  return (
+    <ArrowForward
+    style={{ 
+      transform: `rotate(${payload.windDeg}deg)`, 
+      pourIcon: {
+        animation: "pour 5s linear"
+      },
+      "@keyframes pour": {
+        "0%": {
+          transform: "scale(1) rotate(-45deg)"
+        },
+        "25%": {
+          transform: "rotate(-45deg) scale(0.6)",
+          bottom: "-100px"
+        },
+        "50%": {
+          transform: "scale(0.1) rotate(-45deg)",
+          bottom: "200px",
+          opacity: "0.01"
+        }
+      },
+      // animation: "pour 5s linear infinite",
+      animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
+      }} x={cx - 10} y={cy - 10} width={800} height={800} fill={stroke} viewBox="0 0 1024 1024"
+      />
+
+    // </ArrowDropDownCircle>
+    // <SvgIcon style={{ 
+    //   transform: `rotate(${payload.windDeg}deg)`, 
+    //   pourIcon: {
+    //     animation: "pour 5s linear"
+    //   },
+    //   "@keyframes pour": {
+    //     "0%": {
+    //       transform: "scale(1) rotate(-45deg)"
+    //     },
+    //     "25%": {
+    //       transform: "rotate(-45deg) scale(0.6)",
+    //       bottom: "-100px"
+    //     },
+    //     "50%": {
+    //       transform: "scale(0.1) rotate(-45deg)",
+    //       bottom: "200px",
+    //       opacity: "0.01"
+    //     }
+    //   },
+    //   animation: "pour 5s linear infinite",
+    //   animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
+    //   }} x={cx - 10} y={cy - 10} width={40} height={40} fill={stroke} viewBox="0 0 1024 1024">
+    // {/* <svg x={cx - 10} y={cy - 10} width={20} height={20} fill={stroke} viewBox="0 0 1024 1024"> */}
+    //   {/* <path fill={stroke} d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04l224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941l207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"/> */}
+    //   <path fill={stroke} d="M8 256c0 137 111 248 248 248s248-111 248-248S393 8 256 8 8 119 8 256zm448 0c0 110.5-89.5 200-200 200S56 366.5 56 256 145.5 56 256 56s200 89.5 200 200zM266.9 126.1l121.4 121.4c4.7 4.7 4.7 12.3 0 17L266.9 385.9c-4.7 4.7-12.3 4.7-17 0l-19.6-19.6c-4.8-4.8-4.7-12.5.2-17.2l70.3-67.1H140c-6.6 0-12-5.4-12-12v-28c0-6.6 5.4-12 12-12h160.8l-70.3-67.1c-4.9-4.7-5-12.4-.2-17.2l19.6-19.6c4.7-4.7 12.3-4.7 17 0z"></path>
+    // {/* </svg> */}
+    // </SvgIcon>
+  );
+}
+
 function HourlyForecast(props) {
   const { title, classes, theme } = props;
   const [state, setState] = useState(initialStateData);
@@ -132,14 +200,14 @@ function HourlyForecast(props) {
       refAreaLeft,
       refAreaRight,
       "temp",
-      1
+      0
     );
     const [bottom2, top2] = getAxisYDomain(
       data,
       refAreaLeft,
       refAreaRight,
-      "humidity",
-      1
+      "pop",
+      0
     );
     setState({
       refAreaLeft: "",
@@ -165,7 +233,7 @@ function HourlyForecast(props) {
       top: "dataMax+1",
       bottom: "dataMin",
       top2: "dataMax+5",
-      bottom2: "dataMin+50"
+      bottom2: "dataMin+5"
     })
   }, [state, setState]);
 
@@ -177,7 +245,7 @@ function HourlyForecast(props) {
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
       const tOffset = data.data.timezone_offset;
-      console.log(tOffset);
+      // console.log(tOffset);
       const hourly = data.data.hourly;
       const merged = [];
       hourly.forEach((element, index) => {
@@ -188,6 +256,16 @@ function HourlyForecast(props) {
           time: rawTimestamp,
           temp: element.temp,
           humidity: element.humidity,
+          pop: element.pop,
+          feelsLike: element.feels_like,
+          pressure: element.pressure * 0.0295300,
+          dewPoint: element.dew_point,
+          uvi: element.uvi,
+          clouds: element.clouds,
+          visibility: element.visibility,
+          windSpeed: element.wind_speed,
+          windDeg: element.wind_deg,
+          weather: element.weather
         };
       });
       // setFetchedData(merged);
@@ -289,19 +367,59 @@ function HourlyForecast(props) {
           yAxisId="1"
           type="natural"
           dataKey="temp"
-          stroke={theme.palette.secondary.light} //"#8884d8"
+          stroke={theme.palette.secondary.light} //"#"
           dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
           animationDuration={300}
         />
         <Line
           yAxisId="2"
           type="natural"
+          dataKey="feelsLike"
+          stroke={theme.palette.secondary.main} //"#"
+          dot={{ fill: `${theme.palette.secondary.main}`, stroke: `${theme.palette.secondary.main}`, r: 2}}
+          animationDuration={300}
+        />
+        <Line
+          yAxisId="2"
+          type="natural"
           dataKey="humidity"
-          stroke={theme.palette.primary.light} //"#82ca9d"
+          stroke={theme.palette.primary.light} //"#"
           dot={{ fill: `${theme.palette.primary.main}`, stroke: `${theme.palette.primary.main}`, r: 2}}
           animationDuration={300}
         />
-
+        <Line
+          yAxisId="2"
+          type="natural"
+          dataKey="dewPoint"
+          stroke={theme.palette.primary.main} //"#"
+          dot={{ fill: `${theme.palette.warning.dark}`, stroke: `${theme.palette.warning.dark}`, r: 2}}
+          animationDuration={300}
+        />
+        <Line
+          yAxisId="2"
+          type="natural"
+          dataKey="pop"
+          stroke={theme.palette.primary.main} //"#"
+          dot={{ fill: `${theme.palette.primary.main}`, stroke: `${theme.palette.primary.main}`, r: 2}}
+          animationDuration={300}
+        />
+        <Line
+          yAxisId="2"
+          type="natural"
+          dataKey="windSpeed"
+          stroke={theme.palette.warning.light} //"#"
+          // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
+          dot={<CustomizedDot windData={state.data.windDeg}  stroke={theme.palette.warning.light} />}
+          animationDuration={300}
+        />
+        <Line
+          yAxisId="2"
+          type="natural"
+          dataKey="pressure"
+          stroke={theme.palette.warning.main} //"#"
+          dot={{ fill: `${theme.palette.warning.main}`, stroke: `${theme.palette.warning.main}`, r: 2}}
+          animationDuration={300}
+        />
         {state.refAreaLeft && state.refAreaRight ? (
           <ReferenceArea
             yAxisId="1"

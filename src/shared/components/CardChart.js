@@ -65,13 +65,13 @@ function CustomizedAxisTick(props) {
   );
 }
 
-const itemHeight = 216;
-const options = ["Last Year", "Last 6 Months", "Last Week", "Last Day", "Last 12 Hours", "12 Hours", "1 Day", "1 Week", "6 Months", "1 Year",  ];
+const itemHeight = 416;
+const options = ["Last Year", "Last 6 Months", "Last Week", "Last Day", "Last 12 Hours", "12 Hours", "1 Day", "2 Days", "1 Week", "6 Months", "1 Year",  ];
 
 function CardChart(props) {
   const { data, title, classes, theme, height, reversed } = props;
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedOption, setSelectedOption] = useState("Last Week");
+  const [selectedOption, setSelectedOption] = useState("1 Week");
   const [isReversed, setIsReversed] = useState(false);
 
   const handleClick = useCallback(
@@ -104,6 +104,8 @@ function CardChart(props) {
         return "Next 12 Hours";
       case "1 Day":
         return "Next Day";
+      case "2 Days":
+        return "Next 48 hours";
       case "1 Week":
         return "Next week";
       case "6 Months":
@@ -139,6 +141,9 @@ function CardChart(props) {
       case "1 Day":
         seconds = (60 * 60 * 24);
         break;
+      case "2 Days":
+        seconds = (60 * 60 * 48);
+        break;
       case "1 Week":
         seconds = (60 * 60 * 24 * 7);
         break;
@@ -152,13 +157,13 @@ function CardChart(props) {
       default:
         throw new Error("No branch selected in switch-statement");
     }
-    console.log(`Seconds: ${seconds}`);
+    // console.log(`Seconds: ${seconds}`);
     const minSeconds = (new Date().getTime() / 1000) - seconds;
-    console.log(`min seconds: ${minSeconds}`);
+    // console.log(`min seconds: ${minSeconds}`);
     const currentSeconds = new Date().getTime() / 1000;
-    console.log(`Current seconds: ${currentSeconds}`);
+    // console.log(`Current seconds: ${currentSeconds}`);
     const maxSeconds = (new Date().getTime() / 1000) + seconds;
-    console.log(`max seconds: ${maxSeconds}`);
+    // console.log(`max seconds: ${maxSeconds}`);
  
     const arr = [];
     for (let i = 0; i < data.length; i += 1) {
