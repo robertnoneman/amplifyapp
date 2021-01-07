@@ -15,12 +15,12 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { Box, Button, Container, SvgIcon, withStyles } from "@material-ui/core";
+import { Box, Button, Container, Grid, SvgIcon, withStyles } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
-import { ArrowDropDownCircle, ArrowForward, Navigation } from "@material-ui/icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import WeatherCharts from "./WeatherCharts";
+import lineData from "../../test_data/nivoLineData.json"
+import testHourly from "../../test_data/testHourlyData.json"
 
 const styles = (theme) => ({
   card: {
@@ -35,6 +35,12 @@ const styles = (theme) => ({
   },
   windArrow: {
     transform: 'rotate(0deg)',
+  },
+  nivoContainer: {
+    marginTop: "auto",
+    width: "100%",
+    height: "600px",
+    background: theme.palette.common.darkBlack
   }
 });
 
@@ -76,6 +82,8 @@ const myLocation = { lat: 38.889708, lon: -76.995119 };
 
 const initialStateData = {
   data: [],
+  dailyData: [],
+  minutelyData: [],
   left: "dataMin",
   right: "dataMax",
   refAreaLeft: "",
@@ -93,59 +101,21 @@ const CustomizedDot = (props) => {
   } = props;
 
   return (
-    <ArrowForward
-    style={{ 
-      transform: `rotate(${payload.windDeg}deg)`, 
-      pourIcon: {
-        animation: "pour 5s linear"
-      },
-      "@keyframes pour": {
-        "0%": {
-          transform: "scale(1) rotate(-45deg)"
-        },
-        "25%": {
-          transform: "rotate(-45deg) scale(0.6)",
-          bottom: "-100px"
-        },
-        "50%": {
-          transform: "scale(0.1) rotate(-45deg)",
-          bottom: "200px",
-          opacity: "0.01"
-        }
-      },
-      // animation: "pour 5s linear infinite",
-      animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
-      }} x={cx - 10} y={cy - 10} width={800} height={800} fill={stroke} viewBox="0 0 1024 1024"
-      />
-
-    // </ArrowDropDownCircle>
-    // <SvgIcon style={{ 
-    //   transform: `rotate(${payload.windDeg}deg)`, 
-    //   pourIcon: {
-    //     animation: "pour 5s linear"
-    //   },
-    //   "@keyframes pour": {
-    //     "0%": {
-    //       transform: "scale(1) rotate(-45deg)"
-    //     },
-    //     "25%": {
-    //       transform: "rotate(-45deg) scale(0.6)",
-    //       bottom: "-100px"
-    //     },
-    //     "50%": {
-    //       transform: "scale(0.1) rotate(-45deg)",
-    //       bottom: "200px",
-    //       opacity: "0.01"
-    //     }
-    //   },
-    //   animation: "pour 5s linear infinite",
-    //   animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
-    //   }} x={cx - 10} y={cy - 10} width={40} height={40} fill={stroke} viewBox="0 0 1024 1024">
-    // {/* <svg x={cx - 10} y={cy - 10} width={20} height={20} fill={stroke} viewBox="0 0 1024 1024"> */}
-    //   {/* <path fill={stroke} d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04l224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941l207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"/> */}
-    //   <path fill={stroke} d="M8 256c0 137 111 248 248 248s248-111 248-248S393 8 256 8 8 119 8 256zm448 0c0 110.5-89.5 200-200 200S56 366.5 56 256 145.5 56 256 56s200 89.5 200 200zM266.9 126.1l121.4 121.4c4.7 4.7 4.7 12.3 0 17L266.9 385.9c-4.7 4.7-12.3 4.7-17 0l-19.6-19.6c-4.8-4.8-4.7-12.5.2-17.2l70.3-67.1H140c-6.6 0-12-5.4-12-12v-28c0-6.6 5.4-12 12-12h160.8l-70.3-67.1c-4.9-4.7-5-12.4-.2-17.2l19.6-19.6c4.7-4.7 12.3-4.7 17 0z"></path>
-    // {/* </svg> */}
-    // </SvgIcon>
+      <svg 
+        fill={stroke} 
+        viewBox="0 0 1024 1024"  
+        x={cx + 1} y={cy + 1} 
+        width={800} height={800} 
+        // transform={`rotate(${payload.windDeg})`}
+        // style={{transform: `rotate(${payload.windDeg})`}} 
+        >
+      <g transform={`rotate(${payload.windDeg})`}>
+        <path 
+        vectorEffect="fixed-position" 
+        // transform={`rotate(${payload.windDeg})`} 
+        d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path>
+      </g>
+      </svg>
   );
 }
 
@@ -174,6 +144,8 @@ function HourlyForecast(props) {
     },
     [title]
   );
+
+
 
   const zoom = useCallback(() => {
     // const refAreaLeft = state.refAreaLeft;
@@ -206,7 +178,7 @@ function HourlyForecast(props) {
       data,
       refAreaLeft,
       refAreaRight,
-      "pop",
+      "humidity",
       0
     );
     setState({
@@ -246,6 +218,28 @@ function HourlyForecast(props) {
     Axios.get(apiUrl).then((data) => {
       const tOffset = data.data.timezone_offset;
       // console.log(tOffset);
+      const minutely = data.data.minutely;
+      const minutelyMerged = [];
+      minutely.forEach((element, index) => {
+        const timestamp = formatTime(element.dt, tOffset);
+        const rawTimestamp = (element.dt) / 1000;
+        minutelyMerged[index] = {
+          // time: timestamp,
+          time: rawTimestamp,
+          element
+        }
+      });
+      const daily = data.data.daily;
+      const dailyMerged = []
+      daily.forEach((element, index) => {
+        const timestamp = formatTime(element.dt, tOffset);
+        const rawTimestamp = (element.dt) / 1000;
+        dailyMerged[index] = {
+          // time: timestamp,
+          time: rawTimestamp,
+          element
+        }
+      });
       const hourly = data.data.hourly;
       const merged = [];
       hourly.forEach((element, index) => {
@@ -266,12 +260,18 @@ function HourlyForecast(props) {
           windSpeed: element.wind_speed,
           windDeg: element.wind_deg,
           weather: element.weather
-        };
+          };
       });
       // setFetchedData(merged);
-      setState({...state, data: merged.slice()})
-      setLoaded(true);
+      setState({
+        ...state, 
+        data: merged.slice(), 
+        dailyData: dailyMerged.slice(), 
+        minutelyData: minutelyMerged.slice(), 
+        allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()]
+      });
     });
+      setLoaded(true);
   }, [loaded, setLoaded]);
 
   useEffect(() => {
@@ -279,6 +279,13 @@ function HourlyForecast(props) {
   }, [fetchWeatherData]);
 
   return (
+    <Grid container>
+      <Grid item xs={12}>
+        <Box className={classes.nivoContainer}>
+        <WeatherCharts/>
+        </Box>
+      </Grid>
+    
     <Box className={classes.card} style={{ userSelect: "none", }} m={theme.spacing(1)}>
       <Button
         className="btn update"
@@ -408,9 +415,10 @@ function HourlyForecast(props) {
           type="natural"
           dataKey="windSpeed"
           stroke={theme.palette.warning.light} //"#"
+          strokeWidth={0}
           // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
-          dot={<CustomizedDot windData={state.data.windDeg}  stroke={theme.palette.warning.light} />}
-          animationDuration={300}
+          dot={<CustomizedDot stroke={theme.palette.warning.light} r={0}/>}
+          // animationDuration={300}
         />
         <Line
           yAxisId="2"
@@ -431,7 +439,37 @@ function HourlyForecast(props) {
       </LineChart>
       {/* </ResponsiveContainer> */}
     </Box>
+    </Grid>
   );
 }
 
 export default withStyles(styles, { withTheme: true })(HourlyForecast);
+
+    // </ArrowDropDownCircle>
+    // <SvgIcon style={{ 
+    //   transform: `rotate(${payload.windDeg}deg)`, 
+    //   pourIcon: {
+    //     animation: "pour 5s linear"
+    //   },
+    //   "@keyframes pour": {
+    //     "0%": {
+    //       transform: "scale(1) rotate(-45deg)"
+    //     },
+    //     "25%": {
+    //       transform: "rotate(-45deg) scale(0.6)",
+    //       bottom: "-100px"
+    //     },
+    //     "50%": {
+    //       transform: "scale(0.1) rotate(-45deg)",
+    //       bottom: "200px",
+    //       opacity: "0.01"
+    //     }
+    //   },
+    //   animation: "pour 5s linear infinite",
+    //   animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
+    //   }} x={cx - 10} y={cy - 10} width={40} height={40} fill={stroke} viewBox="0 0 1024 1024">
+    // {/* <svg x={cx - 10} y={cy - 10} width={20} height={20} fill={stroke} viewBox="0 0 1024 1024"> */}
+    //   {/* <path fill={stroke} d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04l224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941l207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"/> */}
+    //   <path fill={stroke} d="M8 256c0 137 111 248 248 248s248-111 248-248S393 8 256 8 8 119 8 256zm448 0c0 110.5-89.5 200-200 200S56 366.5 56 256 145.5 56 256 56s200 89.5 200 200zM266.9 126.1l121.4 121.4c4.7 4.7 4.7 12.3 0 17L266.9 385.9c-4.7 4.7-12.3 4.7-17 0l-19.6-19.6c-4.8-4.8-4.7-12.5.2-17.2l70.3-67.1H140c-6.6 0-12-5.4-12-12v-28c0-6.6 5.4-12 12-12h160.8l-70.3-67.1c-4.9-4.7-5-12.4-.2-17.2l19.6-19.6c4.7-4.7 12.3-4.7 17 0z"></path>
+    // {/* </svg> */}
+    // </SvgIcon>

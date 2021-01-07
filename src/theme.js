@@ -16,7 +16,7 @@ const warningLight = "#689ad8";
 const warningMain = "#D92F36";
 //const warningDark = "#43182f";
 const warningDark = "#1e272c";
-//const sunnyYellow = "#ffe747";
+const sunnyYellow = "#ffe747";
 //const rainyBlue = "#2aadef";
 const textPrimary = "#eee";
 //const textSecondary = "#73A397"
@@ -55,7 +55,7 @@ const theme = createMuiTheme({
       background: background,
     },
     warning: {
-      light: warningLight,
+      // light: warningLight,
       main: warningMain,
       dark: warningDark
     },
@@ -63,6 +63,9 @@ const theme = createMuiTheme({
       primary: textPrimary,
       secondary: secondary,
       disabled: textDisabled
+    },
+    data: {
+      sun: sunnyYellow,
     },
     // Used to shift a color's luminance by approximately
     // two indexes within its tonal palette.
