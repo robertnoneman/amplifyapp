@@ -285,9 +285,8 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
             >
               <TabPanel value={value} index={0} dir={theme.direction}>
-                {/* <WeatherCharts /> */}
                 <HourlyForecast title={["Temp", "Humidity"]}/>
-                {/* <Weather displayType="timeline"/> */}
+                <Weather displayType="timeline"/>
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>
                 <Weather displayType="accordion"/>             

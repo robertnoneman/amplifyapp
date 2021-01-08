@@ -13,9 +13,11 @@ import {
   Tooltip,
   ReferenceArea,
   ResponsiveContainer,
-  Legend
+  Legend,
+  AreaChart,
+  Area
 } from "recharts";
-import { Box, Button, Container, Grid, SvgIcon, withStyles } from "@material-ui/core";
+import { Box, Button, Container, FormControlLabel, Grid, SvgIcon, withStyles, Switch } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
 import WeatherCharts from "./WeatherCharts";
@@ -43,7 +45,6 @@ const styles = (theme) => ({
     background: theme.palette.common.darkBlack
   }
 });
-
 
 // Returns hello.
 // unix => "hello";
@@ -92,7 +93,9 @@ const initialStateData = {
   bottom: "dataMin-1",
   top2: "dataMax",
   bottom2: "dataMin",
-  animation: true
+  animation: true,
+  activeArea: "",
+  activeColor: "#000"
 };
 
 const CustomizedDot = (props) => {
@@ -105,15 +108,10 @@ const CustomizedDot = (props) => {
         fill={stroke} 
         viewBox="0 0 1024 1024"  
         x={cx + 1} y={cy + 1} 
-        width={800} height={800} 
-        // transform={`rotate(${payload.windDeg})`}
-        // style={{transform: `rotate(${payload.windDeg})`}} 
+        width={400} height={400} 
         >
       <g transform={`rotate(${payload.windDeg})`}>
-        <path 
-        vectorEffect="fixed-position" 
-        // transform={`rotate(${payload.windDeg})`} 
-        d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path>
+        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
       </g>
       </svg>
   );
@@ -123,8 +121,11 @@ function HourlyForecast(props) {
   const { title, classes, theme } = props;
   const [state, setState] = useState(initialStateData);
   const [loaded, setLoaded] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [hidden, setHidden] = useState(true);
+
+  const handleHiddenChange = (event) => {
+    setHidden(event.target.checked);
+  };
 
   const getAxisYDomain = (data, from, to, ref, offset) => {
     const refData = Array.from(data);
@@ -145,12 +146,8 @@ function HourlyForecast(props) {
     [title]
   );
 
-
-
   const zoom = useCallback(() => {
-    // const refAreaLeft = state.refAreaLeft;
     let refAreaLeft = state.refAreaLeft;
-    // const refAreaRight = state.refAreaRight;
     let refAreaRight = state.refAreaRight;
     let data = state.data;
     if (refAreaLeft === refAreaRight || refAreaRight === "") {
@@ -165,20 +162,18 @@ function HourlyForecast(props) {
     if (refAreaLeft > refAreaRight) [refAreaLeft, refAreaRight] = [refAreaRight, refAreaLeft];
 
     // yAxis domain
-    // if (state.data === null || !state.data) console.log(`WTF WHERE IS THE DATA ${state.data}`);
-    // console.log(`WTF WHERE IS THE DATA ${state.data[0].temp}`);
     const [bottom, top] = getAxisYDomain(
       state.data,
       refAreaLeft,
       refAreaRight,
-      "temp",
+      "windSpeed",
       0
     );
     const [bottom2, top2] = getAxisYDomain(
       data,
       refAreaLeft,
       refAreaRight,
-      "humidity",
+      "pop",
       0
     );
     setState({
@@ -211,8 +206,6 @@ function HourlyForecast(props) {
 
   const fetchWeatherData = useCallback(() => {
     if (loaded) return;
-
-    // const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=39216f4b9137de2e4d5f35aa5bdbde04`;
     const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
@@ -250,12 +243,12 @@ function HourlyForecast(props) {
           rawTimestamp: rawTimestamp,
           time: timestamp,
           offset: tOffset,
-          temp: element.temp,
+          temp: element.temp.toFixed(0),
           humidity: element.humidity,
-          pop: element.pop,
-          feelsLike: element.feels_like,
-          pressure: element.pressure * 0.0295300,
-          dewPoint: element.dew_point,
+          pop: (element.pop * 100),
+          feelsLike: element.feels_like.toFixed(0),
+          pressure: (element.pressure * 0.0295300).toFixed(2),
+          dewPoint: element.dew_point.toFixed(0),
           uvi: element.uvi,
           clouds: element.clouds,
           visibility: element.visibility,
@@ -272,8 +265,8 @@ function HourlyForecast(props) {
         minutelyData: minutelyMerged.slice(), 
         allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()]
       });
-    });
       setLoaded(true);
+    });
   }, [loaded, setLoaded]);
 
   useEffect(() => {
@@ -283,7 +276,9 @@ function HourlyForecast(props) {
   return (
      
     <Box className={classes.card} style={{ userSelect: "none", }} m={theme.spacing(1)}>
-      {state.data.length > 2 && <WeatherCharts data={state.data} />}
+      <FormControlLabel control={<Switch checked={hidden} onChange={handleHiddenChange} color="primary" />}
+        label="Hidden"/>
+      {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />}
       <Button
         className="btn update"
         onClick={zoomOut}
@@ -291,7 +286,7 @@ function HourlyForecast(props) {
         Zoom Out
       </Button>
     {/* <ResponsiveContainer width="100%" height="100%"> */}
-      <LineChart
+      {hidden && <LineChart
         width={800}
         height={400}
         margin={{bottom: 10}}
@@ -322,14 +317,13 @@ function HourlyForecast(props) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           allowDataOverflow
-          // dataKey="name"
           // style={{margin: "50px"}}
           dataKey="time"
           domain={[state.left, state.right]}
           type="number"
           tick={<CustomizedAxisTick/>}
           tickFormatter={labelFormatter}
-          interval="preserveStartEnd"
+          // interval={1}
         />
         <YAxis
           allowDataOverflow
@@ -349,20 +343,23 @@ function HourlyForecast(props) {
           labelFormatter={labelFormatter}
           formatter={formatter}
           cursor={false}
+          // offset={20}
+          allowEscapeViewBox={{ x: true, y: true }}
           contentStyle={{
-            border: "none",
+            // border: "1px",
             padding: theme.spacing(1),
             borderRadius: theme.shape.borderRadius,
             boxShadow: theme.shadows[1],
             backgroundColor: theme.palette.secondary.dark
           }}
-          labelStyle={theme.typography.body1}
+          labelStyle={theme.typography.h6}
           itemStyle={{
             fontSize: theme.typography.body1.fontSize,
             letterSpacing: theme.typography.body1.letterSpacing,
             fontFamily: theme.typography.body1.fontFamily,
             lineHeight: theme.typography.body1.lineHeight,
-            fontWeight: theme.typography.body1.fontWeight,
+            fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
+            textAlign: "left",
             color: "white"
           }}
         />
@@ -376,7 +373,7 @@ function HourlyForecast(props) {
           animationDuration={300}
         />
         <Line
-          yAxisId="2"
+          yAxisId="1"
           type="natural"
           dataKey="feelsLike"
           stroke={theme.palette.secondary.main} //"#"
@@ -392,7 +389,7 @@ function HourlyForecast(props) {
           animationDuration={300}
         />
         <Line
-          yAxisId="2"
+          yAxisId="1"
           type="natural"
           dataKey="dewPoint"
           stroke={theme.palette.primary.main} //"#"
@@ -408,7 +405,7 @@ function HourlyForecast(props) {
           animationDuration={300}
         />
         <Line
-          yAxisId="2"
+          yAxisId="1"
           type="natural"
           dataKey="windSpeed"
           stroke={theme.palette.warning.light} //"#"
@@ -418,11 +415,19 @@ function HourlyForecast(props) {
           // animationDuration={300}
         />
         <Line
-          yAxisId="2"
+          yAxisId="1"
           type="natural"
           dataKey="pressure"
           stroke={theme.palette.warning.main} //"#"
           dot={{ fill: `${theme.palette.warning.main}`, stroke: `${theme.palette.warning.main}`, r: 2}}
+          animationDuration={300}
+        />
+        <Line
+          yAxisId="2"
+          type="natural"
+          dataKey="clouds"
+          stroke="#ddd" //"#"
+          dot={{ fill: "#000000000", stroke: `#fff`, r: 2}}
           animationDuration={300}
         />
         {state.refAreaLeft && state.refAreaRight ? (
@@ -433,8 +438,304 @@ function HourlyForecast(props) {
             strokeOpacity={0.3}
           />
         ) : null}
-      </LineChart>
+      </LineChart>}
       {/* </ResponsiveContainer> */}
+      {hidden && <AreaChart
+        width={800}
+        height={400}
+        margin={{bottom: 10}}
+        data={state.data}
+        onMouseDown={(e) =>
+          setState({
+            ...state,
+            refAreaLeft: e.activeLabel,
+          })
+        }
+        onMouseMove={(e) =>
+          state.refAreaLeft && e.activeLabel &&
+          setState({
+            ...state,
+            refAreaRight: e.activeLabel,
+          })
+        }
+        onMouseUp={zoom}
+      >
+        <defs>
+              <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
+                <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
+                <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
+                <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
+              </linearGradient>
+              <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
+                <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
+                <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
+                <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
+              </linearGradient>
+              <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
+                <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
+              </linearGradient>
+              <linearGradient id="monoUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
+                <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
+              </linearGradient>
+              
+        </defs>
+        <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
+        <XAxis
+          allowDataOverflow
+          // style={{margin: "50px"}}
+          dataKey="time"
+          domain={[state.left, state.right]}
+          type="number"
+          tick={<CustomizedAxisTick/>}
+          tickFormatter={labelFormatter}
+          // interval={1}
+        />
+        <YAxis
+          allowDataOverflow
+          domain={[(state.bottom | 0), (state.top | 100)]}
+          type="number"
+          yAxisId="1"
+        />
+        <YAxis
+          orientation="right"
+          allowDataOverflow
+          domain={[(state.bottom2 | 0), state.top2 | 100]}
+          type="number"
+          yAxisId="2"
+        />
+        {/* <Tooltip /> */}
+        <Tooltip
+          labelFormatter={labelFormatter}
+          formatter={formatter}
+          cursor={false}
+          offset={20}
+          allowEscapeViewBox={{ x: true, y: true }}
+          contentStyle={{
+            border: "1px",
+            padding: theme.spacing(1),
+            borderRadius: theme.shape.borderRadius,
+            boxShadow: theme.shadows[1],
+            backgroundColor: theme.palette.secondary.dark
+          }}
+          labelStyle={theme.typography.h6}
+          itemStyle={{
+            fontSize: theme.typography.body1.fontSize,
+            letterSpacing: theme.typography.body1.letterSpacing,
+            fontFamily: theme.typography.body1.fontFamily,
+            lineHeight: theme.typography.body1.lineHeight,
+            fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
+            textAlign: "left",
+            color: "white"
+          }}
+        />
+        <Legend />
+        <Area
+          yAxisId="2"
+          type="natural"
+          dataKey="clouds"
+          unit="%"
+          dot={{ fill: "#000000000", stroke: `#fff`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "clouds",
+              activeColor: "#fff"
+            })
+          }
+          onMouseOut={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000"
+            })
+          }
+          stroke={state.activeArea === "clouds" ? "url(#monoActiveUv)" : "#fff"}
+          fill={state.activeArea === "clouds" ? "url(#monoActiveUv)" : "url(#monoUv)"} //"#"
+        />
+        <Area
+          yAxisId="2"
+          type="natural"
+          dataKey="humidity"
+          unit="%"
+          // fill="url(#alphaUv)"
+          dot={{ fill: `#9ddcec`, stroke: `${theme.palette.primary.main}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "humidity",
+              activeColor: "#9ddcec"
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000",
+            })
+          }
+          stroke={state.activeArea === "humidity" ? "url(#monoActiveUv)" : "#9ddcec"}
+          fill={state.activeArea === "humidity" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="temp"
+          stroke="url(#colorUv)" 
+          // fill="url(#colorUv)" //"#"
+          unit="°"
+          dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "temp",
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+            })
+          }
+          fill={state.activeArea === "temp" ? "url(#colorUv)" : "url(#monoUv"} //"#"
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="pressure"
+          unit="inHg"
+          // stroke={theme.palette.warning.main} //"#"
+          dot={{ fill: `#ecc79d`, stroke: `${theme.palette.warning.main}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "pressure",
+              activeColor: "#ecc79d"
+            })
+          }
+          onMouseOut={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000"
+            })
+          }
+          stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
+          fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="feelsLike"
+          unit="°"
+          // stroke={theme.palette.secondary.main} //"#"
+          dot={{ fill: `${theme.palette.secondary.main}`, stroke: `${theme.palette.secondary.main}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "feelsLike",
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+            })
+          }
+          stroke={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#colorUv)"}
+          fill={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="dewPoint"
+          unit="°"
+          dot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "dewPoint",
+              activeColor: "#a8e6c9"
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000",
+            })
+          }
+          stroke={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "#a8e6c9"}
+          fill={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="2"
+          type="natural"
+          dataKey="pop"
+          unit="%"
+          dot={{ fill: `#38a9ff`, stroke: `${theme.palette.primary.main}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "pop",
+              activeColor: "#38a9ff"
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000",
+            })
+          }
+          stroke={state.activeArea === "pop" ? "url(#monoActiveUv)" : "#38a9ff"}
+          fill={state.activeArea === "pop" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="windSpeed"
+          unit="mph"
+          strokeWidth={0}
+          // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
+          dot={<CustomizedDot stroke={theme.palette.warning.light} r={0}/>}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "windSpeed",
+              activeColor: "#e0e0e1"
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000",
+            })
+          }
+          stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e1"}
+          fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          // animationDuration={300}
+        />
+        {state.refAreaLeft && state.refAreaRight ? (
+          <ReferenceArea
+            yAxisId="1"
+            x1={state.refAreaLeft}
+            x2={state.refAreaRight}
+            strokeOpacity={0.3}
+          />
+        ) : null}
+      </AreaChart>}
     </Box>
   );
 }

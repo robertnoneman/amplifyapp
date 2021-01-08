@@ -30,7 +30,7 @@ function WeatherCharts(props) {
 
   const [commonProperties, setCommonProperties] = useState({
     width: 900,
-    height: 600,
+    height: 500,
     margin: { top: 50, right: 20, bottom: 60, left: 80 },
     animate: true,
     enableGridX: false,
@@ -313,7 +313,7 @@ function WeatherCharts(props) {
         // }}
         axisBottom={{
             format: '%a %I:%M %p',
-            tickValues: "Every 2 hours",
+            tickValues:  0, //"Every 2 hours",
             // legend: 'time scale',
             tickSize: 20,
             // tickPadding: 20,
