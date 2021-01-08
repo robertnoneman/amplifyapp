@@ -439,7 +439,231 @@ function HourlyForecast(props) {
           />
         ) : null}
       </LineChart>}
-      {/* </ResponsiveContainer> */}
+      {/* </Temp, feels like, dew point, wind> */}
+      {hidden && <AreaChart
+        width={800}
+        height={400}
+        margin={{bottom: 10}}
+        data={state.data}
+        onMouseDown={(e) =>
+          setState({
+            ...state,
+            refAreaLeft: e.activeLabel,
+          })
+        }
+        onMouseMove={(e) =>
+          state.refAreaLeft && e.activeLabel &&
+          setState({
+            ...state,
+            refAreaRight: e.activeLabel,
+          })
+        }
+        onMouseUp={zoom}
+      >
+        <defs>
+              <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
+                <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
+                <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
+                <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
+              </linearGradient>
+              <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
+                <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
+                <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
+                <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
+              </linearGradient>
+              <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
+                <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
+              </linearGradient>
+              <linearGradient id="monoUv" x1="0" y1="-0.1" x2="0" y2="1">
+                <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
+                <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
+              </linearGradient>
+              
+        </defs>
+        <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
+        <XAxis
+          allowDataOverflow
+          // style={{margin: "50px"}}
+          dataKey="time"
+          domain={[state.left, state.right]}
+          type="number"
+          tick={<CustomizedAxisTick/>}
+          tickFormatter={labelFormatter}
+          // interval={1}
+        />
+        <YAxis
+          allowDataOverflow
+          domain={[(state.bottom), (state.top)]}
+          type="number"
+          yAxisId="1"
+        />
+        <YAxis
+          orientation="right"
+          allowDataOverflow
+          domain={[(state.bottom2), state.top2]}
+          type="number"
+          yAxisId="2"
+        />
+        {/* <Tooltip /> */}
+        <Tooltip
+          labelFormatter={labelFormatter}
+          formatter={formatter}
+          cursor={false}
+          offset={20}
+          allowEscapeViewBox={{ x: true, y: true }}
+          contentStyle={{
+            border: "1px",
+            padding: theme.spacing(1),
+            borderRadius: theme.shape.borderRadius,
+            boxShadow: theme.shadows[1],
+            backgroundColor: theme.palette.secondary.dark
+          }}
+          labelStyle={theme.typography.h6}
+          itemStyle={{
+            fontSize: theme.typography.body1.fontSize,
+            letterSpacing: theme.typography.body1.letterSpacing,
+            fontFamily: theme.typography.body1.fontFamily,
+            lineHeight: theme.typography.body1.lineHeight,
+            fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
+            textAlign: "left",
+            color: "white"
+          }}
+        />
+        <Legend margin={ { top: 20, bottom: 20 } }/>
+        <Area
+          yAxisId="2"
+          type="natural"
+          dataKey="pressure"
+          unit="inHg"
+          // stroke={theme.palette.warning.main} //"#"
+          dot={{ fill: `#ecc79d`, stroke: `${theme.palette.warning.main}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "pressure",
+              activeColor: "#ecc79d"
+            })
+          }
+          onMouseOut={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000"
+            })
+          }
+          stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
+          fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="temp"
+          stroke="url(#colorUv)" 
+          // fill="url(#colorUv)" //"#"
+          unit="°"
+          dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "temp",
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+            })
+          }
+          fill={state.activeArea === "temp" ? "url(#colorUv)" : "url(#monoUv"} //"#"
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="feelsLike"
+          unit="°"
+          // stroke={theme.palette.secondary.main} //"#"
+          dot={{ fill: `${theme.palette.secondary.main}`, stroke: `${theme.palette.secondary.main}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "feelsLike",
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+            })
+          }
+          stroke={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#colorUv)"}
+          fill={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="dewPoint"
+          unit="°"
+          dot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "dewPoint",
+              activeColor: "#a8e6c9"
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000",
+            })
+          }
+          stroke={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "#a8e6c9"}
+          fill={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="windSpeed"
+          unit="mph"
+          strokeWidth={0}
+          // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
+          dot={<CustomizedDot stroke={theme.palette.warning.light} r={0}/>}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "windSpeed",
+              activeColor: "#e0e0e1"
+            })
+          }
+          onMouseExit={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#000",
+            })
+          }
+          stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e1"}
+          fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          // animationDuration={300}
+        />
+        {state.refAreaLeft && state.refAreaRight ? (
+          <ReferenceArea
+            yAxisId="1"
+            x1={state.refAreaLeft}
+            x2={state.refAreaRight}
+            strokeOpacity={0.3}
+          />
+        ) : null}
+      </AreaChart>}
+      {/* {Clouds, pop, humidity} */}
       {hidden && <AreaChart
         width={800}
         height={400}
@@ -558,7 +782,7 @@ function HourlyForecast(props) {
           fill={state.activeArea === "clouds" ? "url(#monoActiveUv)" : "url(#monoUv)"} //"#"
         />
         <Area
-          yAxisId="2"
+          yAxisId="1"
           type="natural"
           dataKey="humidity"
           unit="%"
@@ -585,101 +809,6 @@ function HourlyForecast(props) {
         <Area
           yAxisId="1"
           type="natural"
-          dataKey="temp"
-          stroke="url(#colorUv)" 
-          // fill="url(#colorUv)" //"#"
-          unit="°"
-          dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
-          animationDuration={300}
-          onMouseEnter={() =>
-            setState({
-              ...state,
-              activeArea: "temp",
-            })
-          }
-          onMouseExit={() =>
-            setState({
-              ...state,
-              activeArea: "",
-            })
-          }
-          fill={state.activeArea === "temp" ? "url(#colorUv)" : "url(#monoUv"} //"#"
-        />
-        <Area
-          yAxisId="1"
-          type="natural"
-          dataKey="pressure"
-          unit="inHg"
-          // stroke={theme.palette.warning.main} //"#"
-          dot={{ fill: `#ecc79d`, stroke: `${theme.palette.warning.main}`, r: 2}}
-          animationDuration={300}
-          onMouseEnter={() =>
-            setState({
-              ...state,
-              activeArea: "pressure",
-              activeColor: "#ecc79d"
-            })
-          }
-          onMouseOut={() =>
-            setState({
-              ...state,
-              activeArea: "",
-              activeColor: "#000"
-            })
-          }
-          stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
-          fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-        />
-        <Area
-          yAxisId="1"
-          type="natural"
-          dataKey="feelsLike"
-          unit="°"
-          // stroke={theme.palette.secondary.main} //"#"
-          dot={{ fill: `${theme.palette.secondary.main}`, stroke: `${theme.palette.secondary.main}`, r: 2}}
-          animationDuration={300}
-          onMouseEnter={() =>
-            setState({
-              ...state,
-              activeArea: "feelsLike",
-            })
-          }
-          onMouseExit={() =>
-            setState({
-              ...state,
-              activeArea: "",
-            })
-          }
-          stroke={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#colorUv)"}
-          fill={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}
-        />
-        <Area
-          yAxisId="1"
-          type="natural"
-          dataKey="dewPoint"
-          unit="°"
-          dot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
-          animationDuration={300}
-          onMouseEnter={() =>
-            setState({
-              ...state,
-              activeArea: "dewPoint",
-              activeColor: "#a8e6c9"
-            })
-          }
-          onMouseExit={() =>
-            setState({
-              ...state,
-              activeArea: "",
-              activeColor: "#000",
-            })
-          }
-          stroke={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "#a8e6c9"}
-          fill={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-        />
-        <Area
-          yAxisId="2"
-          type="natural"
           dataKey="pop"
           unit="%"
           dot={{ fill: `#38a9ff`, stroke: `${theme.palette.primary.main}`, r: 2}}
@@ -700,32 +829,6 @@ function HourlyForecast(props) {
           }
           stroke={state.activeArea === "pop" ? "url(#monoActiveUv)" : "#38a9ff"}
           fill={state.activeArea === "pop" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-        />
-        <Area
-          yAxisId="1"
-          type="natural"
-          dataKey="windSpeed"
-          unit="mph"
-          strokeWidth={0}
-          // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
-          dot={<CustomizedDot stroke={theme.palette.warning.light} r={0}/>}
-          onMouseEnter={() =>
-            setState({
-              ...state,
-              activeArea: "windSpeed",
-              activeColor: "#e0e0e1"
-            })
-          }
-          onMouseExit={() =>
-            setState({
-              ...state,
-              activeArea: "",
-              activeColor: "#000",
-            })
-          }
-          stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e1"}
-          fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-          // animationDuration={300}
         />
         {state.refAreaLeft && state.refAreaRight ? (
           <ReferenceArea
