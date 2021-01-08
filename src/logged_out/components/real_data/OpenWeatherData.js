@@ -279,13 +279,7 @@ function HourlyForecast(props) {
   }, [fetchWeatherData]);
 
   return (
-    <Grid container>
-      <Grid item xs={12}>
-        <Box className={classes.nivoContainer}>
-        <WeatherCharts/>
-        </Box>
-      </Grid>
-    
+     
     <Box className={classes.card} style={{ userSelect: "none", }} m={theme.spacing(1)}>
       <Button
         className="btn update"
@@ -439,7 +433,6 @@ function HourlyForecast(props) {
       </LineChart>
       {/* </ResponsiveContainer> */}
     </Box>
-    </Grid>
   );
 }
 

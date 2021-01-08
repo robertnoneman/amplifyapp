@@ -22,6 +22,7 @@ import Axios from "axios";
 import cheerio from "cheerio"
 import SwipeableViews from "react-swipeable-views";
 import HourlyForecast from "../real_data/OpenWeatherData";
+import WeatherCharts from "../real_data/WeatherCharts";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -267,7 +268,7 @@ function SandboxPage(props) {
                 variant="scrollable"
                 aria-label="action tabs example"
                 // centered={true}
-                style={{width: "100%", flexGrow: 1, }}
+                style={{flexGrow: 1, }}
                 // style={{flexGrow: 1, }}
                 // orientation="vertical"
               >
@@ -284,8 +285,9 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
             >
               <TabPanel value={value} index={0} dir={theme.direction}>
+                {/* <WeatherCharts /> */}
                 <HourlyForecast title={["Temp", "Humidity"]}/>
-                <Weather displayType="timeline"/>
+                {/* <Weather displayType="timeline"/> */}
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>
                 <Weather displayType="accordion"/>             
@@ -327,6 +329,7 @@ function SandboxPage(props) {
                   <HourlyForecast title={["temp", "humidity"]}/>
                 </Box>
                 <Box m={theme.spacing(1)}>
+                  <WeatherCharts />
                   <DataLoading data={appState.data}/>
                 </Box>
               </TabPanel>
