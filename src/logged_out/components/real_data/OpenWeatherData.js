@@ -243,7 +243,7 @@ function HourlyForecast(props) {
       const hourly = data.data.hourly;
       const merged = [];
       hourly.forEach((element, index) => {
-        const rawTimestamp = element.dt;
+        const rawTimestamp = element.dt - tOffset;
         const timestamp = (element.dt) / 1000;
         merged[index] = {
           // time: timestamp,
@@ -324,7 +324,7 @@ function HourlyForecast(props) {
           allowDataOverflow
           // dataKey="name"
           // style={{margin: "50px"}}
-          dataKey="rawTimestamp"
+          dataKey="time"
           domain={[state.left, state.right]}
           type="number"
           tick={<CustomizedAxisTick/>}

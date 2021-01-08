@@ -1,10 +1,11 @@
 import React, {useState, useEffect, useCallback } from 'react';
 import { Line, ResponsiveLine, ResponsiveLineCanvas } from "@nivo/line";
+import { Defs, linearGradientDef } from '@nivo/core'
 import testHourly from "../../test_data/testHourlyData.json";
-import format from "date-fns/format";
+// import format from "date-fns/format";
 
 function formatTime(unix, offset) {
-  const seconds = unix - offset;
+  const seconds = unix; // - offset;
   const secs = seconds * 1000;
   // console.log(`unix, offset, secs: ${unix} ${offset} ${secs}`);
   // return format(new Date(secs), "Y-MM-dd hh:mm");
@@ -33,6 +34,7 @@ function WeatherCharts(props) {
     margin: { top: 50, right: 20, bottom: 60, left: 80 },
     animate: true,
     enableGridX: false,
+    enableArea: true,
     theme: {
       "background": "#232222ff",
       "textColor": "#ddd",
@@ -49,10 +51,6 @@ function WeatherCharts(props) {
       }
     }
     },
-    // indexBy: 'country',
-    // id: 'id',
-    // keys,
-    // indexBy: 'data.x',
     enableSlices: 'x',
   });
 
@@ -61,7 +59,7 @@ function WeatherCharts(props) {
 
     const tempClouds = {
         "id": "clouds",
-        "color": '#E12C2C', //theme.palette.data.sun,
+        "color": '#eee', //theme.palette.data.sun,
         "data": []
     };
     const tempDewPoint = {
@@ -69,6 +67,11 @@ function WeatherCharts(props) {
         "color": "#ef6c2a", //theme.palette.primary.light,
         data: []
     };
+    const tempHumidity = {
+      "id": "humidity",
+      "color": "#9e9", //theme.palette.primary.light,
+      data: []
+  };
       const tempFeelsLike = {
       "id": "feelsLike",
       "color": '#E12C2C', //theme.palette.primary.main,
@@ -126,6 +129,11 @@ function WeatherCharts(props) {
         // y: testHourly.hourly[i].dew_point
         y: data[i].dewPoint
       };
+      tempHumidity.data[i] = {
+        x: sliced,
+        // y: testHourly.hourly[i].dew_point
+        y: data[i].humidity
+      };
       tempFeelsLike.data[i] = {
         x: sliced,
         // y: testHourly.hourly[i].feels_like
@@ -164,7 +172,7 @@ function WeatherCharts(props) {
       // console.log(tempClouds.data[i]);
     };
     
-    setFormattedData([tempClouds, tempDewPoint, tempFeelsLike, tempPop, tempPressure, tempTemp, tempUvi, tempWindSpeed]);
+    setFormattedData([tempClouds, tempDewPoint, tempHumidity, tempFeelsLike, tempPop, tempPressure, tempTemp, tempUvi, tempWindSpeed]);
     // setFormattedData(testHourly.formatted[0]);
     setLoaded(true);
   }
@@ -256,6 +264,13 @@ function WeatherCharts(props) {
         {...commonProperties}
         data={formattedData}
         enableSlices="x"
+        defs={[
+          linearGradientDef('gradientA', [
+              { offset: 0, color: 'inherit' },
+              { offset: 100, color: 'inherit', opacity: 0 },
+          ]),
+      ]}
+      fill={[{ match: '*', id: 'gradientA' }]}
         sliceTooltip={({ slice }) => {
           return (
               <div
@@ -297,10 +312,15 @@ function WeatherCharts(props) {
         //     legendOffset: 12,
         // }}
         axisBottom={{
-            format: '%b %d %H:%M',
-            tickValues: 'every 6 hours',
-            legend: 'time scale',
-            legendOffset: -12,
+            format: '%a %I:%M %p',
+            tickValues: "Every 2 hours",
+            // legend: 'time scale',
+            tickSize: 20,
+            // tickPadding: 20,
+            tickRotation: -25,
+            legendOffset: 6,
+            legendPosition: 'middle'
+            // legendOffset: -6,
         }}
         curve='monotoneX'
         enablePointLabel={false}
