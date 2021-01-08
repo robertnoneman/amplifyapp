@@ -243,11 +243,13 @@ function HourlyForecast(props) {
       const hourly = data.data.hourly;
       const merged = [];
       hourly.forEach((element, index) => {
-        const timestamp = formatTime(element.dt, tOffset);
-        const rawTimestamp = (element.dt) / 1000;
+        const rawTimestamp = element.dt;
+        const timestamp = (element.dt) / 1000;
         merged[index] = {
           // time: timestamp,
-          time: rawTimestamp,
+          rawTimestamp: rawTimestamp,
+          time: timestamp,
+          offset: tOffset,
           temp: element.temp,
           humidity: element.humidity,
           pop: element.pop,
@@ -281,6 +283,7 @@ function HourlyForecast(props) {
   return (
      
     <Box className={classes.card} style={{ userSelect: "none", }} m={theme.spacing(1)}>
+      {state.data.length > 2 && <WeatherCharts data={state.data} />}
       <Button
         className="btn update"
         onClick={zoomOut}
@@ -321,7 +324,7 @@ function HourlyForecast(props) {
           allowDataOverflow
           // dataKey="name"
           // style={{margin: "50px"}}
-          dataKey="time"
+          dataKey="rawTimestamp"
           domain={[state.left, state.right]}
           type="number"
           tick={<CustomizedAxisTick/>}

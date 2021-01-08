@@ -7,7 +7,8 @@ function formatTime(unix, offset) {
   const seconds = unix - offset;
   const secs = seconds * 1000;
   // console.log(`unix, offset, secs: ${unix} ${offset} ${secs}`);
-  return format(new Date(secs), "Y-MM-dd hh:mm");
+  // return format(new Date(secs), "Y-MM-dd hh:mm");
+  return (new Date(secs).toISOString());
 }
 
 function WeatherCharts(props) {
@@ -31,6 +32,7 @@ function WeatherCharts(props) {
     height: 600,
     margin: { top: 50, right: 20, bottom: 60, left: 80 },
     animate: true,
+    enableGridX: false,
     theme: {
       "background": "#232222ff",
       "textColor": "#ddd",
@@ -40,6 +42,12 @@ function WeatherCharts(props) {
             background: '#222',
         },
       },
+    "grid": {
+      "line": {
+          "stroke": "#555",
+          "strokeWidth": 0.5
+      }
+    }
     },
     // indexBy: 'country',
     // id: 'id',
@@ -78,7 +86,7 @@ function WeatherCharts(props) {
     };
     const tempTemp = {
       "id": "temp",
-      "color": '#43182f', //theme.palette.secondary.main,
+      "color": '#cb1a79', //theme.palette.secondary.main,
       data: []
     };
     const tempUvi = {
@@ -103,43 +111,55 @@ function WeatherCharts(props) {
     };
   
     for (var i = 0; i < testHourly.hourly.length; i++) {
-      const date = testHourly.formatted[0].data[i].x;
+      // const date = testHourly.formatted[0].data[i].x;
+      const date = formatTime(data[i].rawTimestamp, data[i].offset);
+      // const date = (data[i].rawTimestamp * 1000);
+      // console.log(date);
       const sliced = date.slice(0, 19)
       tempClouds.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].clouds
+        // y: testHourly.hourly[i].clouds
+        y: data[i].clouds
       };
       tempDewPoint.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].dew_point
+        // y: testHourly.hourly[i].dew_point
+        y: data[i].dewPoint
       };
       tempFeelsLike.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].feels_like
+        // y: testHourly.hourly[i].feels_like
+        y: data[i].feelsLike
       };
       tempPop.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].pop
+        // y: testHourly.hourly[i].pop
+        y: data[i].pop
       };
       tempPressure.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].pressure * 0.0295300
+        // y: testHourly.hourly[i].pressure * 0.0295300
+        y: data[i].pressure
       };
       tempTemp.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].temp
+        // y: testHourly.hourly[i].temp
+        y: data[i].temp
       };
       tempUvi.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].uvi
+        // y: testHourly.hourly[i].uvi
+        y: data[i].uvi
       };
       tempVisibility.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].visibility
+        // y: testHourly.hourly[i].visibility
+        y: data[i].visibility
       };
       tempWindSpeed.data[i] = {
         x: sliced,
-        y: testHourly.hourly[i].wind_speed
+        // y: testHourly.hourly[i].wind_speed
+        y: data[i].windSpeed
       };
       // console.log(tempClouds.data[i]);
     };

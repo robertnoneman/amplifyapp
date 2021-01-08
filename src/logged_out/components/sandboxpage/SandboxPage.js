@@ -329,7 +329,7 @@ function SandboxPage(props) {
                   <HourlyForecast title={["temp", "humidity"]}/>
                 </Box>
                 <Box m={theme.spacing(1)}>
-                  <WeatherCharts />
+                  {/* <WeatherCharts /> */}
                   <DataLoading data={appState.data}/>
                 </Box>
               </TabPanel>
