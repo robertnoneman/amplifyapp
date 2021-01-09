@@ -1,7 +1,9 @@
 import React, {  
   useState, 
   useEffect, 
-  useCallback 
+  useCallback, 
+  createRef,
+  useRef
 } from "react";
 import {
   // Label,
@@ -15,7 +17,8 @@ import {
   ResponsiveContainer,
   Legend,
   AreaChart,
-  Area
+  Area,
+  Dot
 } from "recharts";
 import { Box, Button, Container, FormControlLabel, Grid, SvgIcon, withStyles, Switch } from "@material-ui/core";
 import Axios from "axios";
@@ -23,6 +26,7 @@ import format from "date-fns/format";
 import WeatherCharts from "./WeatherCharts";
 import lineData from "../../test_data/nivoLineData.json"
 import testHourly from "../../test_data/testHourlyData.json"
+import { min } from "date-fns";
 
 const styles = (theme) => ({
   card: {
@@ -45,6 +49,34 @@ const styles = (theme) => ({
     background: theme.palette.common.darkBlack
   }
 });
+
+function getRgb(minimum, maximum, value) {
+  if (value > minimum) {
+    var ratio = 2 * (value-minimum) / (maximum - minimum);
+    var b = Math.max(0, 255*(1 - ratio));
+    var r = Math.max(0, 255*(ratio - 1));
+    var g = 255 - b - r
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+  var newMin = value;
+  var ratio2 = 2 * (value-newMin) / (maximum - newMin);
+  var dif = (minimum - value) * 4;
+  var b2 = Math.max(0, 255*(1 - ratio2));
+  var r2 = (Math.max(0, 255*(ratio2 - 1)) + dif);
+  var g2 = 255 - b2 - r2;
+  return `rgb(${r2}, ${g2}, ${b2})`; 
+}
+
+function getMin(data) {
+  var min = Math.min(data);
+  var max = Math.max(data);
+  return min;
+}
+function getMax(data) {
+  var min = Math.min(data);
+  var max = Math.max(data);
+  return max;
+}
 
 // Returns hello.
 // unix => "hello";
@@ -89,13 +121,15 @@ const initialStateData = {
   right: "dataMax",
   refAreaLeft: "",
   refAreaRight: "",
-  top: "dataMax+1",
-  bottom: "dataMin-1",
-  top2: "dataMax",
-  bottom2: "dataMin",
+  top: "dataMax+5",
+  bottom: "dataMin",
+  top2: "dataMax+1",
+  bottom2: "dataMin-1",
   animation: true,
   activeArea: "",
-  activeColor: "#000"
+  activeColor: "#000",
+  min: "",
+  max: ""
 };
 
 const CustomizedDot = (props) => {
@@ -107,13 +141,31 @@ const CustomizedDot = (props) => {
       <svg 
         fill={stroke} 
         viewBox="0 0 1024 1024"  
-        x={cx + 1} y={cy + 1} 
-        width={400} height={400} 
+        x={ cx - 0 } 
+        y={ cy - 0 } 
+        width={600} height={600} 
+        overflow="auto"
+        // transform={`rotate(${payload.windDeg})`}
         >
-      <g transform={`rotate(${payload.windDeg})`}>
-        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
+      <g 
+      // transform={`rotate(${payload.windDeg})`}
+      >
+        <path transform={`rotate(${payload.windDeg})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
       </g>
       </svg>
+  );
+}
+
+const HeatmapDot = (props) => {
+  const {
+    cx, cy, payload, source 
+  } = props;
+  // const value = useRef(null);
+  const color = (source === "feelsLike" ? getRgb(20, 100, payload["feelsLike"]) : getRgb(20, 100, payload["temp"]) );
+  return (
+    <svg overflow="auto" stroke={color} fill={color} x={cx} y={cy} width={25} height={25} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <circle r="100" stroke={color} fill={color}/> 
+    </svg>
   );
 }
 
@@ -127,7 +179,7 @@ function HourlyForecast(props) {
     setHidden(event.target.checked);
   };
 
-  const getAxisYDomain = (data, from, to, ref, offset) => {
+  const getAxisYDomain = (data, from, to, ref, ref2, offset) => {
     const refData = Array.from(data);
     refData.slice(from - 1, to);
     let [bottom, top] = [refData[0][ref], refData[0][ref]];
@@ -135,8 +187,13 @@ function HourlyForecast(props) {
       if (d[ref] > top) top = d[ref];
       if (d[ref] < bottom) bottom = d[ref];
     });
+    let [bottomRef2, topRef2] = [refData[0][ref2], refData[0][ref2]];
+    refData.forEach((d2) => {
+      if (d2[ref2] > topRef2) topRef2 = d2[ref2];
+      if (d2[ref2] < bottomRef2) bottomRef2 = d2[ref2];
+    });
   
-    return [(bottom | 0) - offset, (top | 0) + offset];
+    return [(bottom < bottomRef2 ? bottom : bottomRef2 | 0) - offset, (top > topRef2 ? top : topRef2 | 0) + offset];
   };
 
   const formatter = useCallback(
@@ -167,14 +224,16 @@ function HourlyForecast(props) {
       refAreaLeft,
       refAreaRight,
       "windSpeed",
+      "temp",
       0
     );
     const [bottom2, top2] = getAxisYDomain(
       data,
       refAreaLeft,
       refAreaRight,
-      "pop",
-      0
+      "pressure",
+      "pressure",
+      1
     );
     setState({
       refAreaLeft: "",
@@ -195,7 +254,7 @@ function HourlyForecast(props) {
       data: data.slice(),
       refAreaLeft: "",
       refAreaRight: "",
-      left: "dataMin-5",
+      left: "dataMin",
       right: "dataMax",
       top: "dataMax+1",
       bottom: "dataMin",
@@ -235,9 +294,11 @@ function HourlyForecast(props) {
       });
       const hourly = data.data.hourly;
       const merged = [];
+      const tempMinMax = [];
       hourly.forEach((element, index) => {
         const rawTimestamp = element.dt - tOffset;
         const timestamp = (element.dt) / 1000;
+        tempMinMax.push(element.temp);
         merged[index] = {
           // time: timestamp,
           rawTimestamp: rawTimestamp,
@@ -254,20 +315,46 @@ function HourlyForecast(props) {
           visibility: element.visibility,
           windSpeed: element.wind_speed,
           windDeg: element.wind_deg,
-          weather: element.weather
+          weather: element.weather,
           };
       });
-      // setFetchedData(merged);
+      let refData = Array.from(merged);
+      let ref = "temp";
+      let [bottom, top] = [refData[0][ref], refData[0][ref]];
+      refData.forEach((d) => {
+        if (d[ref] > top) top = d[ref];
+        if (d[ref] < bottom) bottom = d[ref];
+      });
+      let bottomColor = getRgb(20, 100, bottom);
+      let topColor = getRgb(20, 100, top);
       setState({
         ...state, 
         data: merged.slice(), 
         dailyData: dailyMerged.slice(), 
         minutelyData: minutelyMerged.slice(), 
-        allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()]
+        allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()],
+        min: bottomColor,
+        max: topColor
       });
       setLoaded(true);
     });
   }, [loaded, setLoaded]);
+
+  const handleMouseEnter = (o) => {
+    setState( {
+      ...state,
+      activeArea: o.dataKey,
+      activeColor: o.color
+    })
+  }
+  
+  const handleMouseLeave = (o) => {
+    setState( {
+      ...state,
+      activeArea: "",
+      activeColor: "#00000033"
+    })
+  } 
 
   useEffect(() => {
     fetchWeatherData();
@@ -286,164 +373,11 @@ function HourlyForecast(props) {
         Zoom Out
       </Button>
     {/* <ResponsiveContainer width="100%" height="100%"> */}
-      {hidden && <LineChart
-        width={800}
-        height={400}
-        margin={{bottom: 10}}
-        data={state.data}
-        onMouseDown={(e) =>
-          setState({
-            ...state,
-            refAreaLeft: e.activeLabel,
-          })
-        }
-        onMouseMove={(e) =>
-          state.refAreaLeft && e.activeLabel &&
-          setState({
-            ...state,
-            refAreaRight: e.activeLabel,
-          })
-        }
-        onMouseUp={zoom}
-      >
-        <defs>
-              <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                <stop offset="1%" stopColor="#ae1313" stopOpacity={0.9}/>
-                <stop offset="25%" stopColor="#36db24" stopOpacity={0.95}/>
-                <stop offset="50%" stopColor="#137bae" stopOpacity={0.7}/>
-                <stop offset="85%" stopColor="#b857ef" stopOpacity={0.5}/>
-              </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          allowDataOverflow
-          // style={{margin: "50px"}}
-          dataKey="time"
-          domain={[state.left, state.right]}
-          type="number"
-          tick={<CustomizedAxisTick/>}
-          tickFormatter={labelFormatter}
-          // interval={1}
-        />
-        <YAxis
-          allowDataOverflow
-          domain={[(state.bottom | 0), (state.top | 100)]}
-          type="number"
-          yAxisId="1"
-        />
-        <YAxis
-          orientation="right"
-          allowDataOverflow
-          domain={[(state.bottom2 | 0), state.top2 | 100]}
-          type="number"
-          yAxisId="2"
-        />
-        {/* <Tooltip /> */}
-        <Tooltip
-          labelFormatter={labelFormatter}
-          formatter={formatter}
-          cursor={false}
-          // offset={20}
-          allowEscapeViewBox={{ x: true, y: true }}
-          contentStyle={{
-            // border: "1px",
-            padding: theme.spacing(1),
-            borderRadius: theme.shape.borderRadius,
-            boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.secondary.dark
-          }}
-          labelStyle={theme.typography.h6}
-          itemStyle={{
-            fontSize: theme.typography.body1.fontSize,
-            letterSpacing: theme.typography.body1.letterSpacing,
-            fontFamily: theme.typography.body1.fontFamily,
-            lineHeight: theme.typography.body1.lineHeight,
-            fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
-            textAlign: "left",
-            color: "white"
-          }}
-        />
-        <Legend />
-        <Line
-          yAxisId="1"
-          type="natural"
-          dataKey="temp"
-          stroke={theme.palette.secondary.light} //"#"
-          dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
-          animationDuration={300}
-        />
-        <Line
-          yAxisId="1"
-          type="natural"
-          dataKey="feelsLike"
-          stroke={theme.palette.secondary.main} //"#"
-          dot={{ fill: `${theme.palette.secondary.main}`, stroke: `${theme.palette.secondary.main}`, r: 2}}
-          animationDuration={300}
-        />
-        <Line
-          yAxisId="2"
-          type="natural"
-          dataKey="humidity"
-          stroke={theme.palette.primary.light} //"#"
-          dot={{ fill: `${theme.palette.primary.main}`, stroke: `${theme.palette.primary.main}`, r: 2}}
-          animationDuration={300}
-        />
-        <Line
-          yAxisId="1"
-          type="natural"
-          dataKey="dewPoint"
-          stroke={theme.palette.primary.main} //"#"
-          dot={{ fill: `${theme.palette.warning.dark}`, stroke: `${theme.palette.warning.dark}`, r: 2}}
-          animationDuration={300}
-        />
-        <Line
-          yAxisId="2"
-          type="natural"
-          dataKey="pop"
-          stroke={theme.palette.primary.main} //"#"
-          dot={{ fill: `${theme.palette.primary.main}`, stroke: `${theme.palette.primary.main}`, r: 2}}
-          animationDuration={300}
-        />
-        <Line
-          yAxisId="1"
-          type="natural"
-          dataKey="windSpeed"
-          stroke={theme.palette.warning.light} //"#"
-          strokeWidth={0}
-          // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
-          dot={<CustomizedDot stroke={theme.palette.warning.light} r={0}/>}
-          // animationDuration={300}
-        />
-        <Line
-          yAxisId="1"
-          type="natural"
-          dataKey="pressure"
-          stroke={theme.palette.warning.main} //"#"
-          dot={{ fill: `${theme.palette.warning.main}`, stroke: `${theme.palette.warning.main}`, r: 2}}
-          animationDuration={300}
-        />
-        <Line
-          yAxisId="2"
-          type="natural"
-          dataKey="clouds"
-          stroke="#ddd" //"#"
-          dot={{ fill: "#000000000", stroke: `#fff`, r: 2}}
-          animationDuration={300}
-        />
-        {state.refAreaLeft && state.refAreaRight ? (
-          <ReferenceArea
-            yAxisId="1"
-            x1={state.refAreaLeft}
-            x2={state.refAreaRight}
-            strokeOpacity={0.3}
-          />
-        ) : null}
-      </LineChart>}
       {/* </Temp, feels like, dew point, wind> */}
       {hidden && <AreaChart
         width={800}
         height={400}
-        margin={{bottom: 10}}
+        margin={{bottom: 10, top: 20, }}
         data={state.data}
         onMouseDown={(e) =>
           setState({
@@ -472,6 +406,18 @@ function HourlyForecast(props) {
                 <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
                 <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
                 <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
+              </linearGradient>
+              <linearGradient id="heatmapUv" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="rgb(255, 0, 0)" stopOpacity={0.95}/>
+                <stop offset="100%" stopColor="#ff00ff" stopOpacity={0.5}/>
+              </linearGradient>
+              <linearGradient id="inactiveHeatmapUv" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={state.max} stopOpacity={0.025}/>
+                <stop offset="100%" stopColor={state.min} stopOpacity={0.1}/>
+              </linearGradient>
+              <linearGradient id="activeHeatmapUv" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={state.max} stopOpacity={0.95}/>
+                <stop offset="100%" stopColor={state.min} stopOpacity={0.5}/>
               </linearGradient>
               <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
                 <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
@@ -532,13 +478,22 @@ function HourlyForecast(props) {
             color: "white"
           }}
         />
-        <Legend margin={ { top: 20, bottom: 20 } }/>
+        <Legend 
+          // margin={ { top: 20, bottom: 20 } }
+          layout="vertical"
+          align="center"
+          verticalAlign="middle"
+          wrapperStyle={ { right: -100 }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        />
         <Area
           yAxisId="2"
           type="natural"
           dataKey="pressure"
           unit="inHg"
           // stroke={theme.palette.warning.main} //"#"
+          color="#ecc79d"
           dot={{ fill: `#ecc79d`, stroke: `${theme.palette.warning.main}`, r: 2}}
           animationDuration={300}
           onMouseEnter={() =>
@@ -562,10 +517,10 @@ function HourlyForecast(props) {
           yAxisId="1"
           type="natural"
           dataKey="temp"
-          stroke="url(#colorUv)" 
+          // stroke="url(#colorUv)" 
           // fill="url(#colorUv)" //"#"
           unit="°"
-          dot={{ fill: `${theme.palette.secondary.main}`, strokeWidth: 0, r: 4}}
+          dot={<HeatmapDot source="temp"/>}
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -579,7 +534,9 @@ function HourlyForecast(props) {
               activeArea: "",
             })
           }
-          fill={state.activeArea === "temp" ? "url(#colorUv)" : "url(#monoUv"} //"#"
+          strokeWidth={2}
+          stroke={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+          fill={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
         />
         <Area
           yAxisId="1"
@@ -587,7 +544,8 @@ function HourlyForecast(props) {
           dataKey="feelsLike"
           unit="°"
           // stroke={theme.palette.secondary.main} //"#"
-          dot={{ fill: `${theme.palette.secondary.main}`, stroke: `${theme.palette.secondary.main}`, r: 2}}
+          dot={<HeatmapDot  source="feelsLike"/>} 
+          // stroke: `${state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}`, 
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -601,8 +559,8 @@ function HourlyForecast(props) {
               activeArea: "",
             })
           }
-          stroke={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#colorUv)"}
-          fill={state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}
+          stroke={state.activeArea === "feelsLike" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+          fill={state.activeArea === "feelsLike" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
         />
         <Area
           yAxisId="1"
@@ -633,9 +591,9 @@ function HourlyForecast(props) {
           type="natural"
           dataKey="windSpeed"
           unit="mph"
-          strokeWidth={0}
+          strokeWidth={1}
           // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
-          dot={<CustomizedDot stroke={theme.palette.warning.light} r={0}/>}
+          dot={<CustomizedDot stroke="#48a4ea" r={0}/>}
           onMouseEnter={() =>
             setState({
               ...state,
@@ -650,7 +608,7 @@ function HourlyForecast(props) {
               activeColor: "#000",
             })
           }
-          stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e1"}
+          stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e178"}
           fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
           // animationDuration={300}
         />
