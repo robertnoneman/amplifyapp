@@ -26,7 +26,6 @@ import format from "date-fns/format";
 import WeatherCharts from "./WeatherCharts";
 import lineData from "../../test_data/nivoLineData.json"
 import testHourly from "../../test_data/testHourlyData.json"
-import { min } from "date-fns";
 
 const styles = (theme) => ({
   card: {
@@ -67,17 +66,6 @@ function getRgb(minimum, maximum, value) {
   return `rgb(${r2}, ${g2}, ${b2})`; 
 }
 
-function getMin(data) {
-  var min = Math.min(data);
-  var max = Math.max(data);
-  return min;
-}
-function getMax(data) {
-  var min = Math.min(data);
-  var max = Math.max(data);
-  return max;
-}
-
 // Returns hello.
 // unix => "hello";
 
@@ -91,14 +79,14 @@ function formatTime(unix, offset) {
 function labelFormatter(label) {
   if (label === null || label < 0 || label === -Infinity || label === Infinity) return;
   const tempLabel = label * 1000 * 1000;
-  return format(new Date(tempLabel), "MMM d, p");
+  return format(new Date(tempLabel), "ccc p");
 }
 
 function CustomizedAxisTick(props) {
   const {x, y, payload} = props;
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill="#666" fontSize={10} transform="rotate(-25)">{labelFormatter(payload.value)}</text>
+      <text x={0} y={0} dy={10} textAnchor="end" fill="#888" fontSize={10} transform="rotate(-15)">{labelFormatter(payload.value)}</text>
     </g>
   );
 }
@@ -136,21 +124,17 @@ const CustomizedDot = (props) => {
   const {
     cx, cy, stroke, payload, value, 
   } = props;
-
   return (
       <svg 
         fill={stroke} 
         viewBox="0 0 1024 1024"  
         x={ cx - 0 } 
         y={ cy - 0 } 
-        width={600} height={600} 
-        overflow="auto"
-        // transform={`rotate(${payload.windDeg})`}
+        width={600} height={600}
+        overflow="visible" 
         >
-      <g 
-      // transform={`rotate(${payload.windDeg})`}
-      >
-        <path transform={`rotate(${payload.windDeg})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
+      <g>
+        <path overflow="visible" transform={`rotate(${payload.windDeg})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
       </g>
       </svg>
   );
@@ -174,6 +158,15 @@ function HourlyForecast(props) {
   const [state, setState] = useState(initialStateData);
   const [loaded, setLoaded] = useState(false);
   const [hidden, setHidden] = useState(true);
+  const [hideArea, setHideArea] = useState({
+    hidden: {
+      temp: false,
+      feelsLike: false,
+      pressure: false,
+      windSpeed: false,
+      dewPoint: false
+    }
+  });
 
   const handleHiddenChange = (event) => {
     setHidden(event.target.checked);
@@ -207,11 +200,15 @@ function HourlyForecast(props) {
     let refAreaLeft = state.refAreaLeft;
     let refAreaRight = state.refAreaRight;
     let data = state.data;
+    let activeArea = state.activeArea;
+    let activeColor = state.activeColor;
+    let min = state.min;
+    let max = state.max;
     if (refAreaLeft === refAreaRight || refAreaRight === "") {
       setState({
+        ...state,
         refAreaLeft: "",
         refAreaRight: "",
-        ...state,
       })
       return;
     }
@@ -244,22 +241,27 @@ function HourlyForecast(props) {
       bottom,
       top,
       bottom2,
-      top2
+      top2,
+      activeArea,
+      activeColor,
+      min,
+      max,
     })
   }, [state, setState]);
 
   const zoomOut = useCallback(() => {
     const data = state.data;
     setState({
+      ...state,
       data: data.slice(),
       refAreaLeft: "",
       refAreaRight: "",
       left: "dataMin",
       right: "dataMax",
-      top: "dataMax+1",
+      top: "dataMax+5",
       bottom: "dataMin",
-      top2: "dataMax+5",
-      bottom2: "dataMin+5"
+      top2: "dataMax+1",
+      bottom2: "dataMin-1",
     })
   }, [state, setState]);
 
@@ -354,7 +356,16 @@ function HourlyForecast(props) {
       activeArea: "",
       activeColor: "#00000033"
     })
-  } 
+  }
+  
+  const handleClick = (o) => {
+    const { dataKey } = o;
+    var toggle = hideArea.hidden[dataKey];
+    // console.log(`Clicked ${dataKey}! Current state is ${toggle}, new state is ${!toggle}`);
+    setHideArea( {
+      hidden: {...hideArea.hidden, [dataKey]: !toggle}
+    })
+  };
 
   useEffect(() => {
     fetchWeatherData();
@@ -380,10 +391,10 @@ function HourlyForecast(props) {
         margin={{bottom: 10, top: 20, }}
         data={state.data}
         onMouseDown={(e) =>
-          setState({
+          e && e.activeLabel && setState({
             ...state,
             refAreaLeft: e.activeLabel,
-          })
+            })
         }
         onMouseMove={(e) =>
           state.refAreaLeft && e.activeLabel &&
@@ -393,6 +404,7 @@ function HourlyForecast(props) {
           })
         }
         onMouseUp={zoom}
+        syncId="captain"
       >
         <defs>
               <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
@@ -438,7 +450,11 @@ function HourlyForecast(props) {
           type="number"
           tick={<CustomizedAxisTick/>}
           tickFormatter={labelFormatter}
-          // interval={1}
+          isCategorial={false}
+          minTickGap={0}
+          tickCount={10}
+          interval={3}
+          scale="time"
         />
         <YAxis
           allowDataOverflow
@@ -486,6 +502,7 @@ function HourlyForecast(props) {
           wrapperStyle={ { right: -100 }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
         />
         <Area
           yAxisId="2"
@@ -494,7 +511,7 @@ function HourlyForecast(props) {
           unit="inHg"
           // stroke={theme.palette.warning.main} //"#"
           color="#ecc79d"
-          dot={{ fill: `#ecc79d`, stroke: `${theme.palette.warning.main}`, r: 2}}
+          dot={{ fill: `#ecc79d`, r: 2}}
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -507,20 +524,22 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
-              activeColor: "#000"
+              activeColor: "#0000000"
             })
           }
           stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
           fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          hide={hideArea.hidden.pressure}
         />
         <Area
+          
           yAxisId="1"
           type="natural"
           dataKey="temp"
           // stroke="url(#colorUv)" 
           // fill="url(#colorUv)" //"#"
           unit="°"
-          dot={<HeatmapDot source="temp"/>}
+          dot={ <HeatmapDot source="temp" /> }
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -532,11 +551,13 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
+              activeColor: "#0000000"
             })
           }
-          strokeWidth={2}
-          stroke={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+          strokeWidth={state.activeArea === "temp" ? 2 : 1 }
+          stroke="url(#activeHeatmapUv)"
           fill={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+          hide={hideArea.hidden.temp}
         />
         <Area
           yAxisId="1"
@@ -544,7 +565,7 @@ function HourlyForecast(props) {
           dataKey="feelsLike"
           unit="°"
           // stroke={theme.palette.secondary.main} //"#"
-          dot={<HeatmapDot  source="feelsLike"/>} 
+          dot={ <HeatmapDot source="feelsLike" />} 
           // stroke: `${state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}`, 
           animationDuration={300}
           onMouseEnter={() =>
@@ -557,10 +578,13 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
+              activeColor: "#0000000"
             })
           }
-          stroke={state.activeArea === "feelsLike" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+          strokeWidth={state.activeArea === "temp" ? 2 : 1 }
+          stroke="url(#activeHeatmapUv)"
           fill={state.activeArea === "feelsLike" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+          hide={hideArea.hidden.feelsLike}
         />
         <Area
           yAxisId="1"
@@ -580,11 +604,12 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
-              activeColor: "#000",
+              activeColor: "#0000000",
             })
           }
           stroke={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "#a8e6c9"}
           fill={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          hide={hideArea.hidden.dewPoint}
         />
         <Area
           yAxisId="1"
@@ -605,12 +630,13 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
-              activeColor: "#000",
+              activeColor: "#0000000",
             })
           }
           stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e178"}
           fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-          // animationDuration={300}
+          animationDuration={300}
+          hide={hideArea.hidden.windSpeed}
         />
         {state.refAreaLeft && state.refAreaRight ? (
           <ReferenceArea
@@ -625,10 +651,10 @@ function HourlyForecast(props) {
       {hidden && <AreaChart
         width={800}
         height={400}
-        margin={{bottom: 10}}
+        margin={{bottom: 20, top: 20}}
         data={state.data}
         onMouseDown={(e) =>
-          setState({
+          e && e.activeLabel && setState({
             ...state,
             refAreaLeft: e.activeLabel,
           })
@@ -641,6 +667,7 @@ function HourlyForecast(props) {
           })
         }
         onMouseUp={zoom}
+        syncId="captain"
       >
         <defs>
               <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
@@ -674,7 +701,11 @@ function HourlyForecast(props) {
           type="number"
           tick={<CustomizedAxisTick/>}
           tickFormatter={labelFormatter}
-          // interval={1}
+          isCategorial={false}
+          minTickGap={0}
+          tickCount={10}
+          interval={3}
+          scale="time"
         />
         <YAxis
           allowDataOverflow
@@ -685,7 +716,7 @@ function HourlyForecast(props) {
         <YAxis
           orientation="right"
           allowDataOverflow
-          domain={[(state.bottom2 | 0), state.top2 | 100]}
+          domain={[(state.bottom2 | 0), state.top2 | 101]}
           type="number"
           yAxisId="2"
         />
@@ -714,7 +745,16 @@ function HourlyForecast(props) {
             color: "white"
           }}
         />
-        <Legend />
+        <Legend 
+          // margin={ { top: 20, bottom: 20 } }
+          layout="vertical"
+          align="center"
+          verticalAlign="middle"
+          wrapperStyle={ { right: -100 }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
+        />
         <Area
           yAxisId="2"
           type="natural"
@@ -733,11 +773,12 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
-              activeColor: "#000"
+              activeColor: "#0000000"
             })
           }
           stroke={state.activeArea === "clouds" ? "url(#monoActiveUv)" : "#fff"}
           fill={state.activeArea === "clouds" ? "url(#monoActiveUv)" : "url(#monoUv)"} //"#"
+          hide={hideArea.hidden.clouds}
         />
         <Area
           yAxisId="1"
@@ -745,7 +786,7 @@ function HourlyForecast(props) {
           dataKey="humidity"
           unit="%"
           // fill="url(#alphaUv)"
-          dot={{ fill: `#9ddcec`, stroke: `${theme.palette.primary.main}`, r: 2}}
+          dot={{ fill: `#9ddcec`, r: 2}}
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -758,18 +799,19 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
-              activeColor: "#000",
+              activeColor: "#0000000",
             })
           }
           stroke={state.activeArea === "humidity" ? "url(#monoActiveUv)" : "#9ddcec"}
           fill={state.activeArea === "humidity" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          hide={hideArea.hidden.humidity}
         />
         <Area
           yAxisId="1"
           type="natural"
           dataKey="pop"
           unit="%"
-          dot={{ fill: `#38a9ff`, stroke: `${theme.palette.primary.main}`, r: 2}}
+          dot={{ fill: `#38a9ff`, r: 2}}
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -782,11 +824,12 @@ function HourlyForecast(props) {
             setState({
               ...state,
               activeArea: "",
-              activeColor: "#000",
+              activeColor: "#0000000",
             })
           }
           stroke={state.activeArea === "pop" ? "url(#monoActiveUv)" : "#38a9ff"}
           fill={state.activeArea === "pop" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          hide={hideArea.hidden.pop}
         />
         {state.refAreaLeft && state.refAreaRight ? (
           <ReferenceArea
@@ -802,32 +845,3 @@ function HourlyForecast(props) {
 }
 
 export default withStyles(styles, { withTheme: true })(HourlyForecast);
-
-    // </ArrowDropDownCircle>
-    // <SvgIcon style={{ 
-    //   transform: `rotate(${payload.windDeg}deg)`, 
-    //   pourIcon: {
-    //     animation: "pour 5s linear"
-    //   },
-    //   "@keyframes pour": {
-    //     "0%": {
-    //       transform: "scale(1) rotate(-45deg)"
-    //     },
-    //     "25%": {
-    //       transform: "rotate(-45deg) scale(0.6)",
-    //       bottom: "-100px"
-    //     },
-    //     "50%": {
-    //       transform: "scale(0.1) rotate(-45deg)",
-    //       bottom: "200px",
-    //       opacity: "0.01"
-    //     }
-    //   },
-    //   animation: "pour 5s linear infinite",
-    //   animationTimingFunction: "cubic-bezier(0.47, 0.5, 0.745, 0.715)"
-    //   }} x={cx - 10} y={cy - 10} width={40} height={40} fill={stroke} viewBox="0 0 1024 1024">
-    // {/* <svg x={cx - 10} y={cy - 10} width={20} height={20} fill={stroke} viewBox="0 0 1024 1024"> */}
-    //   {/* <path fill={stroke} d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04l224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941l207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"/> */}
-    //   <path fill={stroke} d="M8 256c0 137 111 248 248 248s248-111 248-248S393 8 256 8 8 119 8 256zm448 0c0 110.5-89.5 200-200 200S56 366.5 56 256 145.5 56 256 56s200 89.5 200 200zM266.9 126.1l121.4 121.4c4.7 4.7 4.7 12.3 0 17L266.9 385.9c-4.7 4.7-12.3 4.7-17 0l-19.6-19.6c-4.8-4.8-4.7-12.5.2-17.2l70.3-67.1H140c-6.6 0-12-5.4-12-12v-28c0-6.6 5.4-12 12-12h160.8l-70.3-67.1c-4.9-4.7-5-12.4-.2-17.2l19.6-19.6c4.7-4.7 12.3-4.7 17 0z"></path>
-    // {/* </svg> */}
-    // </SvgIcon>
