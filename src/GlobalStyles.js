@@ -29,6 +29,11 @@ const styles = theme => ({
       paddingLeft: theme.spacing(4),
       marginRight: "auto",
       marginLeft: "auto",
+      [theme.breakpoints.up("xs")]: {
+        maxWidth: 390,
+        paddingRight: theme.spacing(0),
+        paddingLeft: theme.spacing(0),
+      },
       [theme.breakpoints.up("sm")]: {
         maxWidth: 540
       },
@@ -36,9 +41,12 @@ const styles = theme => ({
         maxWidth: 720
       },
       [theme.breakpoints.up("lg")]: {
-        maxWidth: 1170
+        maxWidth: 1280
       },
-      background: "secondary",
+      [theme.breakpoints.up("xl")]: {
+        maxWidth: 1920
+      },
+      color: "secondary",
       backgroundColor: "primary"
     },
     ".row": {
@@ -54,8 +62,6 @@ const styles = theme => ({
       marginRight: "auto",
       marginLeft: "auto",
       maxWidth: 1370,
-      background: "secondary",
-      backgroundColor: "primary"
     },
     ".lg-mg-top": {
       marginTop: `${theme.spacing(20)}px !important`,

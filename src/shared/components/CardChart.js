@@ -196,7 +196,7 @@ function CardChart(props) {
   const isOpen = Boolean(anchorEl);
   return (
     <Card className={classes.card}>
-      <Box pt={2} px={2} pb={4}>
+      <Box pt={2} px={0} pb={4}>
         <Box display="flex" justifyContent="space-between">
           <div>
             <Typography variant="subtitle1" className="text-white">{title}</Typography>
@@ -270,6 +270,7 @@ function CardChart(props) {
                 // domain={[calculateMin(data, "value", 0.1), "dataMax"]}
                 domain={[calculateMin(data, "value", 0.01), calculateMax(data, "value", 0.05)]}
                 interval={0}
+                width={20}
                 //label="Temperature"
                 //hide
               />

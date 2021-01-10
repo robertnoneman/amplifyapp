@@ -36,7 +36,7 @@ function TabPanel(props) {
       aria-labelledby={`action-tab-${index}`}
       {...other}
     >
-      {value === index && <Box p={3}>{children}</Box>}
+      {value === index && <Box p={0}>{children}</Box>}
     </Typography>
   );
 }
@@ -54,14 +54,12 @@ const styles = theme => ({
         marginRight: "auto",
         paddingLeft: theme.spacing(4),
         paddingRight: theme.spacing(4),
-        // maxWidth: 360,
         border: `3px solid ${theme.palette.primary.dark}`,
         borderRadius: theme.shape.borderRadius
       }
     },
     card: {
       boxShadow: theme.shadows[4],
-      //border: `1px solid ${theme.palette.primary.dark}`,
       marginLeft: theme.spacing(2),
       marginRight: theme.spacing(2),
       [theme.breakpoints.up("xs")]: {
@@ -96,28 +94,10 @@ const styles = theme => ({
       marginTop: theme.spacing(1),
       paddingBottom: theme.spacing(1),
     },
-    container: {
-      marginTop: theme.spacing(3),
-      marginBottom: theme.spacing(3),
-      [theme.breakpoints.down("md")]: {
-        marginBottom: theme.spacing(9),
-      },
-      [theme.breakpoints.down("sm")]: {
-        marginBottom: theme.spacing(6),
-      },
-      [theme.breakpoints.down("sm")]: {
-        marginBottom: theme.spacing(3),
-      },
-    },
     containerFix: {
       [theme.breakpoints.up("md")]: {
         maxWidth: "none !important",
       },
-    },
-    containerFluid:{
-      background: theme.palette.common.black,
-      borderBottom: `1px solid ${theme.palette.primary.dark}`,
-      borderRadius: theme.shape.borderRadius
     },
     accordion: {
       backgroundColor: theme.palette.primary.dark,
@@ -250,15 +230,12 @@ function SandboxPage(props) {
     <Fragment>
       <div id='sandbox-top'>
         <div > {/*className={classNames(classes.wrapper)}*/}
-          <div className={classNames("container-fluid lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
+          <div className={classNames("container lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
             <section id='SandboxPage'>
               <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
                 Weather Playground
               </Typography>
             </section>              
-            <Box className={classes.containerFluid}>
-              <Typography className="text-white">Weather</Typography>
-            </Box>
             <AppBar position="relative" color="inherit">
               <Tabs
                 value={value}
@@ -285,7 +262,7 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
             >
               <TabPanel value={value} index={0} dir={theme.direction}>
-                <HourlyForecast title={["Temp", "Humidity"]}/>
+                <HourlyForecast title={["Temp", "Humidity"]} height="370px"/>
                 <Weather displayType="timeline"/>
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>
@@ -324,10 +301,10 @@ function SandboxPage(props) {
                 </Grid>
               </TabPanel>
               <TabPanel value={value} index={4} dir={theme.direction}>
-                <Box m={theme.spacing(-2)} p={theme.spacing(1)}>
-                  <HourlyForecast title={["temp", "humidity"]}/>
-                </Box>
-                <Box m={theme.spacing(1)}>
+                
+                  <HourlyForecast title={["temp", "humidity"]} height={300}/>
+                
+                <Box m={theme.spacing(0)}>
                   {/* <WeatherCharts /> */}
                   <DataLoading data={appState.data}/>
                 </Box>

@@ -20,7 +20,7 @@ import {
   Area,
   Dot
 } from "recharts";
-import { Box, Button, Container, FormControlLabel, Grid, SvgIcon, withStyles, Switch } from "@material-ui/core";
+import { Box, Button, Container, FormControlLabel, Grid, SvgIcon, withStyles, Switch, Card, CardContent } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
 import WeatherCharts from "./WeatherCharts";
@@ -134,7 +134,7 @@ const CustomizedDot = (props) => {
         overflow="visible" 
         >
       <g>
-        <path overflow="visible" transform={`rotate(${payload.windDeg})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
+        <path overflow="visible" transform={`rotate(${payload.windDeg + 180})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
       </g>
       </svg>
   );
@@ -154,7 +154,7 @@ const HeatmapDot = (props) => {
 }
 
 function HourlyForecast(props) {
-  const { title, classes, theme } = props;
+  const { title, classes, theme, height } = props;
   const [state, setState] = useState(initialStateData);
   const [loaded, setLoaded] = useState(false);
   const [hidden, setHidden] = useState(true);
@@ -372,8 +372,8 @@ function HourlyForecast(props) {
   }, [fetchWeatherData]);
 
   return (
-     
-    <Box className={classes.card} style={{ userSelect: "none", }} m={theme.spacing(1)}>
+    <>
+    <Card className={classes.card}>
       <FormControlLabel control={<Switch checked={hidden} onChange={handleHiddenChange} color="primary" />}
         label="Hidden"/>
       {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />}
@@ -383,12 +383,12 @@ function HourlyForecast(props) {
       >
         Zoom Out
       </Button>
-    {/* <ResponsiveContainer width="100%" height="100%"> */}
+   
+      <Box height={height} width="100%" display="flex" style={{userSelect: "none"}}>
+        <ResponsiveContainer width="100%" height="100%">
       {/* </Temp, feels like, dew point, wind> */}
       {hidden && <AreaChart
-        width={800}
-        height={400}
-        margin={{bottom: 10, top: 20, }}
+        margin={{bottom: 10, top: 20, right: 20 }}
         data={state.data}
         onMouseDown={(e) =>
           e && e.activeLabel && setState({
@@ -444,7 +444,6 @@ function HourlyForecast(props) {
         <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
         <XAxis
           allowDataOverflow
-          // style={{margin: "50px"}}
           dataKey="time"
           domain={[state.left, state.right]}
           type="number"
@@ -458,9 +457,12 @@ function HourlyForecast(props) {
         />
         <YAxis
           allowDataOverflow
-          domain={[(state.bottom), (state.top)]}
+          domain={[state.bottom, state.top]}
           type="number"
           yAxisId="1"
+          scale="linear"
+          unit="°"
+          allowDecimals={false}
         />
         <YAxis
           orientation="right"
@@ -468,6 +470,9 @@ function HourlyForecast(props) {
           domain={[(state.bottom2), state.top2]}
           type="number"
           yAxisId="2"
+          scale="linear"
+          unit='"'
+          allowDecimals={false}
         />
         {/* <Tooltip /> */}
         <Tooltip
@@ -495,11 +500,11 @@ function HourlyForecast(props) {
           }}
         />
         <Legend 
-          // margin={ { top: 20, bottom: 20 } }
-          layout="vertical"
+          // layout="vertical"
           align="center"
-          verticalAlign="middle"
-          wrapperStyle={ { right: -100 }}
+          // verticalAlign="middle"
+          verticalAlign="top"
+          wrapperStyle={ { right: 0 }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
@@ -509,7 +514,6 @@ function HourlyForecast(props) {
           type="natural"
           dataKey="pressure"
           unit="inHg"
-          // stroke={theme.palette.warning.main} //"#"
           color="#ecc79d"
           dot={{ fill: `#ecc79d`, r: 2}}
           animationDuration={300}
@@ -536,8 +540,6 @@ function HourlyForecast(props) {
           yAxisId="1"
           type="natural"
           dataKey="temp"
-          // stroke="url(#colorUv)" 
-          // fill="url(#colorUv)" //"#"
           unit="°"
           dot={ <HeatmapDot source="temp" /> }
           animationDuration={300}
@@ -647,28 +649,39 @@ function HourlyForecast(props) {
           />
         ) : null}
       </AreaChart>}
-      {/* {Clouds, pop, humidity} */}
-      {hidden && <AreaChart
-        width={800}
-        height={400}
-        margin={{bottom: 20, top: 20}}
-        data={state.data}
-        onMouseDown={(e) =>
-          e && e.activeLabel && setState({
-            ...state,
-            refAreaLeft: e.activeLabel,
-          })
-        }
-        onMouseMove={(e) =>
-          state.refAreaLeft && e.activeLabel &&
-          setState({
-            ...state,
-            refAreaRight: e.activeLabel,
-          })
-        }
-        onMouseUp={zoom}
-        syncId="captain"
+    </ResponsiveContainer>
+      </Box>
+    
+    </Card>
+    {/* <Card> */}
+      <Box height={height} minWidth={800} display="flex"
+        style={{ backgroundColor: theme.palette.common.black, userSelect: "none"}}
+        onDoubleClick={zoomOut}
+        
       >
+        <ResponsiveContainer width="100%" height="100%">
+          { hidden && 
+          <AreaChart
+            // width={1200}
+            // height={400}
+            margin={{bottom: 20, top: 5}}
+            data={state.data}
+            onMouseDown={(e) =>
+              e && e.activeLabel && setState({
+                ...state,
+                refAreaLeft: e.activeLabel,
+              })
+            }
+            onMouseMove={(e) =>
+              state.refAreaLeft && e.activeLabel &&
+              setState({
+                ...state,
+                refAreaRight: e.activeLabel,
+              })
+            }
+            onMouseUp={zoom}
+            syncId="captain"
+          >
         <defs>
               <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
                 <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
@@ -712,6 +725,7 @@ function HourlyForecast(props) {
           domain={[(state.bottom | 0), (state.top | 100)]}
           type="number"
           yAxisId="1"
+          padding={ { top: 10} }
         />
         <YAxis
           orientation="right"
@@ -747,10 +761,10 @@ function HourlyForecast(props) {
         />
         <Legend 
           // margin={ { top: 20, bottom: 20 } }
-          layout="vertical"
-          align="center"
-          verticalAlign="middle"
-          wrapperStyle={ { right: -100 }}
+          // layout="vertical"
+          align="left"
+          verticalAlign="top"
+          wrapperStyle={{ right: -20  }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
@@ -840,7 +854,11 @@ function HourlyForecast(props) {
           />
         ) : null}
       </AreaChart>}
-    </Box>
+    {/* </Box> */}
+        </ResponsiveContainer>
+      </Box>
+    {/* </Card> */}
+    </>
   );
 }
 
