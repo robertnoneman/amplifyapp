@@ -99,6 +99,30 @@ const styles = theme => ({
         maxWidth: "none !important",
       },
     },
+    containerWeather: {
+      width: "100%",
+      paddingRight: theme.spacing(4),
+      paddingLeft: theme.spacing(4),
+      marginRight: "auto",
+      marginLeft: "auto",
+      [theme.breakpoints.up("xs")]: {
+        maxWidth: 390,
+        paddingRight: theme.spacing(0),
+        paddingLeft: theme.spacing(0),
+      },
+      [theme.breakpoints.up("sm")]: {
+        maxWidth: 840
+      },
+      [theme.breakpoints.up("md")]: {
+        maxWidth: 940
+      },
+      [theme.breakpoints.up("lg")]: {
+        maxWidth: 1280
+      },
+      [theme.breakpoints.up("xl")]: {
+        maxWidth: 1920
+      },
+    },
     accordion: {
       backgroundColor: theme.palette.primary.dark,
     },
@@ -230,13 +254,14 @@ function SandboxPage(props) {
     <Fragment>
       <div id='sandbox-top'>
         <div > {/*className={classNames(classes.wrapper)}*/}
-          <div className={classNames("container lg-mg-top")}> {/*className={classNames("container-fluid lg-mg-top")}*/}
+          <div className={classes.containerWeather} //{classNames("containerWeather")}
+            > {/*className={classNames("container-fluid lg-mg-top")}*/}
             <section id='SandboxPage'>
-              <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
+              {/* <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
                 Weather Playground
-              </Typography>
-            </section>              
-            <AppBar position="relative" color="inherit">
+              </Typography> */}
+            </section>
+            <AppBar position="static" color="inherit" style={ { marginTop: 50}}>
               <Tabs
                 value={value}
                 onChange={handleChange}
@@ -249,7 +274,10 @@ function SandboxPage(props) {
                 // style={{flexGrow: 1, }}
                 // orientation="vertical"
               >
-                <Tab label="Weather timeline" {...a11yProps(0)} />
+                <Tab label="Weather timeline" {...a11yProps(0)} 
+                  // HEY ROB LOOK AT THIS!
+                  // icon={<TimelineIcon />} 
+                />
                 <Tab label="Weather accordion" {...a11yProps(1)} />
                 <Tab label="Weather button" {...a11yProps(2)} />
                 <Tab label="Weather resizeable boxes" {...a11yProps(3)} />
