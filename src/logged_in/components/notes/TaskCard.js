@@ -126,7 +126,7 @@ function labelFormatter(label) {
 }
 
 function TaskCard(props) {
-  const { classes, name, description, createdAt, deleteNote, openEditForm, noteData, colIndex, index} = props;
+  const { classes, name, description, createdAt, deleteNote, openEditForm } = props;
   const [expanded, setExpanded] = useState('false');
 
   const handleChange = (panel) => (event, newExpanded) => {

@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 import PropTypes from "prop-types";
-import { Button, IconButton, Typography, withStyles } from "@material-ui/core";
+import { IconButton, Typography, withStyles } from "@material-ui/core";
 
 const styles = theme => ({
   iconWrapper: {

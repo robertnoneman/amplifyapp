@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useCallback } from 'react';
-import { Line, ResponsiveLine, ResponsiveLineCanvas } from "@nivo/line";
-import { Defs, linearGradientDef } from '@nivo/core'
+import React, {useState, useEffect } from 'react';
+import { Line, } from "@nivo/line";
+import { linearGradientDef } from '@nivo/core'
 import testHourly from "../../test_data/testHourlyData.json";
 // import format from "date-fns/format";
 
@@ -26,7 +26,7 @@ function WeatherCharts(props) {
   }]);
   const [loaded, setLoaded] = useState(false);
   
-  const keys = ['clouds', "dewPoint", "feelsLike", "pop", "pressure", "temp", "uvi", "visibility", "windDeg", "windSpeed"];
+  // const keys = ['clouds', "dewPoint", "feelsLike", "pop", "pressure", "temp", "uvi", "visibility", "windDeg", "windSpeed"];
 
   const [commonProperties, setCommonProperties] = useState({
     width: 900,
@@ -102,6 +102,7 @@ function WeatherCharts(props) {
       "color": '#ffa070', //theme.palette.common.darkBlack,
       data: []
     };
+    // eslint-disable-next-line no-unused-vars
     const tempWindDeg = {
       "id": "windDeg",
       "color": '#ff5c5c', //theme.palette.common.black,
@@ -177,81 +178,81 @@ function WeatherCharts(props) {
     setLoaded(true);
   }
 
-  const getData = useCallback(() => {
-    if (loaded) return;
+  // const getData = useCallback(() => {
+  //   if (loaded) return;
 
-    const tempClouds = {
-        "id": "clouds",
-        "color": '#E12C2C', //theme.palette.data.sun,
-        "data": []
-    };
-    const tempDewPoint = {
-        "id": "dewPoint",
-        "color": "#ef6c2a", //theme.palette.primary.light,
-        data: []
-    };
-      const tempFeelsLike = {
-      "id": "feelsLike",
-      "color": '#E12C2C', //theme.palette.primary.main,
-      data: []
-    };
-    const tempPop = {
-      "id": "pop",
-      "color": '#2aadef', //theme.palette.primary.dark,
-      data: [],
-    };
-    const tempPressure = {
-      "id": "pressure",
-      "color": '#ffe747', //theme.palette.secondary.light,
-      data: []
-    };
-    const tempTemp = {
-      "id": "temp",
-      "color": '#43182f', //theme.palette.secondary.main,
-      data: []
-    };
-    const tempUvi = {
-      "id": "uvi",
-      "color": '#31353eff', //theme.palette.background.default,
-      data: []
-    };
-    const tempVisibility = {
-      "id": "visibility",
-      "color": '#ffa070', //theme.palette.common.darkBlack,
-      data: []
-    };
-    const tempWindDeg = {
-      "id": "windDeg",
-      "color": '#ff5c5c', //theme.palette.common.black,
-      data: []
-    };
-    const tempWindSpeed = {
-      "id": "windSpeed",
-      "color": '#62c3f3', //theme.palette.warning.main,
-      data: []
-    };
+  //   const tempClouds = {
+  //       "id": "clouds",
+  //       "color": '#E12C2C', //theme.palette.data.sun,
+  //       "data": []
+  //   };
+  //   const tempDewPoint = {
+  //       "id": "dewPoint",
+  //       "color": "#ef6c2a", //theme.palette.primary.light,
+  //       data: []
+  //   };
+  //     const tempFeelsLike = {
+  //     "id": "feelsLike",
+  //     "color": '#E12C2C', //theme.palette.primary.main,
+  //     data: []
+  //   };
+  //   const tempPop = {
+  //     "id": "pop",
+  //     "color": '#2aadef', //theme.palette.primary.dark,
+  //     data: [],
+  //   };
+  //   const tempPressure = {
+  //     "id": "pressure",
+  //     "color": '#ffe747', //theme.palette.secondary.light,
+  //     data: []
+  //   };
+  //   const tempTemp = {
+  //     "id": "temp",
+  //     "color": '#43182f', //theme.palette.secondary.main,
+  //     data: []
+  //   };
+  //   const tempUvi = {
+  //     "id": "uvi",
+  //     "color": '#31353eff', //theme.palette.background.default,
+  //     data: []
+  //   };
+  //   const tempVisibility = {
+  //     "id": "visibility",
+  //     "color": '#ffa070', //theme.palette.common.darkBlack,
+  //     data: []
+  //   };
+  //   const tempWindDeg = {
+  //     "id": "windDeg",
+  //     "color": '#ff5c5c', //theme.palette.common.black,
+  //     data: []
+  //   };
+  //   const tempWindSpeed = {
+  //     "id": "windSpeed",
+  //     "color": '#62c3f3', //theme.palette.warning.main,
+  //     data: []
+  //   };
   
-    for (var i = 0; i < testHourly.hourly.length; i++) {
-      // const date = new Date(testHourly.hourly[i].dt * 1000);
-      const date = testHourly.formatted[0].data[i].x;
-      const sliced = date.slice(0, 19)
-      tempClouds.data[i] = {
-        // x: formatTime(testHourly.hourly[i].dt, 0),
-        x: sliced,
-        y: testHourly.hourly[i].clouds
-      };
-      tempDewPoint.data[i] = {
-        // x: formatTime(testHourly.hourly[i].dt, 0),
-        x: sliced,
-        y: testHourly.hourly[i].dew_point
-      };
-      // console.log(tempClouds.data[i]);
-    };
+  //   for (var i = 0; i < testHourly.hourly.length; i++) {
+  //     // const date = new Date(testHourly.hourly[i].dt * 1000);
+  //     const date = testHourly.formatted[0].data[i].x;
+  //     const sliced = date.slice(0, 19)
+  //     tempClouds.data[i] = {
+  //       // x: formatTime(testHourly.hourly[i].dt, 0),
+  //       x: sliced,
+  //       y: testHourly.hourly[i].clouds
+  //     };
+  //     tempDewPoint.data[i] = {
+  //       // x: formatTime(testHourly.hourly[i].dt, 0),
+  //       x: sliced,
+  //       y: testHourly.hourly[i].dew_point
+  //     };
+  //     // console.log(tempClouds.data[i]);
+  //   };
     
-    setFormattedData([tempClouds, tempDewPoint]);
-    // setFormattedData(testHourly.formatted[0]);
-    setLoaded(true);
-  }, [loaded]);
+  //   setFormattedData([tempClouds, tempDewPoint]);
+  //   // setFormattedData(testHourly.formatted[0]);
+  //   setLoaded(true);
+  // }, [loaded]);
 
   useEffect(() => {
     // getData();
@@ -343,34 +344,34 @@ function WeatherCharts(props) {
 } 
 export default (WeatherCharts) // withStyles(styles, { withTheme: true })(WeatherCharts)
 
-const whatintheactualfuckisgoingon = [
-  {
-      id: 'fake corp. A',
-      data: [
-          { x: '2018-01-01', y: 7 },
-          { x: '2018-01-02', y: 5 },
-          { x: '2018-01-03', y: 11 },
-          { x: '2018-01-04', y: 9 },
-          { x: '2018-01-05', y: 12 },
-          { x: '2018-01-06', y: 16 },
-          { x: '2018-01-07', y: 13 },
-          { x: '2018-01-08', y: 13 },
-      ],
-  },
-  {
-      id: 'fake corp. B',
-      data: [
-          { x: '2018-01-04', y: 14 },
-          { x: '2018-01-05', y: 14 },
-          { x: '2018-01-06', y: 15 },
-          { x: '2018-01-07', y: 11 },
-          { x: '2018-01-08', y: 10 },
-          { x: '2018-01-09', y: 12 },
-          { x: '2018-01-10', y: 9 },
-          { x: '2018-01-11', y: 7 },
-      ],
-  },
-]
+// const whatintheactualfuckisgoingon = [
+//   {
+//       id: 'fake corp. A',
+//       data: [
+//           { x: '2018-01-01', y: 7 },
+//           { x: '2018-01-02', y: 5 },
+//           { x: '2018-01-03', y: 11 },
+//           { x: '2018-01-04', y: 9 },
+//           { x: '2018-01-05', y: 12 },
+//           { x: '2018-01-06', y: 16 },
+//           { x: '2018-01-07', y: 13 },
+//           { x: '2018-01-08', y: 13 },
+//       ],
+//   },
+//   {
+//       id: 'fake corp. B',
+//       data: [
+//           { x: '2018-01-04', y: 14 },
+//           { x: '2018-01-05', y: 14 },
+//           { x: '2018-01-06', y: 15 },
+//           { x: '2018-01-07', y: 11 },
+//           { x: '2018-01-08', y: 10 },
+//           { x: '2018-01-09', y: 12 },
+//           { x: '2018-01-10', y: 9 },
+//           { x: '2018-01-11', y: 7 },
+//       ],
+//   },
+// ]
 
 
 /*
