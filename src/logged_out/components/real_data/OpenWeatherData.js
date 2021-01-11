@@ -451,7 +451,7 @@ function HourlyForecast(props) {
       
           {/* {hidden &&  */}
           <AreaChart
-            margin={{bottom: 10, top: 20, right: 20, left: -20 }}
+            margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: 20, left: -20 }}
             data={state.data}
             onMouseDown={(e) =>
               e && e.activeLabel && setState({
@@ -528,6 +528,7 @@ function HourlyForecast(props) {
               unit="°"
               allowDecimals={false}
               tick={selectedOption === "Compact" ? false : true}
+              hide={selectedOption === "Compact" ? true : false}
             />
             <YAxis
               orientation="right"
@@ -572,7 +573,7 @@ function HourlyForecast(props) {
               align="center"
               // verticalAlign="middle"
               verticalAlign="top"
-              wrapperStyle={ { right: 0, fontSize: 12 }}
+              wrapperStyle={ {top: 5,  right: 0, fontSize: 12 }}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               onClick={handleClick}
