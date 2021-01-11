@@ -21,7 +21,7 @@ import {
   Brush,
   // Dot
 } from "recharts";
-import { Box, Button, FormControlLabel, withStyles, Switch, Card, IconButton, Menu, MenuItem, } from "@material-ui/core";
+import { Box, Button, FormControlLabel, withStyles, Switch, Card, IconButton, Menu, MenuItem, Grid, } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
 import WeatherCharts from "./WeatherCharts";
@@ -38,8 +38,11 @@ const styles = (theme) => ({
     flexDirection: "column",
     // marginTop: 10,
   },
-  chartBox: {
-
+  chartCard: {
+    backgroundColor: theme.palette.common.black,
+    display: "flex",
+    justifyContent: "center",
+    flexDirection: "column",
   },
   windArrow: {
     transform: 'rotate(0deg)',
@@ -169,7 +172,7 @@ const HeatmapDot = (props) => {
   // const value = useRef(null);
   const color = (source === "feelsLike" ? getRgb(20, 100, payload["feelsLike"]) : getRgb(20, 100, payload["temp"]) );
   return (
-    <svg overflow="auto" stroke={color} fill={color} x={cx} y={cy} width={25} height={25} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <svg overflow="auto" stroke={color} fill={color} x={cx} y={cy} width={50} height={50} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
       <circle r="100" stroke={color} fill={color}/> 
     </svg>
   );
@@ -561,7 +564,7 @@ function HourlyForecast(props) {
               formatter={formatter}
               cursor={false}
               offset={5}
-              allowEscapeViewBox={{ x: true, y: false }}
+              allowEscapeViewBox={{ x: false, y: false }}
               contentStyle={{
                 border: "1px",
                 padding: theme.spacing(1),
@@ -593,7 +596,7 @@ function HourlyForecast(props) {
               type="natural"
               dataKey="temp"
               unit="°"
-              dot={ <HeatmapDot source="temp" /> }
+              activeDot={ <HeatmapDot source="temp" /> }
               animationDuration={300}
               onMouseEnter={() =>
                 setState({
@@ -619,7 +622,7 @@ function HourlyForecast(props) {
               dataKey="feelsLike"
               unit="°"
               // stroke={theme.palette.secondary.main} //"#"
-              dot={ <HeatmapDot source="feelsLike" />} 
+              activeDot={ <HeatmapDot source="feelsLike" />} 
               // stroke: `${state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}`, 
               animationDuration={300}
               onMouseEnter={() =>
@@ -652,255 +655,255 @@ function HourlyForecast(props) {
         </ResponsiveContainer>
       </Box>
     </Card>
-    <Card className={classes.card}>
-      
-      <Box display="flex" justifyContent="space-between">
-        <Button className="btn update" onClick={zoomOut}>
-         
-        </Button>
-        <div>
-          <IconButton
-            aria-label="More"
-            aria-owns={isOpen ? "long-menu" : undefined}
-            aria-haspopup="true"
-            onClick={handleMenuClick}
+
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={6} lg={12} xl={12} style={selectedOption === "Compact" ? { maxWidth: "90%", margin: "20px" } : {margin: "auto", }}>
+        <Card className={classes.chartCard}>
+          <Box display="flex" justifyContent="flex-end"
+            pt={-2} px={2} pb={-6}
           >
-            <MoreVert className="text-white"/>
-          </IconButton>
-          <Menu
-            id="long-menu"
-            anchorEl={anchorEl}
-            open={isOpen}
-            onClose={handleClose}
-            PaperProps={{
-              style: {
-                maxHeight: itemHeight,
-                width: 200,
-                backgroundColor: theme.palette.secondary.dark
-              },
-            }}
-            disableScrollLock
-          >
-            {options.map((option) => (
-              <MenuItem
-                key={option}
-                selected={option === selectedOption}
-                className="text-white"
-                onClick={() => {
-                  selectOption(option);
-                }}
-                name={option}
+            {/* <Button className="btn update" onClick={zoomOut}></Button> */}
+            <div>
+              <IconButton
+                aria-label="More"
+                aria-owns={isOpen ? "long-menu" : undefined}
+                aria-haspopup="true"
+                onClick={handleMenuClick}
               >
-                {option}
-              </MenuItem>
-            ))}
-          </Menu>
-        </div>
-      </Box>
-      
-      <Box height={selectedOption === "Compact" ? 200 : height} 
-        width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut}
-        overflow="auto"
-      >
-        <ResponsiveContainer width="100%" height="100%">
-      
-          {/* {hidden &&  */}
-          <AreaChart
-            margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: -5, left: -20 }}
-            data={state.data}
-            onMouseDown={(e) =>
-              e && e.activeLabel && setState({
-                ...state,
-                refAreaLeft: e.activeLabel,
-                })
-            }
-            onMouseMove={(e) =>
-              state.refAreaLeft && e.activeLabel &&
-              setState({
-                ...state,
-                refAreaRight: e.activeLabel,
-              })
-            }
-            onMouseUp={zoom}
-            syncId="captain"
+                <MoreVert className="text-white"/>
+              </IconButton>
+              <Menu
+                id="long-menu"
+                anchorEl={anchorEl}
+                open={isOpen}
+                onClose={handleClose}
+                PaperProps={{
+                  style: {
+                    maxHeight: itemHeight,
+                    width: 200,
+                    backgroundColor: theme.palette.secondary.dark
+                  },
+                }}
+                disableScrollLock
+              >
+                {options.map((option) => (
+                  <MenuItem
+                    key={option}
+                    selected={option === selectedOption}
+                    className="text-white"
+                    onClick={() => {
+                      selectOption(option);
+                    }}
+                    name={option}
+                  >
+                    {option}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </div>
+          </Box>
+          <Box height={selectedOption === "Compact" ? 200 : height} 
+            width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut}
+            overflow={selectedOption === "Compact" ? "hidden": "auto"}
           >
-            <defs>
-                  <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                    <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
-                    <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
-                    <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
-                    <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
-                  </linearGradient>
-                  <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                    <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
-                    <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
-                    <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
-                    <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
-                  </linearGradient>
-                  <linearGradient id="heatmapUv" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="rgb(255, 0, 0)" stopOpacity={0.95}/>
-                    <stop offset="100%" stopColor="#ff00ff" stopOpacity={0.5}/>
-                  </linearGradient>
-                  <linearGradient id="inactiveHeatmapUv" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={state.max} stopOpacity={0.025}/>
-                    <stop offset="100%" stopColor={state.min} stopOpacity={0.1}/>
-                  </linearGradient>
-                  <linearGradient id="activeHeatmapUv" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={state.max} stopOpacity={0.95}/>
-                    <stop offset="100%" stopColor={state.min} stopOpacity={0.5}/>
-                  </linearGradient>
-                  <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
-                    <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
-                    <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
-                  </linearGradient>
-                  <linearGradient id="monoUv" x1="0" y1="-0.1" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
-                    <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
-                  </linearGradient>
-                  
-            </defs>
-            <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
-            <XAxis
-              allowDataOverflow
-              dataKey="time"
-              domain={[state.left, state.right]}
-              type="number"
-              tick={<CustomizedAxisTick timeScale="hours"/>}
-              tickFormatter={labelFormatter}
-              isCategorial={false}
-              minTickGap={0}
-              tickCount={10}
-              interval={selectedOption === "Compact" ? 3 : 6}
-              scale="time"
-              hide={selectedOption === "Compact" ? true : false}
-            />
-            <YAxis
-              allowDataOverflow
-              domain={[state.bottom, state.top]}
-              type="number"
-              yAxisId="1"
-              scale="linear"
-              // unit="mph"
-              allowDecimals={false}
-              tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
-              hide={selectedOption === "Compact" ? true : false}
-            />
-            <YAxis
-              orientation="right"
-              allowDataOverflow
-              domain={[(state.bottom2), state.top2]}
-              type="number"
-              yAxisId="2"
-              scale="linear"
-              unit='"'
-              allowDecimals={false}
-              tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
-              hide={selectedOption === "Compact" ? true : false}
-            />
-            
-            {/* <Tooltip /> */}
-            <Tooltip
-              labelFormatter={labelFormatter}
-              formatter={formatter}
-              cursor={false}
-              offset={5}
-              allowEscapeViewBox={{ x: true, y: false }}
-              contentStyle={{
-                border: "1px",
-                padding: theme.spacing(1),
-                borderRadius: theme.shape.borderRadius,
-                boxShadow: theme.shadows[1],
-                backgroundColor: theme.palette.secondary.dark
-              }}
-              labelStyle={theme.typography.h6}
-              itemStyle={{
-                fontSize: theme.typography.body1.fontSize,
-                letterSpacing: theme.typography.body1.letterSpacing,
-                fontFamily: theme.typography.body1.fontFamily,
-                lineHeight: theme.typography.body1.lineHeight,
-                fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
-                textAlign: "left",
-                color: "white"
-              }}
-            />
-            <Legend 
-              // layout="vertical"
-              align="center"
-              // verticalAlign="middle"
-              verticalAlign="top"
-              wrapperStyle={ {top: 5,  right: 0, fontSize: 12 }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleClick}
-            />
-            <Area
-              yAxisId="2"
-              type="natural"
-              dataKey="pressure"
-              unit="inHg"
-              color="#ecc79d"
-              dot={{ fill: `#ecc79d`, r: 2}}
-              animationDuration={300}
-              onMouseEnter={() =>
-                setState({
-                  ...state,
-                  activeArea: "pressure",
-                  activeColor: "#ecc79d"
-                })
-              }
-              onMouseOut={() =>
-                setState({
-                  ...state,
-                  activeArea: "",
-                  activeColor: "#0000000"
-                })
-              }
-              stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
-              fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-              hide={hideArea.hidden.pressure}
-            />
-            <Area
-              yAxisId="1"
-              type="natural"
-              dataKey="windSpeed"
-              unit="mph"
-              strokeWidth={1}
-              // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
-              dot={<CustomizedDot stroke="#48a4ea" r={0}/>}
-              onMouseEnter={() =>
-                setState({
-                  ...state,
-                  activeArea: "windSpeed",
-                  activeColor: "#e0e0e1"
-                })
-              }
-              onMouseExit={() =>
-                setState({
-                  ...state,
-                  activeArea: "",
-                  activeColor: "#0000000",
-                })
-              }
-              stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e178"}
-              fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-              animationDuration={300}
-              hide={hideArea.hidden.windSpeed}
-            />
-            {state.refAreaLeft && state.refAreaRight ? (
-              <ReferenceArea
-                yAxisId="1"
-                x1={state.refAreaLeft}
-                x2={state.refAreaRight}
-                strokeOpacity={0.3}
-              />
-            ) : null}
-      </AreaChart>
-      {/* } */}
-    </ResponsiveContainer>
-      </Box>
-    
-    </Card>
-    {/* <Card> */}
+            <ResponsiveContainer width="100%" height="100%">
+              {/* {hidden &&  */}
+              <AreaChart
+                margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: 0 } : {bottom: 10, top: 20, right: -30, left: -20 }}
+                data={state.data}
+                onMouseDown={(e) =>
+                  e && e.activeLabel && setState({
+                    ...state,
+                    refAreaLeft: e.activeLabel,
+                    })
+                }
+                onMouseMove={(e) =>
+                  state.refAreaLeft && e.activeLabel &&
+                  setState({
+                    ...state,
+                    refAreaRight: e.activeLabel,
+                  })
+                }
+                onMouseUp={zoom}
+                syncId="pirate"
+              >
+                <defs>
+                      <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                        <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
+                        <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
+                        <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
+                        <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
+                        <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
+                        <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
+                        <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
+                        <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
+                      </linearGradient>
+                      <linearGradient id="heatmapUv" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="rgb(255, 0, 0)" stopOpacity={0.95}/>
+                        <stop offset="100%" stopColor="#ff00ff" stopOpacity={0.5}/>
+                      </linearGradient>
+                      <linearGradient id="inactiveHeatmapUv" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={state.max} stopOpacity={0.025}/>
+                        <stop offset="100%" stopColor={state.min} stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="activeHeatmapUv" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={state.max} stopOpacity={0.95}/>
+                        <stop offset="100%" stopColor={state.min} stopOpacity={0.5}/>
+                      </linearGradient>
+                      <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
+                        <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
+                        <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
+                      </linearGradient>
+                      <linearGradient id="monoUv" x1="0" y1="-0.1" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
+                        <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
+                      </linearGradient>
+                      
+                </defs>
+                <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
+                <XAxis
+                  allowDataOverflow
+                  dataKey="time"
+                  domain={[state.left, state.right]}
+                  type="number"
+                  tick={<CustomizedAxisTick timeScale="hours"/>}
+                  tickFormatter={labelFormatter}
+                  isCategorial={false}
+                  minTickGap={0}
+                  tickCount={10}
+                  interval={selectedOption === "Compact" ? 3 : 6}
+                  scale="time"
+                  hide={selectedOption === "Compact" ? true : false}
+                />
+                <YAxis
+                  allowDataOverflow
+                  domain={[state.bottom, state.top]}
+                  type="number"
+                  yAxisId="1"
+                  scale="linear"
+                  // unit="mph"
+                  allowDecimals={false}
+                  tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
+                  hide={selectedOption === "Compact" ? true : false}
+                />
+                <YAxis
+                  orientation="right"
+                  allowDataOverflow
+                  domain={[(state.bottom2), state.top2]}
+                  type="number"
+                  yAxisId="2"
+                  scale="linear"
+                  unit='"'
+                  allowDecimals={false}
+                  tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
+                  hide={selectedOption === "Compact" ? true : false}
+                />
+                
+                {/* <Tooltip /> */}
+                <Tooltip
+                  labelFormatter={labelFormatter}
+                  formatter={formatter}
+                  cursor={false}
+                  offset={5}
+                  allowEscapeViewBox={{ x: false, y: false }}
+                  contentStyle={{
+                    border: "1px",
+                    padding: theme.spacing(1),
+                    borderRadius: theme.shape.borderRadius,
+                    boxShadow: theme.shadows[1],
+                    backgroundColor: theme.palette.secondary.dark
+                  }}
+                  labelStyle={theme.typography.h6}
+                  itemStyle={{
+                    fontSize: theme.typography.body1.fontSize,
+                    letterSpacing: theme.typography.body1.letterSpacing,
+                    fontFamily: theme.typography.body1.fontFamily,
+                    lineHeight: theme.typography.body1.lineHeight,
+                    fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
+                    textAlign: "left",
+                    color: "white"
+                  }}
+                />
+                <Legend 
+                  // layout="vertical"
+                  align="center"
+                  // verticalAlign="middle"
+                  verticalAlign="top"
+                  wrapperStyle={ {top: 5,  right: 0, fontSize: 12 }}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                  onClick={handleClick}
+                />
+                <Area
+                  yAxisId="2"
+                  type="natural"
+                  dataKey="pressure"
+                  unit="inHg"
+                  color="#ecc79d"
+                  dot={{ fill: `#ecc79d`, r: 2}}
+                  animationDuration={300}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "pressure",
+                      activeColor: "#ecc79d"
+                    })
+                  }
+                  onMouseOut={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000"
+                    })
+                  }
+                  stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
+                  fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : selectedOption === "Compact" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+                  hide={hideArea.hidden.pressure}
+                />
+                <Area
+                  yAxisId="1"
+                  type="natural"
+                  dataKey="windSpeed"
+                  unit="mph"
+                  strokeWidth={1}
+                  // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
+                  dot={<CustomizedDot stroke="#48a4ea" r={0}/>}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "windSpeed",
+                      activeColor: "#e0e0e1"
+                    })
+                  }
+                  onMouseExit={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000",
+                    })
+                  }
+                  stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e178"}
+                  fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+                  animationDuration={300}
+                  hide={hideArea.hidden.windSpeed}
+                />
+                {state.refAreaLeft && state.refAreaRight ? (
+                  <ReferenceArea
+                    yAxisId="1"
+                    x1={state.refAreaLeft}
+                    x2={state.refAreaRight}
+                    strokeOpacity={0.3}
+                  />
+                ) : null}
+          </AreaChart>
+          {/* } */}
+        </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>
+    </Grid>
     <Box height={height} width="100%" display="flex"
       // overflow={isDragging? "hidden" : "auto"}
       // component="div"
@@ -1095,7 +1098,7 @@ function HourlyForecast(props) {
         />
         {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />} */}
     </Box>
-    {/* </Card> */}
+    
     <Box height={height} minWidth={800} display="flex"
         style={{ backgroundColor: theme.palette.common.black, userSelect: "none" }}
         onDoubleClick={zoomOut}
