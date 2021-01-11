@@ -270,7 +270,7 @@ function SandboxPage(props) {
                 variant="scrollable"
                 aria-label="action tabs example"
                 // centered={true}
-                style={{flexGrow: 1, }}
+                style={{flexGrow: 1,  }}
                 // style={{flexGrow: 1, }}
                 // orientation="vertical"
               >
@@ -284,12 +284,13 @@ function SandboxPage(props) {
                 <Tab label="Hourly charts" {...a11yProps(4)} />
               </Tabs>
             </AppBar>
-            <SwipeableViews
+            {/* <SwipeableViews
               axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
               index={value}
               onChangeIndex={handleChangeIndex}
               style={ { marginTop: "100px" } }
-            >
+            > */}
+            <Box marginTop="100px">
               <TabPanel value={value} index={0} dir={theme.direction}>
                 <HourlyForecast title={["Temp", "Humidity"]} height="270px"/>
                 <Weather displayType="timeline"/>
@@ -338,7 +339,8 @@ function SandboxPage(props) {
                   <DataLoading data={appState.data}/>
                 </Box>
               </TabPanel>
-            </SwipeableViews>
+            </Box>
+            {/* </SwipeableViews> */}
           </div>
         </div>
       </div>
