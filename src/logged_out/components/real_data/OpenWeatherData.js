@@ -901,20 +901,20 @@ function HourlyForecast(props) {
     
     </Card>
     {/* <Card> */}
-    <Box height={height} minWidth={800} display="flex"
-      overflow={isDragging? "hidden" : "auto"}
-      component="div"
+    <Box height={height} width="100%" display="flex"
+      // overflow={isDragging? "hidden" : "auto"}
+      // component="div"
       style={{ backgroundColor: theme.palette.common.black, 
       // userSelect: "none"
       }}
       onDoubleClick={zoomOut}
     >
-      {/* <ResponsiveContainer width="100%" height="100%"> */}
+      <ResponsiveContainer width="100%" height="100%">
           {/* { hidden &&  */}
         <AreaChart
-          width={1200}
-          height={250}
-          margin={{ bottom: 20, top: 20, left: -20 }}
+          // width={1200}
+          // height={250}
+          margin={{ bottom: 20, top: 20, left: -20, right: -55 }}
           data={state.data}
           onMouseDown={(e) =>
             e && e.activeLabel && setState({
@@ -925,15 +925,15 @@ function HourlyForecast(props) {
           onMouseMove={(e) =>
             state.refAreaLeft && e.activeLabel &&
             (
-              setIsDragging(true),
+              // setIsDragging(true),
               setState({
               ...state,
               refAreaRight: e.activeLabel,
               })
             )   
           }
-          onMouseUp={zoom}
-          syncId="ship"
+          // onMouseUp={zoom}
+          syncId="brush"
         >
         <defs>
             <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
@@ -976,30 +976,30 @@ function HourlyForecast(props) {
         domain={[(state.bottom | 0), (state.top | 100)]}
         type="number"
         yAxisId="1"
-        padding={ { top: 10, } }
+        // padding={ { top: 20, } }
         tick={{ fontSize: 10, }}
         unit="%"
       />
       <YAxis
         orientation="right"
-        allowDataOverflow
-        domain={[(state.bottom2 | 0), state.top2 | 101]}
-        type="number"
         yAxisId="2"
-        tick={{ fontSize: 10 }}
+        // allowDataOverflow
+        // domain={[(state.bottom2 | 0), state.top2 | 101]}
+        // type="number"
+        // tick={{ fontSize: 10 }}
       />
       <Tooltip
         labelFormatter={labelFormatter}
         formatter={formatter}
         cursor={false}
         offset={20}
-        allowEscapeViewBox={{ x: true, y: true }}
+        allowEscapeViewBox={{ x: false, y: false }}
         contentStyle={{
           border: "1px",
           padding: theme.spacing(1),
           borderRadius: theme.shape.borderRadius,
           boxShadow: theme.shadows[1],
-          backgroundColor: theme.palette.secondary.dark
+          backgroundColor: theme.palette.secondary.dark,
         }}
         labelStyle={theme.typography.h6}
         itemStyle={{
@@ -1013,9 +1013,9 @@ function HourlyForecast(props) {
         }}
       />
       <Legend 
-        align="left"
+        align="center"
         verticalAlign="top"
-        wrapperStyle={{ right: -80, top: 10, fontSize: 12  }}
+        wrapperStyle={{ top: 10, fontSize: 12  }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
@@ -1029,7 +1029,7 @@ function HourlyForecast(props) {
         // onChange={handleBrushChange}
       />
       <Area
-        yAxisId="2"
+        yAxisId="1"
         type="natural"
         dataKey="clouds"
         unit="%"
@@ -1089,10 +1089,11 @@ function HourlyForecast(props) {
     </AreaChart>
     {/* } */}
     {/* </Box> */}
-      {/* </ResponsiveContainer> */}
-        <FormControlLabel control={<Switch checked={hidden} onChange={handleHiddenChange} color="primary" />}
-          label="Hidden"/>
-        {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />}
+      </ResponsiveContainer>
+        {/* <FormControlLabel control={<Switch checked={hidden} onChange={handleHiddenChange} color="primary" />}
+          label="Hidden"
+        />
+        {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />} */}
     </Box>
     {/* </Card> */}
     <Box height={height} minWidth={800} display="flex"
