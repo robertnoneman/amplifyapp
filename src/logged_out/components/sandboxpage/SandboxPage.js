@@ -292,7 +292,7 @@ function SandboxPage(props) {
             > */}
             <Box marginTop="100px">
               <TabPanel value={value} index={0} dir={theme.direction}>
-                <HourlyForecast title={["Temp", "Humidity"]} height="270px"/>
+                <HourlyForecast title={["Temp", "Humidity"]} height="200px"/>
                 <Weather displayType="timeline"/>
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>

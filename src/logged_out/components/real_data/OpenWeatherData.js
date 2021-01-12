@@ -19,6 +19,7 @@ import {
   AreaChart,
   Area,
   Brush,
+  Customized,
   // Dot
 } from "recharts";
 import { Box, Button, FormControlLabel, withStyles, Switch, Card, IconButton, Menu, MenuItem, Grid, } from "@material-ui/core";
@@ -43,6 +44,20 @@ const styles = (theme) => ({
     display: "flex",
     justifyContent: "center",
     flexDirection: "column",
+    padding: theme.spacing(1),
+    [theme.breakpoints.down('sm')]: {
+      // backgroundColor: theme.palette.secondary.main,
+      maxWidth: "100%",
+      // height: "100px"
+    },
+    [theme.breakpoints.up('md')]: {
+      backgroundColor:  theme.palette.common.darkBlack,
+      maxWidth: "100%"
+    },
+    [theme.breakpoints.up('lg')]: {
+      // backgroundColor: theme.palette.warning.main,
+      maxWidth: "100%"
+    },
   },
   windArrow: {
     transform: 'rotate(0deg)',
@@ -52,6 +67,16 @@ const styles = (theme) => ({
     width: "100%",
     height: "600px",
     background: theme.palette.common.darkBlack
+  },
+  scrollOnMobile: {
+    overflow: "hidden",
+    justifyContent: "center",
+    flexDirection: "column",
+    [theme.breakpoints.down('md')]: {
+      // backgroundColor: theme.palette.secondary.main,
+      maxWidth: "100%",
+      overflow: "auto"
+    },
   }
 });
 
@@ -480,7 +505,7 @@ function HourlyForecast(props) {
       >
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: -5, left: -20 }}
+            margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: 0, left: -30 }}
             data={state.data}
             onMouseDown={(e) =>
               e && e.activeLabel && setState({
@@ -597,7 +622,7 @@ function HourlyForecast(props) {
               dataKey="temp"
               unit="°"
               activeDot={ <HeatmapDot source="temp" /> }
-              animationDuration={300}
+              animationDuration={1200}
               onMouseEnter={() =>
                 setState({
                   ...state,
@@ -624,7 +649,7 @@ function HourlyForecast(props) {
               // stroke={theme.palette.secondary.main} //"#"
               activeDot={ <HeatmapDot source="feelsLike" />} 
               // stroke: `${state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}`, 
-              animationDuration={300}
+              animationDuration={1200}
               onMouseEnter={() =>
                 setState({
                   ...state,
@@ -656,60 +681,17 @@ function HourlyForecast(props) {
       </Box>
     </Card>
 
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6} lg={12} xl={12} style={selectedOption === "Compact" ? { maxWidth: "90%", margin: "20px" } : {margin: "auto", }}>
+    <Grid spacing={1} justifyContent="center" alignItems="center">
+      <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
         <Card className={classes.chartCard}>
-          <Box display="flex" justifyContent="flex-end"
-            pt={-2} px={2} pb={-6}
-          >
-            {/* <Button className="btn update" onClick={zoomOut}></Button> */}
-            <div>
-              <IconButton
-                aria-label="More"
-                aria-owns={isOpen ? "long-menu" : undefined}
-                aria-haspopup="true"
-                onClick={handleMenuClick}
-              >
-                <MoreVert className="text-white"/>
-              </IconButton>
-              <Menu
-                id="long-menu"
-                anchorEl={anchorEl}
-                open={isOpen}
-                onClose={handleClose}
-                PaperProps={{
-                  style: {
-                    maxHeight: itemHeight,
-                    width: 200,
-                    backgroundColor: theme.palette.secondary.dark
-                  },
-                }}
-                disableScrollLock
-              >
-                {options.map((option) => (
-                  <MenuItem
-                    key={option}
-                    selected={option === selectedOption}
-                    className="text-white"
-                    onClick={() => {
-                      selectOption(option);
-                    }}
-                    name={option}
-                  >
-                    {option}
-                  </MenuItem>
-                ))}
-              </Menu>
-            </div>
-          </Box>
-          <Box height={selectedOption === "Compact" ? 200 : height} 
-            width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut}
+          <Box height={selectedOption === "Compact" ? 180 : height} 
+            width="100%"  style={{userSelect: "none"}} onDoubleClick={zoomOut}
             overflow={selectedOption === "Compact" ? "hidden": "auto"}
           >
             <ResponsiveContainer width="100%" height="100%">
               {/* {hidden &&  */}
               <AreaChart
-                margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: 0 } : {bottom: 10, top: 20, right: -30, left: -20 }}
+                margin={selectedOption === "Compact" ? {bottom: 10, top: -20, right: 0, left: 0 } : {bottom: 0, top: 0, right: -25, left: -30 }}
                 data={state.data}
                 onMouseDown={(e) =>
                   e && e.activeLabel && setState({
@@ -783,7 +765,6 @@ function HourlyForecast(props) {
                   type="number"
                   yAxisId="1"
                   scale="linear"
-                  // unit="mph"
                   allowDecimals={false}
                   tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
                   hide={selectedOption === "Compact" ? true : false}
@@ -831,7 +812,7 @@ function HourlyForecast(props) {
                   align="center"
                   // verticalAlign="middle"
                   verticalAlign="top"
-                  wrapperStyle={ {top: 5,  right: 0, fontSize: 12 }}
+                  wrapperStyle={ {top: 15,  right: 0, fontSize: 12 }}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
                   onClick={handleClick}
@@ -842,8 +823,8 @@ function HourlyForecast(props) {
                   dataKey="pressure"
                   unit="inHg"
                   color="#ecc79d"
-                  dot={{ fill: `#ecc79d`, r: 2}}
-                  animationDuration={300}
+                  activeDot={{ fill: `#ecc79d`, r: 2}}
+                  animationDuration={1200}
                   onMouseEnter={() =>
                     setState({
                       ...state,
@@ -886,7 +867,7 @@ function HourlyForecast(props) {
                   }
                   stroke={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "#e0e0e178"}
                   fill={state.activeArea === "windSpeed" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-                  animationDuration={300}
+                  animationDuration={1200}
                   hide={hideArea.hidden.windSpeed}
                 />
                 {state.refAreaLeft && state.refAreaRight ? (
@@ -1061,7 +1042,7 @@ function HourlyForecast(props) {
         type="natural"
         dataKey="pop"
         unit="%"
-        dot={{ fill: `#38a9ff`, r: 2}}
+        activeDot={{ fill: `#38a9ff`, r: 2}}
         animationDuration={300}
         onMouseEnter={() =>
           setState({
@@ -1099,16 +1080,16 @@ function HourlyForecast(props) {
         {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />} */}
     </Box>
     
-    <Box height={height} minWidth={800} display="flex"
+    <Box height={height} display="flex"
         style={{ backgroundColor: theme.palette.common.black, userSelect: "none" }}
         onDoubleClick={zoomOut}
-        overflow="auto"
+        className={classes.scrollOnMobile}
         component="div"
     >
       <AreaChart
         width={1200}
         height={200}
-        margin={{bottom: 20, top: 5, left: -20}}
+        margin={{bottom: 20, top: 5, right: -40, left: -20 }}
         data={state.data}
         onMouseDown={(e) =>
           e && e.activeLabel && setState({
@@ -1209,7 +1190,7 @@ function HourlyForecast(props) {
         <Legend 
           align="left"
           verticalAlign="bottom"
-          wrapperStyle={{ right: -80, fontSize: 12  }}
+          wrapperStyle={{ fontSize: 12, left: 80 }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
@@ -1219,7 +1200,7 @@ function HourlyForecast(props) {
           type="natural"
           dataKey="dewPoint"
           unit="°"
-          dot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
+          activeDot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -1245,7 +1226,7 @@ function HourlyForecast(props) {
           dataKey="humidity"
           unit="%"
           // fill="url(#alphaUv)"
-          dot={{ fill: `#9ddcec`, r: 2}}
+          activeDot={{ fill: `#9ddcec`, r: 2}}
           animationDuration={300}
           onMouseEnter={() =>
             setState({
@@ -1274,8 +1255,7 @@ function HourlyForecast(props) {
           />
         ) : null}
         </AreaChart>
-        <FormControlLabel control={<Switch checked={hidden} onChange={handleHiddenChange} color="primary" />}
-          label="Hidden"/>
+
       </Box>
     </>
   );
