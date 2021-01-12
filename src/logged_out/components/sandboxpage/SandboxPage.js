@@ -253,13 +253,9 @@ function SandboxPage(props) {
   return (
     <Fragment>
       <div id='sandbox-top'>
-        <div > {/*className={classNames(classes.wrapper)}*/}
-          <div className={classes.containerWeather} //{classNames("containerWeather")}
-            > {/*className={classNames("container-fluid lg-mg-top")}*/}
+        <div > 
+          <div className={classes.containerWeather} > 
             <section id='SandboxPage'>
-              {/* <Typography variant="h3" align="center" className="lg-mg-bottom text-white" id='sandbox'>
-                Weather Playground
-              </Typography> */}
             </section>
             <AppBar position="fixed" color="inherit" style={ { marginTop: 50 }}>
               <Tabs
@@ -269,19 +265,15 @@ function SandboxPage(props) {
                 textColor="secondary"
                 variant="scrollable"
                 aria-label="action tabs example"
-                // centered={true}
-                style={{flexGrow: 1,  }}
-                // style={{flexGrow: 1, }}
-                // orientation="vertical"
-              >
-                <Tab label="Weather timeline" {...a11yProps(0)} 
+                style={{flexGrow: 1,  }}>
+                <Tab label="Charts" {...a11yProps(0)} 
                   // HEY ROB LOOK AT THIS!
                   // icon={<TimelineIcon />} 
                 />
-                <Tab label="Weather accordion" {...a11yProps(1)} />
-                <Tab label="Weather button" {...a11yProps(2)} />
-                <Tab label="Weather resizeable boxes" {...a11yProps(3)} />
-                <Tab label="Hourly charts" {...a11yProps(4)} />
+                <Tab label="Accordion" {...a11yProps(1)} />
+                <Tab label="Button" {...a11yProps(2)} />
+                <Tab label="Resizeable boxes" {...a11yProps(3)} />
+                <Tab label="Timeline" {...a11yProps(4)} />
               </Tabs>
             </AppBar>
             {/* <SwipeableViews
@@ -292,15 +284,14 @@ function SandboxPage(props) {
             > */}
             <Box marginTop="100px">
               <TabPanel value={value} index={0} dir={theme.direction}>
-                <HourlyForecast title={["Temp", "Humidity"]} height="200px"/>
-                <Weather displayType="timeline"/>
+                <HourlyForecast title={["Temp", "Humidity"]} height="350px"/>
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>
                 <Weather displayType="accordion"/>             
               </TabPanel>
               <TabPanel value={value} index={2} dir={theme.direction}>
-                <Weather displayType="button"/>
                 <DataLoading data={appState.data}/>
+                <Weather displayType="button"/>
               </TabPanel>
               <TabPanel value={value} index={3} dir={theme.direction}>
                 <Grid 
@@ -331,12 +322,9 @@ function SandboxPage(props) {
                 </Grid>
               </TabPanel>
               <TabPanel value={value} index={4} dir={theme.direction}>
-                
-                  <HourlyForecast title={["temp", "humidity"]} height={300}/>
-                
+                <Weather displayType="timeline"/>
+                <HourlyForecast title={["temp", "humidity"]} height={300}/>
                 <Box m={theme.spacing(0)}>
-                  {/* <WeatherCharts /> */}
-                  <DataLoading data={appState.data}/>
                 </Box>
               </TabPanel>
             </Box>

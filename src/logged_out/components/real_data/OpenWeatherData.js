@@ -2,13 +2,8 @@ import React, {
   useState, 
   useEffect, 
   useCallback, 
-  // createRef,
-  // useRef
 } from "react";
 import {
-  // Label,
-  // LineChart,
-  // Line,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -19,15 +14,14 @@ import {
   AreaChart,
   Area,
   Brush,
-  Customized,
-  // Dot
 } from "recharts";
-import { Box, Button, FormControlLabel, withStyles, Switch, Card, IconButton, Menu, MenuItem, Grid, } from "@material-ui/core";
+import { Box, Button, 
+  withStyles, 
+  Card, IconButton, Menu, MenuItem, Grid, withWidth, isWidthDown, } from "@material-ui/core";
 import Axios from "axios";
 import format from "date-fns/format";
-import WeatherCharts from "./WeatherCharts";
+//import WeatherCharts from "./WeatherCharts";
 import MoreVert from "@material-ui/icons/MoreVert";
-import { fontSize } from "@material-ui/system";
 // import lineData from "../../test_data/nivoLineData.json"
 // import testHourly from "../../test_data/testHourlyData.json"
 
@@ -37,6 +31,7 @@ const styles = (theme) => ({
     display: "flex",
     justifyContent: "center",
     flexDirection: "column",
+    padding: theme.spacing(1),
     // marginTop: 10,
   },
   chartCard: {
@@ -178,7 +173,7 @@ const CustomizedDot = (props) => {
       <svg 
         fill={stroke} 
         viewBox="0 0 1024 1024"  
-        x={ cx - 0 } 
+        x={ cx + 5 } 
         y={ cy - 0 } 
         width={600} height={600}
         overflow="visible" 
@@ -192,13 +187,17 @@ const CustomizedDot = (props) => {
 
 const HeatmapDot = (props) => {
   const {
-    cx, cy, payload, source 
+    cx, cy, payload, source, theme 
   } = props;
   // const value = useRef(null);
   const color = (source === "feelsLike" ? getRgb(20, 100, payload["feelsLike"]) : getRgb(20, 100, payload["temp"]) );
   return (
-    <svg overflow="auto" stroke={color} fill={color} x={cx} y={cy} width={50} height={50} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-      <circle r="100" stroke={color} fill={color}/> 
+    <svg overflow="auto" stroke={color} x={cx} y={cy} width={100} height={100} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <circle r="100" stroke={color} strokeWidth={20}/>
+      <text fontSize="100px" fill="#dddddddd" textAnchor="middle" dy={40} dx={5}
+        fontFamily={theme.typography.body1.fontFamily} fontWeight="fontWeightLight">
+          {source === "feelsLike" ? payload["feelsLike"] : payload["temp"]}°
+      </text>
     </svg>
   );
 }
@@ -207,7 +206,7 @@ const itemHeight = 200;
 const options = ["Dense", "Compact"];
 
 function HourlyForecast(props) {
-  const { title, classes, theme, height } = props;
+  const { title, classes, theme, height, width } = props;
   const [state, setState] = useState(initialStateData);
   const [loaded, setLoaded] = useState(false);
   const [hidden, setHidden] = useState(true);
@@ -221,7 +220,7 @@ function HourlyForecast(props) {
     }
   });
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedOption, setSelectedOption] = useState("Dense");
+  const [selectedOption, setSelectedOption] = useState("Compact");
   const [isDragging, setIsDragging] = useState(false);
 
   const handleHiddenChange = (event) => {
@@ -313,6 +312,7 @@ function HourlyForecast(props) {
       1
     );
     setState({
+      ...state,
       refAreaLeft: "",
       refAreaRight: "",
       data: data.slice(),
@@ -409,6 +409,14 @@ function HourlyForecast(props) {
       });
       let bottomColor = getRgb(20, 100, bottom);
       let topColor = getRgb(20, 100, top);
+      let ref2 = "feelsLike";
+      let [bottom2, top2] = [refData[0][ref2], refData[0][ref2]];
+      refData.forEach((d) => {
+        if (d[ref2] > top2) top2 = d[ref2];
+        if (d[ref2] < bottom2) bottom2 = d[ref2];
+      });
+      let bottomColor2 = getRgb(20, 100, bottom2);
+      let topColor2 = getRgb(20, 100, top2);
       setState({
         ...state, 
         data: merged.slice(), 
@@ -416,7 +424,9 @@ function HourlyForecast(props) {
         minutelyData: minutelyMerged.slice(), 
         allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()],
         min: bottomColor,
-        max: topColor
+        max: topColor,
+        feelsLikeMin: bottomColor2,
+        feelsLikeMax: topColor2
       });
       setLoaded(true);
     });
@@ -441,7 +451,6 @@ function HourlyForecast(props) {
   const handleClick = (o) => {
     const { dataKey } = o;
     var toggle = hideArea.hidden[dataKey];
-    // console.log(`Clicked ${dataKey}! Current state is ${toggle}, new state is ${!toggle}`);
     setHideArea( {
       hidden: {...hideArea.hidden, [dataKey]: !toggle}
     })
@@ -455,98 +464,96 @@ function HourlyForecast(props) {
 
   return (
     <>
-    <Card className={classes.card}>
-      <Box display="flex" justifyContent="space-between">
-        <Button className="btn update" onClick={zoomOut}>
-          Zoom Out
-        </Button>
-        <div>
-          <IconButton
-            aria-label="More"
-            aria-owns={isOpen ? "long-menu" : undefined}
-            aria-haspopup="true"
-            onClick={handleMenuClick}
-          >
-            <MoreVert className="text-white"/>
-          </IconButton>
-          <Menu
-            id="long-menu"
-            anchorEl={anchorEl}
-            open={isOpen}
-            onClose={handleClose}
-            PaperProps={{
-              style: {
-                maxHeight: itemHeight,
-                width: 200,
-                backgroundColor: theme.palette.secondary.dark
-              },
-            }}
-            disableScrollLock
-          >
-            {options.map((option) => (
-              <MenuItem
-                key={option}
-                selected={option === selectedOption}
-                className="text-white"
-                onClick={() => {
-                  selectOption(option);
-                }}
-                name={option}
+    <Grid >
+      <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
+        <Card className={classes.card}>
+          <Box display="flex" justifyContent="space-between">
+            <Button className="btn update" onClick={zoomOut}>
+              Zoom Out
+            </Button>
+            <div>
+              <IconButton
+                aria-label="More"
+                aria-owns={isOpen ? "long-menu" : undefined}
+                aria-haspopup="true"
+                onClick={handleMenuClick}
               >
-                {option}
-              </MenuItem>
-            ))}
-          </Menu>
-        </div>
-      </Box>
-      <Box height={selectedOption === "Compact" ? 200 : height} 
-        width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut}
-        overflow="auto"
-      >
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: 0, left: -30 }}
-            data={state.data}
-            onMouseDown={(e) =>
-              e && e.activeLabel && setState({
-                ...state,
-                refAreaLeft: e.activeLabel,
-                })
-            }
-            onMouseMove={(e) =>
-              state.refAreaLeft && e.activeLabel &&
-              setState({
-                ...state,
-                refAreaRight: e.activeLabel,
-              })
-            }
-            onMouseUp={zoom}
-            syncId="captain"
+                <MoreVert className="text-white"/>
+              </IconButton>
+              <Menu
+                id="long-menu"
+                anchorEl={anchorEl}
+                open={isOpen}
+                onClose={handleClose}
+                PaperProps={{
+                  style: {
+                    maxHeight: itemHeight,
+                    width: 200,
+                    backgroundColor: theme.palette.secondary.dark
+                  },
+                }}
+                disableScrollLock
+              >
+                {options.map((option) => (
+                  <MenuItem
+                    key={option}
+                    selected={option === selectedOption}
+                    className="text-white"
+                    onClick={() => {
+                      selectOption(option);
+                    }}
+                    name={option}
+                  >
+                    {option}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </div>
+          </Box>
+          <Box height={isWidthDown('md', width) ? 200 : selectedOption === "Compact" ? 400 : height} 
+            width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut}
+            overflow="hidden"
           >
-            <defs>
-                  <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                    <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
-                    <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
-                    <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
-                    <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
-                  </linearGradient>
-                  <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                    <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
-                    <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
-                    <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
-                    <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
-                  </linearGradient>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: 0, left: -30 }}
+                data={state.data}
+                onMouseDown={(e) =>
+                  e && e.activeLabel && setState({
+                    ...state,
+                    refAreaLeft: e.activeLabel,
+                    })
+                }
+                onMouseMove={(e) =>
+                  state.refAreaLeft && e.activeLabel &&
+                  setState({
+                    ...state,
+                    refAreaRight: e.activeLabel,
+                  })
+                }
+                onMouseUp={zoom}
+                syncId="captain"
+              >
+                <defs>
                   <linearGradient id="heatmapUv" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor="rgb(255, 0, 0)" stopOpacity={0.95}/>
                     <stop offset="100%" stopColor="#ff00ff" stopOpacity={0.5}/>
                   </linearGradient>
                   <linearGradient id="inactiveHeatmapUv" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={state.max} stopOpacity={0.025}/>
+                    <stop offset="0%" stopColor={state.max} stopOpacity={0.3}/>
                     <stop offset="100%" stopColor={state.min} stopOpacity={0.1}/>
                   </linearGradient>
                   <linearGradient id="activeHeatmapUv" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={state.max} stopOpacity={0.95}/>
                     <stop offset="100%" stopColor={state.min} stopOpacity={0.5}/>
+                  </linearGradient>
+                  <linearGradient id="feelsLikeUv" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={state.feelsLikeMax} stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor={state.feelsLikeMin} stopOpacity={0.5}/>
+                  </linearGradient>
+                  <linearGradient id="inactiveFeelsLikeUv" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={state.feelsLikeMax} stopOpacity={0.3}/>
+                    <stop offset="100%" stopColor={state.feelsLikeMin} stopOpacity={0.1}/>
                   </linearGradient>
                   <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
                     <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
@@ -556,140 +563,142 @@ function HourlyForecast(props) {
                     <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
                     <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
                   </linearGradient>
-                  
-            </defs>
-            <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
-            <XAxis
-              allowDataOverflow
-              dataKey="time"
-              domain={[state.left, state.right]}
-              type="number"
-              tick={<CustomizedAxisTick/>}
-              tickFormatter={labelFormatter}
-              isCategorial={false}
-              minTickGap={0}
-              tickCount={10}
-              interval={3}
-              scale="time"
-              hide={selectedOption === "Compact" ? true : false}
-            />
-            <YAxis
-              allowDataOverflow
-              domain={[state.bottom, state.top]}
-              type="number"
-              yAxisId="1"
-              scale="linear"
-              unit="°"
-              allowDecimals={false}
-              tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
-              hide={selectedOption === "Compact" ? true : false}
-            />
-            <Tooltip
-              labelFormatter={labelFormatter}
-              formatter={formatter}
-              cursor={false}
-              offset={5}
-              allowEscapeViewBox={{ x: false, y: false }}
-              contentStyle={{
-                border: "1px",
-                padding: theme.spacing(1),
-                borderRadius: theme.shape.borderRadius,
-                boxShadow: theme.shadows[1],
-                backgroundColor: theme.palette.secondary.dark
-              }}
-              labelStyle={theme.typography.h6}
-              itemStyle={{
-                fontSize: theme.typography.body1.fontSize,
-                letterSpacing: theme.typography.body1.letterSpacing,
-                fontFamily: theme.typography.body1.fontFamily,
-                lineHeight: theme.typography.body1.lineHeight,
-                fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
-                textAlign: "left",
-                color: "white"
-              }}
-            />
-            <Legend 
-              align="center"
-              verticalAlign="top"
-              wrapperStyle={ {top: 5,  right: 0, fontSize: 12 }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleClick}
-            />
-            <Area
-              yAxisId="1"
-              type="natural"
-              dataKey="temp"
-              unit="°"
-              activeDot={ <HeatmapDot source="temp" /> }
-              animationDuration={1200}
-              onMouseEnter={() =>
-                setState({
-                  ...state,
-                  activeArea: "temp",
-                })
-              }
-              onMouseExit={() =>
-                setState({
-                  ...state,
-                  activeArea: "",
-                  activeColor: "#0000000"
-                })
-              }
-              strokeWidth={state.activeArea === "temp" ? 2 : 1 }
-              stroke="url(#activeHeatmapUv)"
-              fill={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
-              hide={hideArea.hidden.temp}
-            />
-            <Area
-              yAxisId="1"
-              type="natural"
-              dataKey="feelsLike"
-              unit="°"
-              // stroke={theme.palette.secondary.main} //"#"
-              activeDot={ <HeatmapDot source="feelsLike" />} 
-              // stroke: `${state.activeArea === "feelsLike" ? "url(#colorUv)" : "url(#monoUv)"}`, 
-              animationDuration={1200}
-              onMouseEnter={() =>
-                setState({
-                  ...state,
-                  activeArea: "feelsLike",
-                })
-              }
-              onMouseExit={() =>
-                setState({
-                  ...state,
-                  activeArea: "",
-                  activeColor: "#0000000"
-                })
-              }
-              strokeWidth={state.activeArea === "temp" ? 2 : 1 }
-              stroke="url(#activeHeatmapUv)"
-              fill={state.activeArea === "feelsLike" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
-              hide={hideArea.hidden.feelsLike}
-            />
-            {state.refAreaLeft && state.refAreaRight ? (
-              <ReferenceArea
-                yAxisId="1"
-                x1={state.refAreaLeft}
-                x2={state.refAreaRight}
-                strokeOpacity={0.3}
-              />
-            ) : null}
-          </AreaChart>
-        </ResponsiveContainer>
-      </Box>
-    </Card>
-
-    <Grid spacing={1} justifyContent="center" alignItems="center">
+                </defs>
+                <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
+                <XAxis
+                  allowDataOverflow
+                  dataKey="time"
+                  domain={[state.left, state.right]}
+                  type="number"
+                  tick={<CustomizedAxisTick/>}
+                  tickFormatter={labelFormatter}
+                  isCategorial={false}
+                  minTickGap={0}
+                  tickCount={10}
+                  interval={3}
+                  scale="time"
+                  hide={selectedOption === "Compact" ? true : false}
+                />
+                <YAxis
+                  allowDataOverflow
+                  domain={[state.bottom, state.top]}
+                  type="number"
+                  yAxisId="1"
+                  scale="linear"
+                  unit="°"
+                  allowDecimals={false}
+                  tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
+                  hide={selectedOption === "Compact" ? true : false}
+                />
+                <Tooltip
+                  labelFormatter={labelFormatter}
+                  formatter={formatter}
+                  cursor={true}
+                  offset={15}
+                  allowEscapeViewBox={{ x: false, y: false }}
+                  contentStyle={{
+                    border: "1px",
+                    padding: theme.spacing(1),
+                    borderRadius: theme.shape.borderRadius,
+                    boxShadow: theme.shadows[1],
+                    backgroundColor: "#000000000" //theme.palette.secondary.dark
+                  }}
+                  labelStyle={{ 
+                    fontSize: 12,
+                    fontWeight: "fontWeightLight",
+                    color: "white"
+                     }}
+                  itemStyle={{
+                    fontSize: 12,
+                    letterSpacing: theme.typography.body1.letterSpacing,
+                    fontFamily: theme.typography.body1.fontFamily,
+                    lineHeight: theme.typography.body1.lineHeight,
+                    fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
+                    textAlign: "left",
+                    color: "white",
+                    display: "none"
+                  }}
+                />
+                <Legend 
+                  align="center"
+                  verticalAlign="top"
+                  wrapperStyle={ {top: 5,  right: 0, fontSize: 12 }}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                  onClick={handleClick}
+                />
+                <Area
+                  yAxisId="1"
+                  type="natural"
+                  dataKey="temp"
+                  unit="°"
+                  activeDot={ <HeatmapDot theme={theme} source="temp" /> }
+                  animationDuration={1200}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "temp",
+                    })
+                  }
+                  onMouseOut={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000"
+                    })
+                  }
+                  strokeWidth={state.activeArea === "temp" ? 2 : 1 }
+                  stroke="url(#activeHeatmapUv)"
+                  fill={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+                  hide={hideArea.hidden.temp}
+                />
+                <Area
+                  yAxisId="1"
+                  type="natural"
+                  dataKey="feelsLike"
+                  unit="°"
+                  activeDot={ <HeatmapDot theme={theme} source="feelsLike" />} 
+                  animationDuration={1200}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "feelsLike",
+                    })
+                  }
+                  onMouseOut={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000"
+                    })
+                  }
+                  strokeWidth={state.activeArea === "feelsLike" ? 2 : 1 }
+                  stroke="url(#feelsLikeUv)"
+                  fill={state.activeArea === "feelsLike" ? "url(#feelsLikeUv)" : "url(#inactiveFeelsLikeUv)"}
+                  hide={hideArea.hidden.feelsLike}
+                />
+                {state.refAreaLeft && state.refAreaRight ? (
+                  <ReferenceArea
+                    yAxisId="1"
+                    x1={state.refAreaLeft}
+                    x2={state.refAreaRight}
+                    strokeOpacity={0.3}
+                  />
+                ) : null}
+              </AreaChart>
+            </ResponsiveContainer>
+          </Box>
+        </Card>
+      </Grid>
+    </Grid>
+    <Grid >
       <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
         <Card className={classes.chartCard}>
-          <Box height={selectedOption === "Compact" ? 180 : height} 
+          <Box height={isWidthDown('md', width) ? 200 : selectedOption === "Compact" ? 400 : height} 
             width="100%"  style={{userSelect: "none"}} onDoubleClick={zoomOut}
-            overflow={selectedOption === "Compact" ? "hidden": "auto"}
+            overflow="hidden" //{selectedOption === "Compact" ? "hidden": "auto"}
           >
             <ResponsiveContainer width="100%" height="100%">
-              {/* {hidden &&  */}
               <AreaChart
                 margin={selectedOption === "Compact" ? {bottom: 10, top: -20, right: 0, left: 0 } : {bottom: 0, top: 0, right: -25, left: -30 }}
                 data={state.data}
@@ -707,7 +716,7 @@ function HourlyForecast(props) {
                   })
                 }
                 onMouseUp={zoom}
-                syncId="pirate"
+                syncId="pressure"
               >
                 <defs>
                       <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
@@ -772,14 +781,14 @@ function HourlyForecast(props) {
                 <YAxis
                   orientation="right"
                   allowDataOverflow
-                  domain={[(state.bottom2), state.top2]}
+                  domain={[state.bottom2, state.top2]}
                   type="number"
                   yAxisId="2"
                   scale="linear"
                   unit='"'
                   allowDecimals={false}
                   tick={selectedOption === "Compact" ? false : { fontSize: 10 }}
-                  hide={selectedOption === "Compact" ? true : false}
+                  hide={selectedOption === "Compact" ? true: hideArea.hidden.pressure ? true : false}
                 />
                 
                 {/* <Tooltip /> */}
@@ -836,11 +845,11 @@ function HourlyForecast(props) {
                     setState({
                       ...state,
                       activeArea: "",
-                      activeColor: "#0000000"
+                      activeColor: "#dddddd333"
                     })
                   }
                   stroke={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "#ecc79d"}
-                  fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : selectedOption === "Compact" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+                  fill={state.activeArea === "pressure" ? "url(#monoActiveUv)" : "url(#monoUv)"}
                   hide={hideArea.hidden.pressure}
                 />
                 <Area
@@ -849,7 +858,6 @@ function HourlyForecast(props) {
                   dataKey="windSpeed"
                   unit="mph"
                   strokeWidth={1}
-                  // dot={{ fill: `${theme.palette.warning.light}`, stroke: `${theme.palette.warning.light}`, r: 2}}
                   dot={<CustomizedDot stroke="#48a4ea" r={0}/>}
                   onMouseEnter={() =>
                     setState({
@@ -858,7 +866,7 @@ function HourlyForecast(props) {
                       activeColor: "#e0e0e1"
                     })
                   }
-                  onMouseExit={() =>
+                  onMouseOut={() =>
                     setState({
                       ...state,
                       activeArea: "",
@@ -870,34 +878,28 @@ function HourlyForecast(props) {
                   animationDuration={1200}
                   hide={hideArea.hidden.windSpeed}
                 />
-                {state.refAreaLeft && state.refAreaRight ? (
-                  <ReferenceArea
-                    yAxisId="1"
-                    x1={state.refAreaLeft}
-                    x2={state.refAreaRight}
-                    strokeOpacity={0.3}
-                  />
-                ) : null}
-          </AreaChart>
-          {/* } */}
-        </ResponsiveContainer>
+                  {state.refAreaLeft && state.refAreaRight ? (
+                    <ReferenceArea
+                      yAxisId="1"
+                      x1={state.refAreaLeft}
+                      x2={state.refAreaRight}
+                      strokeOpacity={0.3}
+                    />
+                  ) : null}
+              </AreaChart>
+            </ResponsiveContainer>
           </Box>
         </Card>
       </Grid>
     </Grid>
     <Box height={height} width="100%" display="flex"
-      // overflow={isDragging? "hidden" : "auto"}
-      // component="div"
       style={{ backgroundColor: theme.palette.common.black, 
       // userSelect: "none"
       }}
       onDoubleClick={zoomOut}
     >
       <ResponsiveContainer width="100%" height="100%">
-          {/* { hidden &&  */}
         <AreaChart
-          // width={1200}
-          // height={250}
           margin={{ bottom: 20, top: 20, left: -20, right: -55 }}
           data={state.data}
           onMouseDown={(e) =>
@@ -960,17 +962,12 @@ function HourlyForecast(props) {
         domain={[(state.bottom | 0), (state.top | 100)]}
         type="number"
         yAxisId="1"
-        // padding={ { top: 20, } }
         tick={{ fontSize: 10, }}
         unit="%"
       />
       <YAxis
         orientation="right"
         yAxisId="2"
-        // allowDataOverflow
-        // domain={[(state.bottom2 | 0), state.top2 | 101]}
-        // type="number"
-        // tick={{ fontSize: 10 }}
       />
       <Tooltip
         labelFormatter={labelFormatter}
@@ -1007,7 +1004,7 @@ function HourlyForecast(props) {
       <Brush 
         dataKey="time"
         height={20} stroke={theme.palette.secondary.main} fill={theme.palette.common.darkBlack}
-        // endIndex={8}
+        endIndex={8}
         tickFormatter={labelFormatter}
         padding={{top: 20}}
         // onChange={handleBrushChange}
@@ -1051,7 +1048,7 @@ function HourlyForecast(props) {
             activeColor: "#38a9ff"
           })
         }
-        onMouseExit={() =>
+        onMouseOut={() =>
           setState({
             ...state,
             activeArea: "",
@@ -1071,13 +1068,7 @@ function HourlyForecast(props) {
         />
       ) : null}
     </AreaChart>
-    {/* } */}
-    {/* </Box> */}
-      </ResponsiveContainer>
-        {/* <FormControlLabel control={<Switch checked={hidden} onChange={handleHiddenChange} color="primary" />}
-          label="Hidden"
-        />
-        {!hidden && state.data.length > 2 && <WeatherCharts data={state.data} />} */}
+    </ResponsiveContainer>
     </Box>
     
     <Box height={height} display="flex"
@@ -1150,7 +1141,6 @@ function HourlyForecast(props) {
           domain={[(state.bottom | 0), (state.top | 100)]}
           type="number"
           yAxisId="1"
-          padding={ { top: 10} }
           unit="°"
           tick={{ fontSize: 10 }}
         />
@@ -1196,31 +1186,6 @@ function HourlyForecast(props) {
           onClick={handleClick}
         />
         <Area
-          yAxisId="1"
-          type="natural"
-          dataKey="dewPoint"
-          unit="°"
-          activeDot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
-          animationDuration={300}
-          onMouseEnter={() =>
-            setState({
-              ...state,
-              activeArea: "dewPoint",
-              activeColor: "#a8e6c9"
-            })
-          }
-          onMouseExit={() =>
-            setState({
-              ...state,
-              activeArea: "",
-              activeColor: "#0000000",
-            })
-          }
-          stroke={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "#a8e6c9"}
-          fill={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "url(#monoUv)"}
-          hide={hideArea.hidden.dewPoint}
-        />
-        <Area
           yAxisId="2"
           type="natural"
           dataKey="humidity"
@@ -1235,7 +1200,7 @@ function HourlyForecast(props) {
               activeColor: "#9ddcec"
             })
           }
-          onMouseExit={() =>
+          onMouseOut={() =>
             setState({
               ...state,
               activeArea: "",
@@ -1245,6 +1210,31 @@ function HourlyForecast(props) {
           stroke={state.activeArea === "humidity" ? "url(#monoActiveUv)" : "#9ddcec"}
           fill={state.activeArea === "humidity" ? "url(#monoActiveUv)" : "url(#monoUv)"}
           hide={hideArea.hidden.humidity}
+        />
+        <Area
+          yAxisId="1"
+          type="natural"
+          dataKey="dewPoint"
+          unit="°"
+          activeDot={{ fill: `#a8e6c9`, stroke: `${theme.palette.warning.dark}`, r: 2}}
+          animationDuration={300}
+          onMouseEnter={() =>
+            setState({
+              ...state,
+              activeArea: "dewPoint",
+              activeColor: "#a8e6c9"
+            })
+          }
+          onMouseOut={() =>
+            setState({
+              ...state,
+              activeArea: "",
+              activeColor: "#0000000",
+            })
+          }
+          stroke={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "#a8e6c9"}
+          fill={state.activeArea === "dewPoint" ? "url(#monoActiveUv)" : "url(#monoUv)"}
+          hide={hideArea.hidden.dewPoint}
         />
         {state.refAreaLeft && state.refAreaRight ? (
           <ReferenceArea
@@ -1261,4 +1251,6 @@ function HourlyForecast(props) {
   );
 }
 
-export default withStyles(styles, { withTheme: true })(HourlyForecast);
+export default withStyles(styles, { withTheme: true })(
+  withWidth()(HourlyForecast)
+);
