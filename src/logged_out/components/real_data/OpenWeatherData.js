@@ -373,7 +373,7 @@ function HourlyForecast(props) {
   }, [state, setState]);
 
   async function fetchAverageTemps() {
-    if (!loaded) return;
+    if (loaded) return;
     const nwsDcanmeUrl = "https://www.weather.gov/lwx/dcanme";
     //const nmeResponse = cheerio.load(data.data)
     // #pagebody > div:nth-child(3) > div
@@ -390,12 +390,12 @@ function HourlyForecast(props) {
       const maxHigh = parseTemp[5];
 
       setState({
-        // ...state,
+        ...state,
         averageLow: averageLow,
         averageHigh: averageHigh,
         maxLow: maxLow,
         maxHigh: maxHigh,
-        ...state,
+        // ...state,
       })
     })
   };
@@ -463,17 +463,14 @@ function HourlyForecast(props) {
         });
         nwsHourly.push(hourtempChartData[i]);
       }
-      setState({
-        nwsHourly: hourtempChartData,
-        ...state,
-      })
     })
   }
 
   const fetchWeatherData = useCallback(() => {
     if (loaded) return;
-    const nwsHourly = [];
-    setLoaded(true);
+    fetchAverageTemps();
+    // const nwsHourly = [];
+    // setLoaded(true);
     const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
@@ -558,7 +555,7 @@ function HourlyForecast(props) {
       setLoaded(true);
     });
 
-  }, [loaded, setLoaded]);
+  }, [fetchAverageTemps, loaded, setLoaded]);
 
   const handleMouseEnter = (o) => {
     setState( {
@@ -587,8 +584,7 @@ function HourlyForecast(props) {
   useEffect(() => {
     // fetchNwsData();
     fetchWeatherData();
-    fetchAverageTemps();
-  }, []);
+  }, [fetchWeatherData]);
 
   const isOpen = Boolean(anchorEl);
 
