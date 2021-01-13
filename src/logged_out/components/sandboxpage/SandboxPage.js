@@ -117,10 +117,14 @@ const styles = theme => ({
         maxWidth: 940
       },
       [theme.breakpoints.up("lg")]: {
-        maxWidth: 1280
+        maxWidth: 1280,
+        paddingRight: theme.spacing(8),
+        paddingLeft: theme.spacing(8),
       },
       [theme.breakpoints.up("xl")]: {
-        maxWidth: 1920
+        // maxWidth: "80%",
+        paddingRight: theme.spacing(4),
+        paddingLeft: theme.spacing(4),
       },
     },
     accordion: {
@@ -194,22 +198,22 @@ function SandboxPage(props) {
         const allData = cheerio.load(data.data);
         const afd = allData('pre.glossaryProduct')
         const afdText = afd.text();
-        var afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
-        var stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
-        var locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
-        var locationResult = locationTest.exec(afdText);
-        var dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
-        var sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
-        var stationResult = stationTest.exec(afdText);
-        var dateResult = dateTest.exec(afdText);
-        var synopsisResult = afdSynopsis.exec(afdText);
-        var sectionsResult = sectionsTest.exec(afdText);
-        var nearTermResult = nearTermTest.exec(afdText);
-        var shortTermResult = shortTermTest.exec(afdText);
-        var longTermResult = longTermTest.exec(afdText);
+        const afdSynopsis = /^(\.[A-Z]+\.\.\.)/mg;
+        const stationTest = /((\w|\n|\d| |\/)+(Area Forecast Discussion(\w|\.)+)?(\w|\n|\d| |\/)+)[^&&][A-Z]{2}$/mg;
+        const locationTest = new RegExp(/^National Weather Service ([\w|\/| ]+)/, 'gm');
+        const locationResult = locationTest.exec(afdText);
+        const dateTest = new RegExp(/^\d{3,4} (A|P)M(.)*\d{4}$/, 'gm');
+        const sectionsTest = new RegExp(/((\.[A-Z| |\/]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        const nearTermTest = new RegExp(/((\.N[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        const shortTermTest = new RegExp(/((\.SH[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        const longTermTest = new RegExp(/((\.L[A-Z| |\/|\d]+\.\.\.)+((.[^&&]|\n)*))/, 'gm');
+        const stationResult = stationTest.exec(afdText);
+        const dateResult = dateTest.exec(afdText);
+        const synopsisResult = afdSynopsis.exec(afdText);
+        const sectionsResult = sectionsTest.exec(afdText);
+        const nearTermResult = nearTermTest.exec(afdText);
+        const shortTermResult = shortTermTest.exec(afdText);
+        const longTermResult = longTermTest.exec(afdText);
         const stat = stationResult[0];
         const location = locationResult[1];
         const product = stationResult[3];
@@ -323,7 +327,7 @@ function SandboxPage(props) {
               </TabPanel>
               <TabPanel value={value} index={4} dir={theme.direction}>
                 <Weather displayType="timeline"/>
-                <HourlyForecast title={["temp", "humidity"]} height={300}/>
+                {/* <HourlyForecast title={["temp", "humidity"]} height={300}/> */}
                 <Box m={theme.spacing(0)}>
                 </Box>
               </TabPanel>

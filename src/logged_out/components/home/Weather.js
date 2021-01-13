@@ -136,7 +136,8 @@ const weatherLinks = {
   forecastHourlyJSON: 'https://api.weather.gov/gridpoints/LWX/97,70/forecast/hourly',
   weatherAPI: 'https://www.weather.gov/documentation/services-web-api',
   productList: 'https://api.weather.gov/products?location=LWX',
-  productTypes: 'https://api.weather.gov/products/locations/LWX/types'
+  productTypes: 'https://api.weather.gov/products/locations/LWX/types',
+  dailyNormals: 'https://www1.ncdc.noaa.gov/pub/data/normals/1981-2010/products/station/USC00186350.normals.txt',
 }
 
 const regexTests = [

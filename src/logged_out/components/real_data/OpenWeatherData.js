@@ -19,7 +19,9 @@ import { Box, Button,
   withStyles, 
   Card, IconButton, Menu, MenuItem, Grid, withWidth, isWidthDown, } from "@material-ui/core";
 import Axios from "axios";
+import cheerio from "cheerio";
 import format from "date-fns/format";
+import NwsIcons from "../../../shared/components/NwsIcons"
 //import WeatherCharts from "./WeatherCharts";
 import MoreVert from "@material-ui/icons/MoreVert";
 // import lineData from "../../test_data/nivoLineData.json"
@@ -40,6 +42,8 @@ const styles = (theme) => ({
     justifyContent: "center",
     flexDirection: "column",
     padding: theme.spacing(1),
+    resize: "both",
+    minHeight: "150px",
     [theme.breakpoints.down('sm')]: {
       // backgroundColor: theme.palette.secondary.main,
       maxWidth: "100%",
@@ -50,6 +54,10 @@ const styles = (theme) => ({
       maxWidth: "100%"
     },
     [theme.breakpoints.up('lg')]: {
+      // backgroundColor: theme.palette.warning.main,
+      maxWidth: "100%"
+    },
+    [theme.breakpoints.up('xl')]: {
       // backgroundColor: theme.palette.warning.main,
       maxWidth: "100%"
     },
@@ -72,6 +80,9 @@ const styles = (theme) => ({
       maxWidth: "100%",
       overflow: "auto"
     },
+  },
+  chartContainer: {
+    width: "auto"
   }
 });
 
@@ -167,21 +178,37 @@ const initialStateData = {
 
 const CustomizedDot = (props) => {
   const {
-    cx, cy, stroke, payload,  
+    cx, cy, stroke, payload, type, strokeColor, theme, 
   } = props;
+  // if (!loaded) return;
+  if (type) {
+      return (
+        <svg overflow="auto" stroke={strokeColor} x={cx} y={cy} width={100} height={100} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <circle r="200" stroke={strokeColor} strokeWidth={20}/>
+          <text fontSize="100px" fill="#dddddddd" textAnchor="middle" dy={40} dx={5}
+            fontFamily={theme.typography.body1.fontFamily} fontWeight="fontWeightLight"
+          >
+            {payload[type]}"
+          </text>
+        </svg>
+      );
+  }
+
   return (
-      <svg 
-        fill={stroke} 
-        viewBox="0 0 1024 1024"  
-        x={ cx + 5 } 
-        y={ cy - 0 } 
-        width={600} height={600}
-        overflow="visible" 
-        >
+    <svg 
+      fill={stroke} 
+      viewBox="0 0 1024 1024"  
+      x={ cx + 5 } 
+      y={ cy - 0 } 
+      width={600} height={600}
+      overflow="visible"
+    >
       <g>
-        <path overflow="visible" transform={`rotate(${payload.windDeg + 180})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
+        <path 
+          overflow="visible" transform={`rotate(${payload.windDeg + 180})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z">
+        </path>
       </g>
-      </svg>
+    </svg>
   );
 }
 
@@ -345,8 +372,108 @@ function HourlyForecast(props) {
     })
   }, [state, setState]);
 
+  async function fetchAverageTemps() {
+    if (!loaded) return;
+    const nwsDcanmeUrl = "https://www.weather.gov/lwx/dcanme";
+    //const nmeResponse = cheerio.load(data.data)
+    // #pagebody > div:nth-child(3) > div
+    // const nmeSection = nmeResponse('#pagebody > div:nth-child(3) > div > pre:nth-child(9)');
+    const weatherSparkUrl = `https://cors-anywhere.herokuapp.com/https://weatherspark.com/td/20957/Average-Weather-in-Washington-D.C.;-United-States-Today#Sections-Temperature`;
+    await Axios.get(weatherSparkUrl).then((data) => {
+      const response = cheerio.load(data.data);
+      const tempSection = response('#Report-Content > div:nth-child(2) > p:nth-child(5)').text();
+      const parseTemp = new RegExp(/(from (\d{1,2})...to.(\d{1,2})..*below.(\d*).*above (\d*))/, 'gm').exec(tempSection);
+      // console.log(parseTemp);
+      const averageLow = parseTemp[2];
+      const averageHigh = parseTemp[3];
+      const maxLow = parseTemp[4];
+      const maxHigh = parseTemp[5];
+
+      setState({
+        // ...state,
+        averageLow: averageLow,
+        averageHigh: averageHigh,
+        maxLow: maxLow,
+        maxHigh: maxHigh,
+        ...state,
+      })
+    })
+  };
+
+  async function fetchNwsData() {
+    const nwsHourly = [];
+    await Axios.get('https://api.weather.gov/gridpoints/LWX/97,70/forecast/hourly')
+    .then((data) => {
+      const hourlyData = data.data.properties.periods;
+      //const hourlyDataText = Object.keys(hourlyData[0]);
+      const hourDataTemp = [];
+      const hourNum = [];
+      const hourName = [];
+      const hourstartTime = [];
+      const hourendTime = [];
+      const hourisDaytime = [];
+      const hourtemperature = [];
+      const hourtemperatureUnit = [];
+      const hourtemperatureTrend = [];
+      const hourwindSpeed = [];
+      const hourwindDirection = [];
+      const houricon = [];
+      const hourshortForecast = [];
+      const hourdetailedForecast = [];
+      const hourtempChartData = [];
+      for(let i=0; i< hourlyData.length; i++){
+        hourNum.push(hourlyData[i].number)
+        hourDataTemp.push(hourlyData[i].shortForecast);
+        hourName.push(hourlyData[i].name)
+        hourstartTime.push(hourlyData[i].startTime)
+        //String DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        hourendTime.push(hourlyData[i].endTime)
+        hourisDaytime.push(hourlyData[i].isDaytime)
+        hourtemperature.push(hourlyData[i].temperature)
+        hourtemperatureUnit.push(hourlyData[i].temperatureUnit)
+        hourtemperatureTrend.push(hourlyData[i].temperatureTrend)
+        hourwindSpeed.push(hourlyData[i].windSpeed)
+        hourwindDirection.push(hourlyData[i].windDirection)
+        var tempIcon = NwsIcons(hourlyData[i].icon, hourlyData[i].isDaytime);
+        houricon.push(tempIcon)
+        hourshortForecast.push(hourlyData[i].shortForecast)
+        hourdetailedForecast.push(hourlyData[i].detailedForecast)
+        let seconds = Date.parse(hourlyData[i].startTime)
+        //console.log(seconds)
+        hourtempChartData.push({
+          timestamp: seconds / 1000,
+          time: seconds / 1000,
+          offset: "",
+          temp: hourlyData[i].temperature,
+          humidity: "",
+          pop: "",
+          feelsLike: "",
+          pressure: "",
+          dewPoint: "",
+          uvi: "",
+          clouds: "",
+          visibility: "",
+          windSpeed: hourlyData[i].windSpeed,
+          windDeg: hourlyData[i].windDirection,
+          weather: {
+            main: hourlyData[i].shortForecast,
+            description: hourlyData[i].detailedForecast,
+            icon: tempIcon
+          },
+        });
+        nwsHourly.push(hourtempChartData[i]);
+      }
+      setState({
+        nwsHourly: hourtempChartData,
+        ...state,
+      })
+    })
+  }
+
   const fetchWeatherData = useCallback(() => {
     if (loaded) return;
+    const nwsHourly = [];
+    setLoaded(true);
     const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
     const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
     Axios.get(apiUrl).then((data) => {
@@ -360,7 +487,7 @@ function HourlyForecast(props) {
         minutelyMerged[index] = {
           // time: timestamp,
           time: rawTimestamp,
-          element
+          precipitation: element.precipitation
         }
       });
       const daily = data.data.daily;
@@ -430,6 +557,7 @@ function HourlyForecast(props) {
       });
       setLoaded(true);
     });
+
   }, [loaded, setLoaded]);
 
   const handleMouseEnter = (o) => {
@@ -457,15 +585,17 @@ function HourlyForecast(props) {
   };
 
   useEffect(() => {
+    // fetchNwsData();
     fetchWeatherData();
-  }, [fetchWeatherData]);
+    fetchAverageTemps();
+  }, []);
 
   const isOpen = Boolean(anchorEl);
 
   return (
     <>
-    <Grid >
-      <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
+    <Grid>
+      <Grid item xs={12} xl={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
         <Card className={classes.card}>
           <Box display="flex" justifyContent="space-between">
             <Button className="btn update" onClick={zoomOut}>
@@ -563,8 +693,16 @@ function HourlyForecast(props) {
                     <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
                     <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
                   </linearGradient>
+                  <linearGradient id="averageTempsUv" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.3}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0.1}/>
+                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
+                <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false} />
+                <ReferenceArea y1={state.averageLow} y2={state.averageHigh} yAxisId="1" 
+                  fill="url(#averageTempsUv)" stroke="url(#averageTempsUv)" strokeWidth={2}
+                  // label={state.averageHigh}
+                />
                 <XAxis
                   allowDataOverflow
                   dataKey="time"
@@ -593,9 +731,9 @@ function HourlyForecast(props) {
                 <Tooltip
                   labelFormatter={labelFormatter}
                   formatter={formatter}
+                  allowEscapeViewBox={{ x: false, y: false }}
                   cursor={true}
                   offset={15}
-                  allowEscapeViewBox={{ x: false, y: false }}
                   contentStyle={{
                     border: "1px",
                     padding: theme.spacing(1),
@@ -691,11 +829,12 @@ function HourlyForecast(props) {
         </Card>
       </Grid>
     </Grid>
+
     <Grid >
-      <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
-        <Card className={classes.chartCard}>
+      <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px", } : {margin: "auto", }}>
+        <Card className={classes.chartCard} style={{  }} >
           <Box height={isWidthDown('md', width) ? 200 : selectedOption === "Compact" ? 400 : height} 
-            width="100%"  style={{userSelect: "none"}} onDoubleClick={zoomOut}
+            width="100%"  style={{userSelect: "none",}} onDoubleClick={zoomOut}
             overflow="hidden" //{selectedOption === "Compact" ? "hidden": "auto"}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -764,7 +903,7 @@ function HourlyForecast(props) {
                   isCategorial={false}
                   minTickGap={0}
                   tickCount={10}
-                  interval={selectedOption === "Compact" ? 3 : 6}
+                  interval={selectedOption === "Compact" ? 0 : 6}
                   scale="time"
                   hide={selectedOption === "Compact" ? true : false}
                 />
@@ -795,17 +934,22 @@ function HourlyForecast(props) {
                 <Tooltip
                   labelFormatter={labelFormatter}
                   formatter={formatter}
-                  cursor={false}
-                  offset={5}
                   allowEscapeViewBox={{ x: false, y: false }}
+                  cursor={true}
+                  offset={15}
                   contentStyle={{
                     border: "1px",
                     padding: theme.spacing(1),
                     borderRadius: theme.shape.borderRadius,
                     boxShadow: theme.shadows[1],
-                    backgroundColor: theme.palette.secondary.dark
+                    backgroundColor: "#000000000", //theme.palette.secondary.dark
+                    
                   }}
-                  labelStyle={theme.typography.h6}
+                  labelStyle={{ 
+                    fontSize: 12,
+                    fontWeight: "fontWeightLight",
+                    color: "white"
+                     }}
                   itemStyle={{
                     fontSize: theme.typography.body1.fontSize,
                     letterSpacing: theme.typography.body1.letterSpacing,
@@ -813,7 +957,13 @@ function HourlyForecast(props) {
                     lineHeight: theme.typography.body1.lineHeight,
                     fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
                     textAlign: "left",
-                    color: "white"
+                    color: "white",
+                    display: "none"
+                  }}
+                  wrapperStyle={{
+                    alignItems: "flex-end",
+                    resize: "both",
+
                   }}
                 />
                 <Legend 
@@ -832,7 +982,7 @@ function HourlyForecast(props) {
                   dataKey="pressure"
                   unit="inHg"
                   color="#ecc79d"
-                  activeDot={{ fill: `#ecc79d`, r: 2}}
+                  activeDot={<CustomizedDot type="pressure" strokeColor="#ecc79d" theme={theme}/>} //{{ fill: `#ecc79d`, r: 2}}
                   animationDuration={1200}
                   onMouseEnter={() =>
                     setState({
@@ -858,7 +1008,7 @@ function HourlyForecast(props) {
                   dataKey="windSpeed"
                   unit="mph"
                   strokeWidth={1}
-                  dot={<CustomizedDot stroke="#48a4ea" r={0}/>}
+                  dot={<CustomizedDot stroke="#48a4ea" r={0} loaded={loaded}/>}
                   onMouseEnter={() =>
                     setState({
                       ...state,
@@ -894,7 +1044,7 @@ function HourlyForecast(props) {
     </Grid>
     <Box height={height} width="100%" display="flex"
       style={{ backgroundColor: theme.palette.common.black, 
-      // userSelect: "none"
+      userSelect: "none"
       }}
       onDoubleClick={zoomOut}
     >
@@ -972,17 +1122,21 @@ function HourlyForecast(props) {
       <Tooltip
         labelFormatter={labelFormatter}
         formatter={formatter}
-        cursor={false}
-        offset={20}
         allowEscapeViewBox={{ x: false, y: false }}
+        cursor={true}
+        offset={15}
         contentStyle={{
           border: "1px",
           padding: theme.spacing(1),
           borderRadius: theme.shape.borderRadius,
           boxShadow: theme.shadows[1],
-          backgroundColor: theme.palette.secondary.dark,
+          backgroundColor: "#000000000" //theme.palette.secondary.dark
         }}
-        labelStyle={theme.typography.h6}
+        labelStyle={{ 
+          fontSize: 12,
+          fontWeight: "fontWeightLight",
+          color: "white"
+           }}
         itemStyle={{
           fontSize: theme.typography.body1.fontSize,
           letterSpacing: theme.typography.body1.letterSpacing,
@@ -990,7 +1144,8 @@ function HourlyForecast(props) {
           lineHeight: theme.typography.body1.lineHeight,
           fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
           textAlign: "left",
-          color: "white"
+          color: "white",
+          display: "none"
         }}
       />
       <Legend 
@@ -1156,17 +1311,21 @@ function HourlyForecast(props) {
         <Tooltip
           labelFormatter={labelFormatter}
           formatter={formatter}
-          cursor={false}
-          offset={20}
           allowEscapeViewBox={{ x: true, y: true }}
+          cursor={true}
+          offset={15}
           contentStyle={{
             border: "1px",
             padding: theme.spacing(1),
             borderRadius: theme.shape.borderRadius,
             boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.secondary.dark
+            backgroundColor: "#000000000" //theme.palette.secondary.dark
           }}
-          labelStyle={theme.typography.h6}
+          labelStyle={{ 
+            fontSize: 12,
+            fontWeight: "fontWeightLight",
+            color: "white"
+             }}
           itemStyle={{
             fontSize: theme.typography.body1.fontSize,
             letterSpacing: theme.typography.body1.letterSpacing,
@@ -1174,7 +1333,8 @@ function HourlyForecast(props) {
             lineHeight: theme.typography.body1.lineHeight,
             fontWeight: "fontWeightLight", //theme.typography.body1.fontWeight,
             textAlign: "left",
-            color: "white"
+            color: "white",
+            display: "none"
           }}
         />
         <Legend 
@@ -1248,6 +1408,7 @@ function HourlyForecast(props) {
 
       </Box>
     </>
+  
   );
 }
 

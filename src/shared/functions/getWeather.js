@@ -52,7 +52,7 @@ function WeatherComponent(props) {
         const hourshortForecast = [];
         const hourdetailedForecast = [];
         const hourtempChartData = [];
-        for(var i=0; i< hourlyData.length; i++){
+        for(let i=0; i< hourlyData.length; i++){
           hourNum.push(hourlyData[i].number)
           hourDataTemp.push(hourlyData[i].shortForecast);
           hourName.push(hourlyData[i].name)

@@ -193,7 +193,9 @@ function CardChart(props) {
     },
     [setSelectedOption, setIsReversed, handleClose]
   );
+
   const isOpen = Boolean(anchorEl);
+  
   return (
     <Card className={classes.card}>
       <Box pt={2} px={0} pb={4}>

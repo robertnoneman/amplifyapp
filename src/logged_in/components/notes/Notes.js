@@ -293,7 +293,7 @@ function Notes(props) {
       for (var j = 0; j < sortedCols.length; j++)
       {
         const sorted = sortedCols[j];
-        if(sortedCols[j] !== null && sortedCols[j].length > 0)
+        if(sortedCols[j] !== null && Array.isArray(sorted) ) //sortedCols[j].length > 0)
         {
           sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
         }
