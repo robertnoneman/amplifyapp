@@ -41,6 +41,7 @@ function WeatherComponent(props) {
         const hourNum = [];
         const hourName = [];
         const hourstartTime = [];
+        const hourStartTimeSec =[];
         const hourendTime = [];
         const hourisDaytime = [];
         const hourtemperature = [];
@@ -55,21 +56,22 @@ function WeatherComponent(props) {
         for(let i=0; i< hourlyData.length; i++){
           hourNum.push(hourlyData[i].number)
           hourDataTemp.push(hourlyData[i].shortForecast);
-          hourName.push(hourlyData[i].name)
-          hourstartTime.push(hourlyData[i].startTime)
+          hourName.push(hourlyData[i].name);
+          hourstartTime.push(hourlyData[i].startTime);
+          hourStartTimeSec.push(new Date(hourlyData[i].startTime).valueOf()/1000);
           //String DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-          hourendTime.push(hourlyData[i].endTime)
-          hourisDaytime.push(hourlyData[i].isDaytime)
-          hourtemperature.push(hourlyData[i].temperature)
-          hourtemperatureUnit.push(hourlyData[i].temperatureUnit)
-          hourtemperatureTrend.push(hourlyData[i].temperatureTrend)
-          hourwindSpeed.push(hourlyData[i].windSpeed)
-          hourwindDirection.push(hourlyData[i].windDirection)
+          hourendTime.push(hourlyData[i].endTime);
+          hourisDaytime.push(hourlyData[i].isDaytime);
+          hourtemperature.push(hourlyData[i].temperature);
+          hourtemperatureUnit.push(hourlyData[i].temperatureUnit);
+          hourtemperatureTrend.push(hourlyData[i].temperatureTrend);
+          hourwindSpeed.push(hourlyData[i].windSpeed);
+          hourwindDirection.push(hourlyData[i].windDirection);
           var tempIcon = NwsIcons(hourlyData[i].icon, hourlyData[i].isDaytime);
-          houricon.push(tempIcon)
-          hourshortForecast.push(hourlyData[i].shortForecast)
-          hourdetailedForecast.push(hourlyData[i].detailedForecast)
-          let seconds = Date.parse(hourlyData[i].startTime)
+          houricon.push(tempIcon);
+          hourshortForecast.push(hourlyData[i].shortForecast);
+          hourdetailedForecast.push(hourlyData[i].detailedForecast);
+          let seconds = Date.parse(hourlyData[i].startTime);
           //console.log(seconds)
           hourtempChartData.push({
             value: hourlyData[i].temperature,
@@ -83,6 +85,7 @@ function WeatherComponent(props) {
           number: hourNum,
           name: hourName,
           startTime: hourstartTime,
+          timestamp: hourStartTimeSec,
           endTime: hourendTime,
           isDaytime: hourisDaytime,
           temperature: hourtemperature,

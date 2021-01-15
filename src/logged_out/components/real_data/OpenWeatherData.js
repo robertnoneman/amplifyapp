@@ -104,11 +104,6 @@ function getRgb(minimum, maximum, value) {
   return `rgb(${r2}, ${g2}, ${b2})`; 
 }
 
-// Returns hello.
-// unix => "hello";
-
-var logCount = 5;
-
 function formatTime(unix, offset) {
   const seconds = unix - offset;
   const secs = seconds * 1000;
@@ -120,10 +115,6 @@ function labelFormatter(label, timeScale) {
   if (label === null || label < 0 || label === -Infinity || label === Infinity) return;
   // const tempLabel = label * 1000 * 1000;
   const tempLabel = label * 1000;
-  if (logCount > 0) {
-    console.log(`label from label formatter: ${label}, templabel: ${tempLabel}, unformatted: ${new Date(tempLabel)}, notLocalformatted: ${format(new Date(tempLabel), "ccc h a")}  formatted: ${format(new Date(tempLabel), "ccc p",)}`)
-    logCount--;
-  }
   if (timeScale === "hours") return format(new Date(tempLabel), "h a");
   if (timeScale === "days") return format(new Date(tempLabel), "ccc");
   return format(new Date(tempLabel), "ccc p");
@@ -516,7 +507,7 @@ function HourlyForecast(props) {
         }
       })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         const averageTemp = res.data.results[0].value/10;
         const averageHigh = res.data.results[1].value/10;
         const averageLow = res.data.results[2].value/10;
@@ -535,7 +526,7 @@ function HourlyForecast(props) {
             temp: res.data.results[i].value/10,
           });
         };
-        console.log(`averages: ${averages}`);
+        // console.log(`averages: ${averages}`);
       })
       .catch((error) => {
         console.error(error)
@@ -552,7 +543,7 @@ function HourlyForecast(props) {
       })
       .then((res2) => {
         // hrlyAverages = res2.data;
-        console.log(res2.data);
+        // console.log(res2.data);
         let newD = new Date();
         let year = newD.getUTCFullYear();
         // let hlyTimestamp =
@@ -646,14 +637,14 @@ function HourlyForecast(props) {
         var endTimeIso = endTimeTemp.toISOString();
         var finalStartTime = startTimeIso.slice(0,19);
         var finalEndTime = endTimeIso.slice(0,19);
-        console.log(`Start times and end times: ${startTimeIso}, ${endTimeIso}, ${finalStartTime}, ${finalEndTime}`)
+        // console.log(`Start times and end times: ${startTimeIso}, ${endTimeIso}, ${finalStartTime}, ${finalEndTime}`)
         times = {
           startDate: format(new Date(refData[0][timeRef]), "MM-dd"),
           endDate: format(new Date(refData[refData.length-1][timeRef]), "MM-dd"),
           startTime: finalStartTime,
           endTime: finalEndTime,
         }
-        console.log(`Times object: ${times['startDate']}, ${times['endDate']}`);
+        // console.log(`Times object: ${times['startDate']}, ${times['endDate']}`);
         let [bottom, top] = [refData[0][ref], refData[0][ref]];
         refData.forEach((d) => {
           if (d[ref] > top) top = d[ref];
@@ -683,7 +674,7 @@ function HourlyForecast(props) {
       await curlTest('GHCND:USC00186350', times['startTime'], times['endTime'], 'NORMAL_DLY', ['DLY-TAVG-NORMAL', 'DLY-TMIN-NORMAL', 'DLY-TMAX-NORMAL']);
       await fetchHrly('GHCND:USW00013743', times['startTime'], times['endTime'], 'NORMAL_HLY', ['HLY-TEMP-NORMAL', 'HLY-TEMP-10PCTL','HLY-TEMP-90PCTL'])
       .then(() => {
-        console.log(hrlyAverages);
+        // console.log(hrlyAverages);
         setState({
           ...state,
           ...tempState,
