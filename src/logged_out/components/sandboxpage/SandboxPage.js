@@ -122,9 +122,9 @@ const styles = theme => ({
         paddingLeft: theme.spacing(8),
       },
       [theme.breakpoints.up("xl")]: {
-        // maxWidth: "80%",
-        paddingRight: theme.spacing(4),
-        paddingLeft: theme.spacing(4),
+        maxWidth: 1800,
+        paddingRight: theme.spacing(2),
+        paddingLeft: theme.spacing(2),
       },
     },
     accordion: {
@@ -288,7 +288,7 @@ function SandboxPage(props) {
             > */}
             <Box marginTop="100px">
               <TabPanel value={value} index={0} dir={theme.direction}>
-                <HourlyForecast title={["Temp", "Humidity"]} height="350px"/>
+                <HourlyForecast title={["Temp", "Humidity"]} height={350}/>
               </TabPanel>
               <TabPanel value={value} index={1} dir={theme.direction}>
                 <Weather displayType="accordion"/>             

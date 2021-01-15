@@ -18,7 +18,7 @@ import {
 } from "recharts";
 import { Box, Button, 
   withStyles, 
-  Card, IconButton, Menu, MenuItem, Grid, withWidth, isWidthDown, } from "@material-ui/core";
+  Card, IconButton, Menu, MenuItem, Grid, withWidth, isWidthDown, isWidthUp, } from "@material-ui/core";
 import Axios from "axios";
 import cheerio from "cheerio";
 import format from "date-fns/format";
@@ -35,6 +35,11 @@ const styles = (theme) => ({
     justifyContent: "center",
     flexDirection: "column",
     padding: theme.spacing(1),
+    resize: "both",
+    [theme.breakpoints.up('xl')]: {
+      // backgroundColor: theme.palette.warning.main,
+      maxWidth: "100%"
+    },
     // marginTop: 10,
   },
   chartCard: {
@@ -42,7 +47,7 @@ const styles = (theme) => ({
     display: "flex",
     justifyContent: "center",
     flexDirection: "column",
-    padding: theme.spacing(1),
+    // padding: theme.spacing(1),
     resize: "both",
     minHeight: "150px",
     [theme.breakpoints.down('sm')]: {
@@ -60,7 +65,7 @@ const styles = (theme) => ({
     },
     [theme.breakpoints.up('xl')]: {
       // backgroundColor: theme.palette.warning.main,
-      maxWidth: "100%"
+      maxWidth: "100%",
     },
   },
   windArrow: {
@@ -196,11 +201,9 @@ const CustomizedDot = (props) => {
         </svg>
       );
   }
-
   if (!windDeg || windDeg === null) {
     windDeg = 0;
   }
-
   return (
     <svg 
       fill={stroke} 
@@ -378,100 +381,6 @@ function HourlyForecast(props) {
       bottom2: "dataMin-1",
     })
   }, [state, setState]);
-
-  async function fetchAverageTemps() {
-    if (loaded) return;
-    const nwsDcanmeUrl = "https://www.weather.gov/lwx/dcanme";
-    //const nmeResponse = cheerio.load(data.data)
-    // #pagebody > div:nth-child(3) > div
-    // const nmeSection = nmeResponse('#pagebody > div:nth-child(3) > div > pre:nth-child(9)');
-    const weatherSparkUrl = `https://cors-anywhere.herokuapp.com/https://weatherspark.com/td/20957/Average-Weather-in-Washington-D.C.;-United-States-Today#Sections-Temperature`;
-    await Axios.get(weatherSparkUrl).then((data) => {
-      const response = cheerio.load(data.data);
-      const tempSection = response('#Report-Content > div:nth-child(2) > p:nth-child(5)').text();
-      const parseTemp = new RegExp(/(from (\d{1,2})...to.(\d{1,2})..*below.(\d*).*above (\d*))/, 'gm').exec(tempSection);
-      // console.log(parseTemp);
-      const averageLow = parseTemp[2];
-      const averageHigh = parseTemp[3];
-      const maxLow = parseTemp[4];
-      const maxHigh = parseTemp[5];
-
-      setState({
-        ...state,
-        averageLow: averageLow,
-        averageHigh: averageHigh,
-        maxLow: maxLow,
-        maxHigh: maxHigh,
-        // ...state,
-      })
-    })
-  };
-
-  async function fetchNwsData() {
-    const nwsHourly = [];
-    await Axios.get('https://api.weather.gov/gridpoints/LWX/97,70/forecast/hourly')
-    .then((data) => {
-      const hourlyData = data.data.properties.periods;
-      //const hourlyDataText = Object.keys(hourlyData[0]);
-      const hourDataTemp = [];
-      const hourNum = [];
-      const hourName = [];
-      const hourstartTime = [];
-      const hourendTime = [];
-      const hourisDaytime = [];
-      const hourtemperature = [];
-      const hourtemperatureUnit = [];
-      const hourtemperatureTrend = [];
-      const hourwindSpeed = [];
-      const hourwindDirection = [];
-      const houricon = [];
-      const hourshortForecast = [];
-      const hourdetailedForecast = [];
-      const hourtempChartData = [];
-      for(let i=0; i< hourlyData.length; i++){
-        hourNum.push(hourlyData[i].number)
-        hourDataTemp.push(hourlyData[i].shortForecast);
-        hourName.push(hourlyData[i].name)
-        hourstartTime.push(hourlyData[i].startTime)
-        //String DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-        hourendTime.push(hourlyData[i].endTime)
-        hourisDaytime.push(hourlyData[i].isDaytime)
-        hourtemperature.push(hourlyData[i].temperature)
-        hourtemperatureUnit.push(hourlyData[i].temperatureUnit)
-        hourtemperatureTrend.push(hourlyData[i].temperatureTrend)
-        hourwindSpeed.push(hourlyData[i].windSpeed)
-        hourwindDirection.push(hourlyData[i].windDirection)
-        var tempIcon = NwsIcons(hourlyData[i].icon, hourlyData[i].isDaytime);
-        houricon.push(tempIcon)
-        hourshortForecast.push(hourlyData[i].shortForecast)
-        hourdetailedForecast.push(hourlyData[i].detailedForecast)
-        let seconds = Date.parse(hourlyData[i].startTime)
-        //console.log(seconds)
-        hourtempChartData.push({
-          timestamp: seconds / 1000,
-          time: seconds / 1000,
-          offset: "",
-          temp: hourlyData[i].temperature,
-          humidity: "",
-          pop: "",
-          feelsLike: "",
-          pressure: "",
-          dewPoint: "",
-          uvi: "",
-          clouds: "",
-          visibility: "",
-          windSpeed: hourlyData[i].windSpeed,
-          windDeg: hourlyData[i].windDirection,
-          weather: {
-            main: hourlyData[i].shortForecast,
-            description: hourlyData[i].detailedForecast,
-            icon: tempIcon
-          },
-        });
-        nwsHourly.push(hourtempChartData[i]);
-      }
-    })
-  }
 
   const handleMouseEnter = (o) => {
     setState( {
@@ -694,6 +603,12 @@ function HourlyForecast(props) {
         let temptempAvg = hrlyAverages.filter(filterAvg);
         let temptempLow = hrlyAverages.filter(filterLows);
         let temptempHigh = hrlyAverages.filter(filterHighs);
+        const lowestAvg = temptempAvg.map(a => a.tempAvg);
+        const highestAvg = temptempAvg.map(a => a.tempAvg);
+        const lowestLow = temptempLow.map(a => a.tempAvg);
+        const highestLow = temptempLow.map(a => a.tempAvg);
+        const lowestHigh = temptempHigh.map(a => a.tempAvg);
+        const highestHigh = temptempHigh.map(a => a.tempAvg);
         for (let i = 0; i < tempState.data.length; i++) {
           let tempHr = tempState.data[i];
           tempHr = {
@@ -714,12 +629,17 @@ function HourlyForecast(props) {
           dlyAverages: averages,
           dailyAverageTemp: averages[0]['temp'],
           averageLow: averages[2]['temp'],
-          averageHigh: averages[1]['temp']
+          averageHigh: averages[1]['temp'],
+          lowestAvg: Math.min(...lowestAvg),
+          highestAvg: Math.max(...highestAvg),
+          lowestLow: Math.min(...lowestLow),
+          highestLow: Math.max(...highestLow),
+          lowestHigh: Math.min(...lowestHigh),
+          highestHigh: Math.max(...highestHigh),
         })
       })
       setLoaded(true);
     }
-    
     fetchData();
   },
     [setState]
@@ -729,9 +649,10 @@ function HourlyForecast(props) {
 
   return (
     <>
-    <Grid>
-      <Grid item xs={12} xl={12} style={selectedOption === "Compact" ? { margin: "10px" } : {margin: "auto", }}>
-        <Card className={classes.card}>
+    <Grid container direction="row" justify="space-between" spacing={3} style={{ marginBottom: 5, }} >
+    {/* <Grid container item> */}
+      <Grid item xs={12} lg={12} xl={6} style={{ marginTop: "10px", }}>
+        <Card className={classes.chartCard}>
           <Box display="flex" justifyContent="space-between">
             <Button className="btn update" onClick={zoomOut}>
               Zoom Out
@@ -829,8 +750,28 @@ function HourlyForecast(props) {
                     <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
                   </linearGradient>
                   <linearGradient id="averageTempsUv" x1="1" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.2}/>
-                    <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0.0}/>
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.highestAvg)} stopOpacity={0.2}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.lowestAvg)} stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="avgLowTempsUv" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.highestLow)} stopOpacity={0.2}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.lowestLow)} stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="avgHighTempsUv" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.highestHigh)} stopOpacity={0.2}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.lowestHigh)} stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="averageTempsUvActive" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.highestAvg)} stopOpacity={0.5}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.lowestAvg)} stopOpacity={0.2}/>
+                  </linearGradient>
+                  <linearGradient id="avgLowTempsUvActive" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.highestLow)} stopOpacity={0.5}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.lowestLow)} stopOpacity={0.2}/>
+                  </linearGradient>
+                  <linearGradient id="avgHighTempsUvActive" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.highestHigh)} stopOpacity={0.5}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.lowestHigh)} stopOpacity={0.2}/>
                   </linearGradient>
                   <linearGradient id="averageTemps" x1="1" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.5}/>
@@ -929,8 +870,8 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "avgHigh" ? 2 : 1 }
-                  stroke="url(#averageTempsUv)"
-                  fill={state.activeArea === "avgHigh" ? "url(#averageTempsUv)" : "url(#inactiveHeatmapUv)"}
+                  stroke={state.activeArea === "avgHigh" ? "url(#avgHighTempsUvActive)" : "url(#avgHighTempsUv)"}
+                  fill={state.activeArea === "avgHigh" ? "url(#avgHighTempsUvActive)" : "url(#avgHighTempsUv)"}
                   hide={hideArea.hidden.avgHigh}
                 />
                 <Area
@@ -1004,8 +945,8 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "tempAvg" ? 2 : 1 }
-                  stroke="url(#averageTempsUv)"
-                  fill={state.activeArea === "feelsLike" ? "url(#averageTempsUv)" : "url(#inactiveHeatmapUv)"}
+                  stroke={state.activeArea === "tempAvg" ? "url(#averageTempsUvActive)" : "url(#averageTempsUv)"}
+                  fill={state.activeArea === "tempAvg" ? "url(#averageTempsUvActive)" : "url(#averageTempsUv)"}
                   hide={hideArea.hidden.tempAvg}
                 />
                 <Area
@@ -1029,8 +970,8 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "avgLow" ? 2 : 1 }
-                  stroke="url(#averageTempsUv)"
-                  fill={state.activeArea === "avgLow" ? "url(#averageTempsUv)" : "url(#inactiveHeatmapUv)"}
+                  stroke={state.activeArea === "avgLow" ? "url(#avgLowTempsUvActive)" : "url(#avgLowTempsUv)"}
+                  fill={state.activeArea === "avgLow" ? "url(#avgLowTempsUvActive)" : "url(#avgLowTempsUv)"}
                   hide={hideArea.hidden.avgLow}
                 />
                 
@@ -1048,12 +989,56 @@ function HourlyForecast(props) {
           </Box>
         </Card>
       </Grid>
-    </Grid>
+    {/* </Grid> */}
 
-    <Grid >
-      <Grid item xs={12} style={selectedOption === "Compact" ? { margin: "10px", } : {margin: "auto", }}>
+    {/* <Grid container item> */}
+      <Grid item xs={12} lg={12} xl={6} style={isWidthUp('xl', width, true) ? { marginTop: "10px" } : { } }>
         <Card className={classes.chartCard} style={{  }} >
-          <Box height={isWidthDown('md', width) ? 200 : selectedOption === "Compact" ? 400 : height} 
+        {isWidthUp('xl', width, true) && 
+          <Box display="flex" justifyContent="space-between">
+            <Button className="btn update" onClick={zoomOut}>
+              Zoom Out
+            </Button>
+            <div>
+              <IconButton
+                aria-label="More"
+                aria-owns={isOpen ? "long-menu" : undefined}
+                aria-haspopup="true"
+                onClick={handleMenuClick}
+              >
+                <MoreVert className="text-white"/>
+              </IconButton>
+              <Menu
+                id="long-menu"
+                anchorEl={anchorEl}
+                open={isOpen}
+                onClose={handleClose}
+                PaperProps={{
+                  style: {
+                    maxHeight: itemHeight,
+                    width: 200,
+                    backgroundColor: theme.palette.secondary.dark
+                  },
+                }}
+                disableScrollLock
+              >
+                {options.map((option) => (
+                  <MenuItem
+                    key={option}
+                    selected={option === selectedOption}
+                    className="text-white"
+                    onClick={() => {
+                      selectOption(option);
+                    }}
+                    name={option}
+                  >
+                    {option}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </div>
+          </Box> }
+        <Box height={isWidthDown('md', width) ? 200 : selectedOption === "Compact" ? 400 : height} 
             width="100%"  style={{userSelect: "none",}} onDoubleClick={zoomOut}
             overflow="hidden" //{selectedOption === "Compact" ? "hidden": "auto"}
           >
@@ -1236,10 +1221,13 @@ function HourlyForecast(props) {
           </Box>
         </Card>
       </Grid>
+    {/* </Grid > */}
     </Grid>
+
     <Box height={height} width="100%" display="flex"
       style={{ backgroundColor: theme.palette.common.black, 
-      userSelect: "none"
+      userSelect: "none",
+      marginBottom: 10
       }}
       onDoubleClick={zoomOut}
     >
@@ -1426,10 +1414,13 @@ function HourlyForecast(props) {
         onDoubleClick={zoomOut}
         className={classes.scrollOnMobile}
         component="div"
+        xs={12}
+        justifyContent="center"
+        alignItems="center"
     >
       <AreaChart
-        width={1200}
-        height={200}
+        width={isWidthUp('xl', width, true) ? 1800 : 1200} //{1200}
+        height={isWidthUp('xl', width, true) ? height : 200} //{200}
         margin={{bottom: 20, top: 5, right: -40, left: -20 }}
         data={state.data}
         onMouseDown={(e) =>
@@ -1533,9 +1524,9 @@ function HourlyForecast(props) {
           }}
         />
         <Legend 
-          align="left"
-          verticalAlign="bottom"
-          wrapperStyle={{ fontSize: 12, left: 80 }}
+          align={isWidthUp("md", width) ? "center" : "left"}
+          verticalAlign={isWidthUp("md", width) ? "top" : "bottom" }
+          wrapperStyle={isWidthUp("md", width) ? { fontSize: 12 } : { fontSize: 12, left: 80 }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
@@ -1602,6 +1593,7 @@ function HourlyForecast(props) {
         </AreaChart>
 
       </Box>
+    
     </>
   
   );
@@ -1610,3 +1602,99 @@ function HourlyForecast(props) {
 export default withStyles(styles, { withTheme: true })(
   withWidth()(HourlyForecast)
 );
+
+/*
+async function fetchAverageTemps() {
+    if (loaded) return;
+    const nwsDcanmeUrl = "https://www.weather.gov/lwx/dcanme";
+    //const nmeResponse = cheerio.load(data.data)
+    // #pagebody > div:nth-child(3) > div
+    // const nmeSection = nmeResponse('#pagebody > div:nth-child(3) > div > pre:nth-child(9)');
+    const weatherSparkUrl = `https://cors-anywhere.herokuapp.com/https://weatherspark.com/td/20957/Average-Weather-in-Washington-D.C.;-United-States-Today#Sections-Temperature`;
+    await Axios.get(weatherSparkUrl).then((data) => {
+      const response = cheerio.load(data.data);
+      const tempSection = response('#Report-Content > div:nth-child(2) > p:nth-child(5)').text();
+      const parseTemp = new RegExp(/(from (\d{1,2})...to.(\d{1,2})..*below.(\d*).*above (\d*))/, 'gm').exec(tempSection);
+      // console.log(parseTemp);
+      const averageLow = parseTemp[2];
+      const averageHigh = parseTemp[3];
+      const maxLow = parseTemp[4];
+      const maxHigh = parseTemp[5];
+
+      setState({
+        ...state,
+        averageLow: averageLow,
+        averageHigh: averageHigh,
+        maxLow: maxLow,
+        maxHigh: maxHigh,
+        // ...state,
+      })
+    })
+  };
+
+  async function fetchNwsData() {
+    const nwsHourly = [];
+    await Axios.get('https://api.weather.gov/gridpoints/LWX/97,70/forecast/hourly')
+    .then((data) => {
+      const hourlyData = data.data.properties.periods;
+      //const hourlyDataText = Object.keys(hourlyData[0]);
+      const hourDataTemp = [];
+      const hourNum = [];
+      const hourName = [];
+      const hourstartTime = [];
+      const hourendTime = [];
+      const hourisDaytime = [];
+      const hourtemperature = [];
+      const hourtemperatureUnit = [];
+      const hourtemperatureTrend = [];
+      const hourwindSpeed = [];
+      const hourwindDirection = [];
+      const houricon = [];
+      const hourshortForecast = [];
+      const hourdetailedForecast = [];
+      const hourtempChartData = [];
+      for(let i=0; i< hourlyData.length; i++){
+        hourNum.push(hourlyData[i].number)
+        hourDataTemp.push(hourlyData[i].shortForecast);
+        hourName.push(hourlyData[i].name)
+        hourstartTime.push(hourlyData[i].startTime)
+        //String DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        hourendTime.push(hourlyData[i].endTime)
+        hourisDaytime.push(hourlyData[i].isDaytime)
+        hourtemperature.push(hourlyData[i].temperature)
+        hourtemperatureUnit.push(hourlyData[i].temperatureUnit)
+        hourtemperatureTrend.push(hourlyData[i].temperatureTrend)
+        hourwindSpeed.push(hourlyData[i].windSpeed)
+        hourwindDirection.push(hourlyData[i].windDirection)
+        var tempIcon = NwsIcons(hourlyData[i].icon, hourlyData[i].isDaytime);
+        houricon.push(tempIcon)
+        hourshortForecast.push(hourlyData[i].shortForecast)
+        hourdetailedForecast.push(hourlyData[i].detailedForecast)
+        let seconds = Date.parse(hourlyData[i].startTime)
+        //console.log(seconds)
+        hourtempChartData.push({
+          timestamp: seconds / 1000,
+          time: seconds / 1000,
+          offset: "",
+          temp: hourlyData[i].temperature,
+          humidity: "",
+          pop: "",
+          feelsLike: "",
+          pressure: "",
+          dewPoint: "",
+          uvi: "",
+          clouds: "",
+          visibility: "",
+          windSpeed: hourlyData[i].windSpeed,
+          windDeg: hourlyData[i].windDirection,
+          weather: {
+            main: hourlyData[i].shortForecast,
+            description: hourlyData[i].detailedForecast,
+            icon: tempIcon
+          },
+        });
+        nwsHourly.push(hourtempChartData[i]);
+      }
+    })
+  }
+*/
