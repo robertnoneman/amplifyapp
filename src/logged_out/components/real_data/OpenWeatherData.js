@@ -422,9 +422,6 @@ function HourlyForecast(props) {
       })
       .then((res) => {
         // console.log(res.data);
-        const averageTemp = res.data.results[0].value/10;
-        const averageHigh = res.data.results[1].value/10;
-        const averageLow = res.data.results[2].value/10;
         let newD = new Date();
         let year = newD.getUTCFullYear();
         
@@ -437,7 +434,7 @@ function HourlyForecast(props) {
             // timestampSeconds: res.data.results[i].date.setFullYear(year),
             timestampSeconds: dlyTimestamp/1000,
             type: res.data.results[i].datatype,
-            temp: res.data.results[i].value/10,
+            temp: (res.data.results[i].value/10).toFixed(0),
           });
         };
         // console.log(`averages: ${averages}`);
@@ -468,7 +465,7 @@ function HourlyForecast(props) {
             timestamp: new Date(hlyTimestamp).toISOString(),
             time: hlyTimestamp/1000,
             type: res2.data.results[j].datatype,
-            tempAvg: res2.data.results[j].value/10,
+            tempAvg: (res2.data.results[j].value/10).toFixed(0),
             windDeg: 0
           })};
         }
@@ -1416,7 +1413,7 @@ function HourlyForecast(props) {
         component="div"
         xs={12}
         justifyContent="center"
-        alignItems="center"
+        alignItems={isWidthUp('lg', width, true) ? "center" : "flex-start" }
     >
       <AreaChart
         width={isWidthUp('xl', width, true) ? 1800 : 1200} //{1200}

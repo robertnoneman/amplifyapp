@@ -165,25 +165,7 @@ function Notes(props) {
     });
     setNoteCards([noteCols[0], noteCols[1], noteCols[2]]);
   };
-  // async function createNote() {
-  //   if (!formData.name || !formData.description) return;
-  //   await API.graphql({ query: createNoteMutation, variables: { input: formData } });
-  //   // Copy the 'Todo' column so that we can append it.
-  //   const items = state[0];
-  //   // Add the new note to the todo column
-  //   formData.id = `newLocalNote ${new Date().getTime()}`;
-  //   items.push(formData);
-  //   // Copy the current state.
-  //   const newState = [...state];
-  //   // Insert the updated Todo column
-  //   newState[0] = items;
-  //   // Set the state variable (tracks locally)
-  //   setState(newState);
-  //   setNotes([ ...notes, formData ]);
-  //   // setState([ ...state, formData ]);
-  //   fetchNotes();
-  //   setFormData(initialFormState);
-  // };
+
   async function createNewNote(noteData) {
     if (!noteData.name || !noteData.description) return;
     noteData.index = state[0].length;
@@ -226,21 +208,6 @@ function Notes(props) {
     fetchNotes();
   };
 
-  // async function printNote() {
-  //   fetchNotes();
-  //   const sortedCols = [...noteCards];
-  //   for (var j = 0; j < noteCards.length; j++) {
-  //     const sorted = sortedCols[j];
-  //     if(sortedCols[j] !== null && sortedCols[j].length > 0)
-  //     {
-  //       sortedCols[j] = sorted.sort(function(a, b){return a.index - b.index});
-  //     }
-  //   };
-  //   setState(sortedCols);
-  //   hasLoaded(true);
-  // };
-
-  // TODO: Make the for loop for updating when changing columns (should update every element affected in each column)
   async function onDragEnd(result) {
     const { source, destination } = result;
 
@@ -318,10 +285,10 @@ function Notes(props) {
         editNote={editNote}
       />
       <DragDropContext onDragEnd={(onDragEnd)}>
-        <Box p={1}>
-          <Grid container spacing={6} justify="flex-start" style={{}}>
+        <Box p={0}>
+          <Grid container spacing={4} justify="flex-start" style={{}}>
             {state.map((el, ind) => (
-            <Grid container direction="column" justify="flex-start" item xs key={ind} style={{}}>
+            <Grid container direction="column" justify="flex-start" item xs={4} key={ind} style={{}}>
               <Box alignItems="center" justifyContent="center" className={classes.taskColumn} p={1}>
                 <Droppable key={colName[ind]} droppableId={`${colName[ind]}`}>
                   {(provided, snapshot) => (
