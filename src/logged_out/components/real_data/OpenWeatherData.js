@@ -183,6 +183,7 @@ const CustomizedDot = (props) => {
     cx, cy, stroke, payload, type, strokeColor, theme, 
   } = props;
   // if (!loaded) return;
+  let windDeg = payload.windDeg;
   if (type) {
       return (
         <svg overflow="auto" stroke={strokeColor} x={cx} y={cy} width={100} height={100} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -196,6 +197,10 @@ const CustomizedDot = (props) => {
       );
   }
 
+  if (!windDeg || windDeg === null) {
+    windDeg = 0;
+  }
+
   return (
     <svg 
       fill={stroke} 
@@ -207,7 +212,7 @@ const CustomizedDot = (props) => {
     >
       <g>
         <path 
-          overflow="visible" transform={`rotate(${payload.windDeg + 180})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z">
+          overflow="visible" transform={`rotate(${windDeg + 180})`} d="m12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z">
         </path>
       </g>
     </svg>
@@ -219,13 +224,13 @@ const HeatmapDot = (props) => {
     cx, cy, payload, source, theme 
   } = props;
   // const value = useRef(null);
-  const color = (source === "feelsLike" ? getRgb(20, 100, payload["feelsLike"]) : getRgb(20, 100, payload["temp"]) );
+  const color = (source === "feelsLike" ? getRgb(20, 100, payload["feelsLike"]) : source === "tempAvg" ? getRgb(20, 100, payload["tempAvg"]) : source === "avgLow" ? getRgb(20, 100, payload["avgLow"]) : source === "avgHigh" ? getRgb(20, 100, payload["avgHigh"]) : getRgb(20, 100, payload["temp"]) );
   return (
     <svg overflow="auto" stroke={color} x={cx} y={cy} width={100} height={100} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
       <circle r="100" stroke={color} strokeWidth={20}/>
       <text fontSize="100px" fill="#dddddddd" textAnchor="middle" dy={40} dx={5}
         fontFamily={theme.typography.body1.fontFamily} fontWeight="fontWeightLight">
-          {source === "feelsLike" ? payload["feelsLike"] : payload["temp"]}°
+          {source === "feelsLike" ? payload["feelsLike"] : source === "tempAvg" ? payload["tempAvg"] : source === "avgLow" ? payload["avgLow"] : source === "avgHigh" ? payload["avgHigh"] : payload["temp"]}°
       </text>
     </svg>
   );
@@ -552,9 +557,10 @@ function HourlyForecast(props) {
           let hlyTimestamp = hlyTimestamp2.setFullYear(year);
           hrlyAverages.push({
             timestamp: new Date(hlyTimestamp).toISOString(),
-            timestampSeconds: hlyTimestamp/1000,
+            time: hlyTimestamp/1000,
             type: res2.data.results[j].datatype,
-            temp: res2.data.results[j].value/10,
+            tempAvg: res2.data.results[j].value/10,
+            windDeg: 0
           })};
         }
       )
@@ -624,6 +630,7 @@ function HourlyForecast(props) {
             windSpeed: element.wind_speed,
             windDeg: element.wind_deg,
             weather: element.weather,
+            tempAvg: ""
             };
         });
         let refData = Array.from(merged);
@@ -669,11 +676,36 @@ function HourlyForecast(props) {
           max: topColor,
           feelsLikeMin: bottomColor2,
           feelsLikeMax: topColor2,
+          
         }
       });
       await curlTest('GHCND:USC00186350', times['startTime'], times['endTime'], 'NORMAL_DLY', ['DLY-TAVG-NORMAL', 'DLY-TMIN-NORMAL', 'DLY-TMAX-NORMAL']);
       await fetchHrly('GHCND:USW00013743', times['startTime'], times['endTime'], 'NORMAL_HLY', ['HLY-TEMP-NORMAL', 'HLY-TEMP-10PCTL','HLY-TEMP-90PCTL'])
       .then(() => {
+        function filterAvg(value, index, array) {
+          return value['type'] === 'HLY-TEMP-NORMAL';
+        }
+        function filterLows(value, index, array) {
+          return value['type'] === 'HLY-TEMP-10PCTL';
+        }
+        function filterHighs(value, index, array) {
+          return value['type'] === 'HLY-TEMP-90PCTL';
+        }
+        let temptempAvg = hrlyAverages.filter(filterAvg);
+        let temptempLow = hrlyAverages.filter(filterLows);
+        let temptempHigh = hrlyAverages.filter(filterHighs);
+        for (let i = 0; i < tempState.data.length; i++) {
+          let tempHr = tempState.data[i];
+          tempHr = {
+            ...tempHr,
+           tempAvg: temptempAvg[i].tempAvg,
+           avgLow: temptempLow[i].tempAvg,
+           avgHigh: temptempHigh[i].tempAvg
+          //  time: hrlyAverages[i].time
+          }
+          tempState.data[i] = tempHr;
+        }
+        tempState.data.sort(function(a, b){return a.time - b.time});
         // console.log(hrlyAverages);
         setState({
           ...state,
@@ -681,8 +713,8 @@ function HourlyForecast(props) {
           hlyAverages: hrlyAverages,
           dlyAverages: averages,
           dailyAverageTemp: averages[0]['temp'],
-          averageLow: averages[1]['temp'],
-          averageHigh: averages[2]['temp']
+          averageLow: averages[2]['temp'],
+          averageHigh: averages[1]['temp']
         })
       })
       setLoaded(true);
@@ -796,18 +828,23 @@ function HourlyForecast(props) {
                     <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
                     <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
                   </linearGradient>
-                  <linearGradient id="averageTempsUv" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.3}/>
-                    <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0.1}/>
+                  <linearGradient id="averageTempsUv" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.2}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="averageTemps" x1="1" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.5}/>
+                    <stop offset="50%" stopColor={getRgb(20, 100, state.dailyAverageTemp)} stopOpacity={0.25}/>
+                    <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false} />
-                <ReferenceArea y1={state.averageLow} y2={state.averageHigh} yAxisId="1" 
+                {/* <ReferenceArea y1={state.averageLow} y2={state.averageHigh} yAxisId="1" 
                   fill="url(#averageTempsUv)" stroke="url(#averageTempsUv)" strokeWidth={1}
                   // alwaysShow={true}
                   ifOverflow="extendDomain"
                   // label={state.averageHigh}
-                />
+                /> */}
                 
                 <XAxis
                   allowDataOverflow
@@ -874,6 +911,31 @@ function HourlyForecast(props) {
                 <Area
                   yAxisId="1"
                   type="natural"
+                  dataKey="avgHigh"
+                  unit="°"
+                  activeDot={ <HeatmapDot theme={theme} source="avgHigh" />} 
+                  animationDuration={1200}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "avgHigh",
+                    })
+                  }
+                  onMouseOut={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000"
+                    })
+                  }
+                  strokeWidth={state.activeArea === "avgHigh" ? 2 : 1 }
+                  stroke="url(#averageTempsUv)"
+                  fill={state.activeArea === "avgHigh" ? "url(#averageTempsUv)" : "url(#inactiveHeatmapUv)"}
+                  hide={hideArea.hidden.avgHigh}
+                />
+                <Area
+                  yAxisId="1"
+                  type="natural"
                   dataKey="temp"
                   unit="°"
                   activeDot={ <HeatmapDot theme={theme} source="temp" /> }
@@ -921,8 +983,58 @@ function HourlyForecast(props) {
                   fill={state.activeArea === "feelsLike" ? "url(#feelsLikeUv)" : "url(#inactiveFeelsLikeUv)"}
                   hide={hideArea.hidden.feelsLike}
                 />
-                Change this into an area component, but don't give it a fill.
-                {state.dailyAverageTemp > 0 && <ReferenceLine yAxisId="1" y={state.dailyAverageTemp} strokeWidth={2} stroke="#d91ddd55" strokeDasharray="3 3" ifOverflow="extendDomain"/>}
+                <Area
+                  yAxisId="1"
+                  type="natural"
+                  dataKey="tempAvg"
+                  unit="°"
+                  activeDot={ <HeatmapDot theme={theme} source="tempAvg" />} 
+                  animationDuration={1200}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "tempAvg",
+                    })
+                  }
+                  onMouseOut={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000"
+                    })
+                  }
+                  strokeWidth={state.activeArea === "tempAvg" ? 2 : 1 }
+                  stroke="url(#averageTempsUv)"
+                  fill={state.activeArea === "feelsLike" ? "url(#averageTempsUv)" : "url(#inactiveHeatmapUv)"}
+                  hide={hideArea.hidden.tempAvg}
+                />
+                <Area
+                  yAxisId="1"
+                  type="natural"
+                  dataKey="avgLow"
+                  unit="°"
+                  activeDot={ <HeatmapDot theme={theme} source="avgLow" />} 
+                  animationDuration={1200}
+                  onMouseEnter={() =>
+                    setState({
+                      ...state,
+                      activeArea: "avgLow",
+                    })
+                  }
+                  onMouseOut={() =>
+                    setState({
+                      ...state,
+                      activeArea: "",
+                      activeColor: "#0000000"
+                    })
+                  }
+                  strokeWidth={state.activeArea === "avgLow" ? 2 : 1 }
+                  stroke="url(#averageTempsUv)"
+                  fill={state.activeArea === "avgLow" ? "url(#averageTempsUv)" : "url(#inactiveHeatmapUv)"}
+                  hide={hideArea.hidden.avgLow}
+                />
+                
+                {/* {state.dailyAverageTemp > 0 && <ReferenceLine yAxisId="1" y={state.dailyAverageTemp} strokeWidth={2} stroke="#d91dd020" strokeDasharray="3 3" ifOverflow="extendDomain"/>} */}
                 {state.refAreaLeft && state.refAreaRight ? (
                   <ReferenceArea
                     yAxisId="1"
@@ -966,39 +1078,14 @@ function HourlyForecast(props) {
                 syncId="pressure"
               >
                 <defs>
-                      <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                        <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
-                        <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
-                        <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
-                        <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
-                      </linearGradient>
-                      <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                        <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
-                        <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
-                        <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
-                        <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
-                      </linearGradient>
-                      <linearGradient id="heatmapUv" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="rgb(255, 0, 0)" stopOpacity={0.95}/>
-                        <stop offset="100%" stopColor="#ff00ff" stopOpacity={0.5}/>
-                      </linearGradient>
-                      <linearGradient id="inactiveHeatmapUv" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor={state.max} stopOpacity={0.025}/>
-                        <stop offset="100%" stopColor={state.min} stopOpacity={0.1}/>
-                      </linearGradient>
-                      <linearGradient id="activeHeatmapUv" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor={state.max} stopOpacity={0.95}/>
-                        <stop offset="100%" stopColor={state.min} stopOpacity={0.5}/>
-                      </linearGradient>
-                      <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
-                        <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
-                        <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
-                      </linearGradient>
-                      <linearGradient id="monoUv" x1="0" y1="-0.1" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
-                        <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
-                      </linearGradient>
-                      
+                  <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
+                    <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
+                  </linearGradient>
+                  <linearGradient id="monoUv" x1="0" y1="-0.1" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
+                    <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
                 <XAxis
