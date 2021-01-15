@@ -14,6 +14,7 @@ import {
   AreaChart,
   Area,
   Brush,
+  ReferenceLine,
 } from "recharts";
 import { Box, Button, 
   withStyles, 
@@ -106,6 +107,8 @@ function getRgb(minimum, maximum, value) {
 // Returns hello.
 // unix => "hello";
 
+var logCount = 5;
+
 function formatTime(unix, offset) {
   const seconds = unix - offset;
   const secs = seconds * 1000;
@@ -115,7 +118,12 @@ function formatTime(unix, offset) {
 
 function labelFormatter(label, timeScale) {
   if (label === null || label < 0 || label === -Infinity || label === Infinity) return;
-  const tempLabel = label * 1000 * 1000;
+  // const tempLabel = label * 1000 * 1000;
+  const tempLabel = label * 1000;
+  if (logCount > 0) {
+    console.log(`label from label formatter: ${label}, templabel: ${tempLabel}, unformatted: ${new Date(tempLabel)}, notLocalformatted: ${format(new Date(tempLabel), "ccc h a")}  formatted: ${format(new Date(tempLabel), "ccc p",)}`)
+    logCount--;
+  }
   if (timeScale === "hours") return format(new Date(tempLabel), "h a");
   if (timeScale === "days") return format(new Date(tempLabel), "ccc");
   return format(new Date(tempLabel), "ccc p");
@@ -173,7 +181,10 @@ const initialStateData = {
   activeArea: "",
   activeColor: "#000",
   min: "",
-  max: ""
+  max: "",
+  averageLow: "",
+  averageHigh: "",
+  dailyAverageTemp: ""
 };
 
 const CustomizedDot = (props) => {
@@ -466,97 +477,6 @@ function HourlyForecast(props) {
     })
   }
 
-  const fetchWeatherData = useCallback(() => {
-    if (loaded) return;
-    fetchAverageTemps();
-    // const nwsHourly = [];
-    // setLoaded(true);
-    const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
-    const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
-    Axios.get(apiUrl).then((data) => {
-      const tOffset = data.data.timezone_offset;
-      // console.log(tOffset);
-      const minutely = data.data.minutely;
-      const minutelyMerged = [];
-      minutely && minutely.forEach((element, index) => {
-        const timestamp = formatTime(element.dt, tOffset);
-        const rawTimestamp = (element.dt) / 1000;
-        minutelyMerged[index] = {
-          // time: timestamp,
-          time: rawTimestamp,
-          precipitation: element.precipitation
-        }
-      });
-      const daily = data.data.daily;
-      const dailyMerged = []
-      daily.forEach((element, index) => {
-        const timestamp = formatTime(element.dt, tOffset);
-        const rawTimestamp = (element.dt) / 1000;
-        dailyMerged[index] = {
-          // time: timestamp,
-          time: rawTimestamp,
-          element
-        }
-      });
-      const hourly = data.data.hourly;
-      const merged = [];
-      const tempMinMax = [];
-      hourly.forEach((element, index) => {
-        const rawTimestamp = element.dt - tOffset;
-        const timestamp = (element.dt) / 1000;
-        tempMinMax.push(element.temp);
-        merged[index] = {
-          // time: timestamp,
-          rawTimestamp: rawTimestamp,
-          time: timestamp,
-          offset: tOffset,
-          temp: element.temp.toFixed(0),
-          humidity: element.humidity,
-          pop: (element.pop * 100),
-          feelsLike: element.feels_like.toFixed(0),
-          pressure: (element.pressure * 0.0295300).toFixed(2),
-          dewPoint: element.dew_point.toFixed(0),
-          uvi: element.uvi,
-          clouds: element.clouds,
-          visibility: element.visibility,
-          windSpeed: element.wind_speed,
-          windDeg: element.wind_deg,
-          weather: element.weather,
-          };
-      });
-      let refData = Array.from(merged);
-      let ref = "temp";
-      let [bottom, top] = [refData[0][ref], refData[0][ref]];
-      refData.forEach((d) => {
-        if (d[ref] > top) top = d[ref];
-        if (d[ref] < bottom) bottom = d[ref];
-      });
-      let bottomColor = getRgb(20, 100, bottom);
-      let topColor = getRgb(20, 100, top);
-      let ref2 = "feelsLike";
-      let [bottom2, top2] = [refData[0][ref2], refData[0][ref2]];
-      refData.forEach((d) => {
-        if (d[ref2] > top2) top2 = d[ref2];
-        if (d[ref2] < bottom2) bottom2 = d[ref2];
-      });
-      let bottomColor2 = getRgb(20, 100, bottom2);
-      let topColor2 = getRgb(20, 100, top2);
-      setState({
-        ...state, 
-        data: merged.slice(), 
-        dailyData: dailyMerged.slice(), 
-        minutelyData: minutelyMerged.slice(), 
-        allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()],
-        min: bottomColor,
-        max: topColor,
-        feelsLikeMin: bottomColor2,
-        feelsLikeMax: topColor2
-      });
-      setLoaded(true);
-    });
-
-  }, [fetchAverageTemps, loaded, setLoaded]);
-
   const handleMouseEnter = (o) => {
     setState( {
       ...state,
@@ -582,9 +502,205 @@ function HourlyForecast(props) {
   };
 
   useEffect(() => {
-    // fetchNwsData();
-    fetchWeatherData();
-  }, [fetchWeatherData]);
+    const averages = [];
+    const hrlyAverages = [];
+
+    async function curlTest(station, startDate, endDate, dataSet, dataTypes) {
+      let dataTypeString = dataTypes.join('&datatypeid=');
+      const testUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=DLY-TAVG-NORMAL&datatypeid=DLY-TMIN-NORMAL&datatypeid=DLY-TMAX-NORMAL&stationid=${station}&startdate=${startDate}&enddate=${endDate}&limit=200`;
+      const cdoUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=${dataTypeString}&stationid=${station}&startdate=2010-${startDate}&enddate=2010-${endDate}&limit=200`
+      // const access_token = process.env.NCDC_API_TOKEN;
+      await Axios.get(testUrl, {
+        headers: {
+          token:'lpaFBWqsqoJMWftpmRCmdSvecTcjbUuZ'
+        }
+      })
+      .then((res) => {
+        console.log(res.data);
+        const averageTemp = res.data.results[0].value/10;
+        const averageHigh = res.data.results[1].value/10;
+        const averageLow = res.data.results[2].value/10;
+        let newD = new Date();
+        let year = newD.getUTCFullYear();
+        
+        for (let i = 0; i < res.data.results.length; i++) {
+          let dlyTimestamp2 = new Date(res.data.results[i].date); //.setFullYear(year)
+          let dlyTimestamp = dlyTimestamp2.setFullYear(year);
+          averages.push({
+            // time: res.data.results[i].date.setFullYear(year),
+            time: new Date(dlyTimestamp),
+            // timestampSeconds: res.data.results[i].date.setFullYear(year),
+            timestampSeconds: dlyTimestamp/1000,
+            type: res.data.results[i].datatype,
+            temp: res.data.results[i].value/10,
+          });
+        };
+        console.log(`averages: ${averages}`);
+      })
+      .catch((error) => {
+        console.error(error)
+      });
+    }
+
+    async function fetchHrly(station, startDate, endDate, dataSet, dataTypes) {
+      let dataTypeString = dataTypes.join('&datatypeid=');
+      const cdoUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=${dataTypeString}&stationid=${station}&startdate=${startDate}&enddate=${endDate}&limit=200`;
+      await Axios.get(cdoUrl, {
+        headers: {
+          token:'lpaFBWqsqoJMWftpmRCmdSvecTcjbUuZ'
+        }
+      })
+      .then((res2) => {
+        // hrlyAverages = res2.data;
+        console.log(res2.data);
+        let newD = new Date();
+        let year = newD.getUTCFullYear();
+        // let hlyTimestamp =
+        for (let j = 0; j < res2.data.results.length; j++) {
+          let hlyTimestamp2 = new Date(res2.data.results[j].date); //.setFullYear(year);
+          let hlyTimestamp = hlyTimestamp2.setFullYear(year);
+          hrlyAverages.push({
+            timestamp: new Date(hlyTimestamp).toISOString(),
+            timestampSeconds: hlyTimestamp/1000,
+            type: res2.data.results[j].datatype,
+            temp: res2.data.results[j].value/10,
+          })};
+        }
+      )
+      .catch((error) => {
+        console.error(error)
+      });
+    }
+
+    async function fetchData() {
+      let times = {
+        startDate: "",
+        endDate: "",
+        startTime: "",
+        endTime: ""
+      }
+      let tempState = {};
+      // await curlTest('GHCND:USC00186350');
+      const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
+      const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
+      await Axios.get(apiUrl).then((data) => {
+        const tOffset = data.data.timezone_offset;
+        // console.log(tOffset);
+        const minutely = data.data.minutely;
+        const minutelyMerged = [];
+        minutely && minutely.forEach((element, index) => {
+          const timestamp = formatTime(element.dt, tOffset);
+          const rawTimestamp = (element.dt + tOffset);
+          minutelyMerged[index] = {
+            // time: timestamp,
+            time: rawTimestamp,
+            precipitation: element.precipitation
+          }
+        });
+        const daily = data.data.daily;
+        const dailyMerged = []
+        daily.forEach((element, index) => {
+          const timestamp = formatTime(element.dt, tOffset);
+          const rawTimestamp = (element.dt + tOffset);
+          dailyMerged[index] = {
+            // time: timestamp,
+            time: rawTimestamp,
+            element
+          }
+        });
+        const hourly = data.data.hourly;
+        const merged = [];
+        const tempMinMax = [];
+        hourly.forEach((element, index) => {
+          const rawTimestamp = element.dt + tOffset;
+          // const timestamp = (element.dt) / 1000;
+          const timestamp = (element.dt);
+          tempMinMax.push(element.temp);
+          merged[index] = {
+            // time: timestamp,
+            rawTimestamp: rawTimestamp * 1000,
+            time: timestamp,
+            offset: tOffset,
+            temp: element.temp.toFixed(0),
+            humidity: element.humidity,
+            pop: (element.pop * 100),
+            feelsLike: element.feels_like.toFixed(0),
+            pressure: (element.pressure * 0.0295300).toFixed(2),
+            dewPoint: element.dew_point.toFixed(0),
+            uvi: element.uvi,
+            clouds: element.clouds,
+            visibility: element.visibility,
+            windSpeed: element.wind_speed,
+            windDeg: element.wind_deg,
+            weather: element.weather,
+            };
+        });
+        let refData = Array.from(merged);
+        let ref = "temp";
+        let timeRef = "rawTimestamp";
+        let startTimeTemp = new Date(refData[0][timeRef]);
+        let endTimeTemp = new Date(refData[refData.length-1][timeRef]);
+        startTimeTemp.setFullYear(2010);
+        endTimeTemp.setFullYear(2010);
+        var startTimeIso = startTimeTemp.toISOString();
+        var endTimeIso = endTimeTemp.toISOString();
+        var finalStartTime = startTimeIso.slice(0,19);
+        var finalEndTime = endTimeIso.slice(0,19);
+        console.log(`Start times and end times: ${startTimeIso}, ${endTimeIso}, ${finalStartTime}, ${finalEndTime}`)
+        times = {
+          startDate: format(new Date(refData[0][timeRef]), "MM-dd"),
+          endDate: format(new Date(refData[refData.length-1][timeRef]), "MM-dd"),
+          startTime: finalStartTime,
+          endTime: finalEndTime,
+        }
+        console.log(`Times object: ${times['startDate']}, ${times['endDate']}`);
+        let [bottom, top] = [refData[0][ref], refData[0][ref]];
+        refData.forEach((d) => {
+          if (d[ref] > top) top = d[ref];
+          if (d[ref] < bottom) bottom = d[ref];
+        });
+        let bottomColor = getRgb(20, 100, bottom);
+        let topColor = getRgb(20, 100, top);
+        let ref2 = "feelsLike";
+        let [bottom2, top2] = [refData[0][ref2], refData[0][ref2]];
+        refData.forEach((d) => {
+          if (d[ref2] > top2) top2 = d[ref2];
+          if (d[ref2] < bottom2) bottom2 = d[ref2];
+        });
+        let bottomColor2 = getRgb(20, 100, bottom2);
+        let topColor2 = getRgb(20, 100, top2);
+        tempState = {
+          data: merged.slice(), 
+          dailyData: dailyMerged.slice(), 
+          minutelyData: minutelyMerged.slice(), 
+          // allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()],
+          min: bottomColor,
+          max: topColor,
+          feelsLikeMin: bottomColor2,
+          feelsLikeMax: topColor2,
+        }
+      });
+      await curlTest('GHCND:USC00186350', times['startTime'], times['endTime'], 'NORMAL_DLY', ['DLY-TAVG-NORMAL', 'DLY-TMIN-NORMAL', 'DLY-TMAX-NORMAL']);
+      await fetchHrly('GHCND:USW00013743', times['startTime'], times['endTime'], 'NORMAL_HLY', ['HLY-TEMP-NORMAL', 'HLY-TEMP-10PCTL','HLY-TEMP-90PCTL'])
+      .then(() => {
+        console.log(hrlyAverages);
+        setState({
+          ...state,
+          ...tempState,
+          hlyAverages: hrlyAverages,
+          dlyAverages: averages,
+          dailyAverageTemp: averages[0]['temp'],
+          averageLow: averages[1]['temp'],
+          averageHigh: averages[2]['temp']
+        })
+      })
+      setLoaded(true);
+    }
+    
+    fetchData();
+  },
+    [setState]
+  )
 
   const isOpen = Boolean(anchorEl);
 
@@ -696,9 +812,12 @@ function HourlyForecast(props) {
                 </defs>
                 <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false} />
                 <ReferenceArea y1={state.averageLow} y2={state.averageHigh} yAxisId="1" 
-                  fill="url(#averageTempsUv)" stroke="url(#averageTempsUv)" strokeWidth={2}
+                  fill="url(#averageTempsUv)" stroke="url(#averageTempsUv)" strokeWidth={1}
+                  // alwaysShow={true}
+                  ifOverflow="extendDomain"
                   // label={state.averageHigh}
                 />
+                
                 <XAxis
                   allowDataOverflow
                   dataKey="time"
@@ -811,6 +930,8 @@ function HourlyForecast(props) {
                   fill={state.activeArea === "feelsLike" ? "url(#feelsLikeUv)" : "url(#inactiveFeelsLikeUv)"}
                   hide={hideArea.hidden.feelsLike}
                 />
+                Change this into an area component, but don't give it a fill.
+                {state.dailyAverageTemp > 0 && <ReferenceLine yAxisId="1" y={state.dailyAverageTemp} strokeWidth={2} stroke="#d91ddd55" strokeDasharray="3 3" ifOverflow="extendDomain"/>}
                 {state.refAreaLeft && state.refAreaRight ? (
                   <ReferenceArea
                     yAxisId="1"
