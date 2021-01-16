@@ -110,7 +110,7 @@ function getRgb(minimum, maximum, value) {
 }
 
 function formatTime(unix, offset) {
-  const seconds = unix - offset;
+  const seconds = unix + offset;
   const secs = seconds * 1000;
   
   return format(new Date(secs), "MMM d hh:mm:ss");
@@ -241,6 +241,7 @@ const HeatmapDot = (props) => {
 
 const itemHeight = 200;
 const options = ["Dense", "Compact"];
+const dataSets = ["Minutely", "Hourly", "Daily"];
 
 function HourlyForecast(props) {
   const { title, classes, theme, height, width } = props;
@@ -259,6 +260,8 @@ function HourlyForecast(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOption, setSelectedOption] = useState("Compact");
   const [isDragging, setIsDragging] = useState(false);
+  const [dataset, selectDataset] = useState(false);
+  // const [dataset, selectDataset] = useState("Hourly");
 
   const handleHiddenChange = (event) => {
     setHidden(event.target.checked);
@@ -406,6 +409,11 @@ function HourlyForecast(props) {
     })
   };
 
+  const changeData = (o) => {
+    // const { dataChoice } = o;
+    selectDataset(!dataset);
+  }
+
   useEffect(() => {
     const averages = [];
     const hrlyAverages = [];
@@ -413,8 +421,8 @@ function HourlyForecast(props) {
     async function curlTest(station, startDate, endDate, dataSet, dataTypes) {
       let dataTypeString = dataTypes.join('&datatypeid=');
       const testUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=DLY-TAVG-NORMAL&datatypeid=DLY-TMIN-NORMAL&datatypeid=DLY-TMAX-NORMAL&stationid=${station}&startdate=${startDate}&enddate=${endDate}&limit=200`;
-      const cdoUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=${dataTypeString}&stationid=${station}&startdate=2010-${startDate}&enddate=2010-${endDate}&limit=200`
-      // const access_token = process.env.NCDC_API_TOKEN;
+      
+      // const access_token = process.env.REACT_APP_NCDC_API_TOKEN;
       await Axios.get(testUrl, {
         headers: {
           token:'lpaFBWqsqoJMWftpmRCmdSvecTcjbUuZ'
@@ -435,6 +443,7 @@ function HourlyForecast(props) {
             timestampSeconds: dlyTimestamp/1000,
             type: res.data.results[i].datatype,
             temp: (res.data.results[i].value/10).toFixed(0),
+            windDeg: 0
           });
         };
         // console.log(`averages: ${averages}`);
@@ -483,7 +492,6 @@ function HourlyForecast(props) {
         endTime: ""
       }
       let tempState = {};
-      // await curlTest('GHCND:USC00186350');
       const API_KEY = process.env.REACT_APP_OPEN_WEATHER_MAP_API;
       const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${myLocation.lat}&lon=${myLocation.lon}&units=imperial&appid=${API_KEY}`;
       await Axios.get(apiUrl).then((data) => {
@@ -492,10 +500,10 @@ function HourlyForecast(props) {
         const minutely = data.data.minutely;
         const minutelyMerged = [];
         minutely && minutely.forEach((element, index) => {
-          const timestamp = formatTime(element.dt, tOffset);
+          const dateTime = formatTime(element.dt, tOffset);
           const rawTimestamp = (element.dt + tOffset);
           minutelyMerged[index] = {
-            // time: timestamp,
+            dateTime: dateTime,
             time: rawTimestamp,
             precipitation: element.precipitation
           }
@@ -503,24 +511,65 @@ function HourlyForecast(props) {
         const daily = data.data.daily;
         const dailyMerged = []
         daily.forEach((element, index) => {
-          const timestamp = formatTime(element.dt, tOffset);
           const rawTimestamp = (element.dt + tOffset);
-          dailyMerged[index] = {
-            // time: timestamp,
+          const dailyCommonProps = {
+            tempMin: element.temp.min.toFixed(0),
+            tempMax: element.temp.max.toFixed(0),
+            pressure: (element.pressure * 0.0295300).toFixed(2),
+            humidity: element.humidity,
+            dewPoint: element.dew_point.toFixed(0),
+            uvi: element.uvi,
+            clouds: element.clouds,
+            visibility: 0,
+            windSpeed: element.wind_speed,
+            windDeg: element.wind_deg,
+            weather: element.weather,
+            pop: (element.pop * 100),
+            rain: element.rain
+          };
+          dailyMerged.push({
+            ...dailyCommonProps,
+            temp:  element.temp.morn.toFixed(0),
+            feelsLike: element.feels_like.morn.toFixed(0),
+            time: rawTimestamp - 21600,
+            rawTimestamp: (rawTimestamp - 21600) * 1000,
+            dateTime: formatTime(element.dt - 21600, 0)
+          });
+          dailyMerged.push({
+            ...dailyCommonProps,
+            temp:  element.temp.day.toFixed(0),
+            feelsLike:  element.feels_like.day.toFixed(0),
             time: rawTimestamp,
-            element
-          }
+            rawTimestamp: (rawTimestamp) * 1000,
+            dateTime: formatTime(element.dt, 0)
+          });
+          dailyMerged.push({
+            ...dailyCommonProps,
+            temp:  element.temp.eve.toFixed(0),
+            feelsLike: element.feels_like.eve.toFixed(0),
+            time: rawTimestamp + 21600,
+            rawTimestamp: (rawTimestamp + 21600) * 1000,
+            dateTime: formatTime(element.dt + 21600, 0)
+          });
+          dailyMerged.push({
+            ...dailyCommonProps,
+            temp:  element.temp.night.toFixed(0),
+            feelsLike: element.feels_like.night.toFixed(0),
+            time: rawTimestamp + 43200,
+            rawTimestamp: (rawTimestamp + 43200) * 1000,
+            dateTime: formatTime(element.dt + 43200, 0)
+          });
         });
         const hourly = data.data.hourly;
         const merged = [];
         const tempMinMax = [];
         hourly.forEach((element, index) => {
           const rawTimestamp = element.dt + tOffset;
-          // const timestamp = (element.dt) / 1000;
+          const dateTime = formatTime(element.dt, tOffset);
           const timestamp = (element.dt);
           tempMinMax.push(element.temp);
           merged[index] = {
-            // time: timestamp,
+            dateTIme: dateTime,
             rawTimestamp: rawTimestamp * 1000,
             time: timestamp,
             offset: tOffset,
@@ -540,10 +589,12 @@ function HourlyForecast(props) {
             };
         });
         let refData = Array.from(merged);
+        let longRefData = Array.from(dailyMerged);
         let ref = "temp";
         let timeRef = "rawTimestamp";
         let startTimeTemp = new Date(refData[0][timeRef]);
-        let endTimeTemp = new Date(refData[refData.length-1][timeRef]);
+        // let endTimeTemp = new Date(refData[refData.length-1][timeRef]);
+        let endTimeTemp = new Date(longRefData[longRefData.length-1][timeRef]);
         startTimeTemp.setFullYear(2010);
         endTimeTemp.setFullYear(2010);
         var startTimeIso = startTimeTemp.toISOString();
@@ -573,6 +624,12 @@ function HourlyForecast(props) {
         });
         let bottomColor2 = getRgb(20, 100, bottom2);
         let topColor2 = getRgb(20, 100, top2);
+        const dailyTempMinMax = dailyMerged.map(a => a.temp);
+        const dailyFeelsMinMax = dailyMerged.map(a => a.feelsLike);
+        const dailyTempMin = Math.min(...dailyTempMinMax);
+        const dailyTempMax = Math.max(...dailyTempMinMax);
+        const dailyFeelsMin = Math.min(...dailyFeelsMinMax);
+        const dailyFeelsMax = Math.max(...dailyFeelsMinMax);
         tempState = {
           data: merged.slice(), 
           dailyData: dailyMerged.slice(), 
@@ -582,7 +639,10 @@ function HourlyForecast(props) {
           max: topColor,
           feelsLikeMin: bottomColor2,
           feelsLikeMax: topColor2,
-          
+          dailyTempMin: getRgb(20, 100, dailyTempMin),
+          dailyTempMax: getRgb(20, 100, dailyTempMax),
+          dailyFeelsMin: getRgb(20, 100, dailyFeelsMin),
+          dailyFeelsMax: getRgb(20, 100, dailyFeelsMax),
         }
       });
       await curlTest('GHCND:USC00186350', times['startTime'], times['endTime'], 'NORMAL_DLY', ['DLY-TAVG-NORMAL', 'DLY-TMIN-NORMAL', 'DLY-TMAX-NORMAL']);
@@ -654,6 +714,9 @@ function HourlyForecast(props) {
             <Button className="btn update" onClick={zoomOut}>
               Zoom Out
             </Button>
+            <Button className="btn update" onClick={changeData}>
+              {dataset ? "Switch to hourly" : "Switch to daily"}
+            </Button>
             <div>
               <IconButton
                 aria-label="More"
@@ -700,7 +763,8 @@ function HourlyForecast(props) {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: 0, left: -30 }}
-                data={state.data}
+                // data={dataset === "Daily" ? state.dailyData : dataset === "Hourly" ? state.data : state.minutelyData}
+                data={dataset ? state.dailyData : state.data }
                 onMouseDown={(e) =>
                   e && e.activeLabel && setState({
                     ...state,
@@ -729,6 +793,14 @@ function HourlyForecast(props) {
                   <linearGradient id="activeHeatmapUv" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={state.max} stopOpacity={0.95}/>
                     <stop offset="100%" stopColor={state.min} stopOpacity={0.5}/>
+                  </linearGradient>
+                  <linearGradient id="heatmapUvDaily" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={state.dailyTempMax} stopOpacity={state.activeArea === "temp" ? 0.95 : 0.3}/>
+                    <stop offset="100%" stopColor={state.dailyTempMin} stopOpacity={state.activeArea === "temp" ? 0.5 : 0.1}/>
+                  </linearGradient>
+                  <linearGradient id="feelsLikeUvDaily" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={state.dailyFeelsMax} stopOpacity={state.activeArea === "feelsLike" ? 0.95 : 0.3}/>
+                    <stop offset="100%" stopColor={state.dailyFeelsMin} stopOpacity={state.activeArea === "feelsLike" ? 0.5 : 0.1}/>
                   </linearGradient>
                   <linearGradient id="feelsLikeUv" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={state.feelsLikeMax} stopOpacity={0.95}/>
@@ -892,8 +964,8 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "temp" ? 2 : 1 }
-                  stroke="url(#activeHeatmapUv)"
-                  fill={state.activeArea === "temp" ? "url(#activeHeatmapUv)" : "url(#inactiveHeatmapUv)"}
+                  stroke={dataset ? "url(#heatmapUvDaily)" : "url(#activeHeatmapUv)"}
+                  fill={state.activeArea === "temp" && !dataset ? "url(#activeHeatmapUv)" : dataset ? "url(#heatmapUvDaily)" : "url(#inactiveHeatmapUv)"}
                   hide={hideArea.hidden.temp}
                 />
                 <Area
@@ -917,8 +989,8 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "feelsLike" ? 2 : 1 }
-                  stroke="url(#feelsLikeUv)"
-                  fill={state.activeArea === "feelsLike" ? "url(#feelsLikeUv)" : "url(#inactiveFeelsLikeUv)"}
+                  stroke={dataset ? "url(#feelsLikeUvDaily)" : "url(#feelsLikeUv)"}
+                  fill={state.activeArea === "feelsLike" && !dataset ? "url(#feelsLikeUv)" :  dataset ? "url(#feelsLikeUvDaily)" : "url(#inactiveFeelsLikeUv)"}
                   hide={hideArea.hidden.feelsLike}
                 />
                 <Area
@@ -1601,6 +1673,32 @@ export default withStyles(styles, { withTheme: true })(
 );
 
 /*
+
+... From setting the daily data ... ~Line 558
+          // dailyMerged[index] = {
+          //   time: rawTimestamp,
+          //   rawTimestamp: rawTimestamp * 1000,
+          //   dateTime: dateTime,
+          //   tempMorn: element.temp.morn.toFixed(0),
+          //   temp: element.temp.day.toFixed(0),
+          //   tempEve: element.temp.eve.toFixed(0),
+          //   tempNight: element.temp.night.toFixed(0),
+          //   tempMin: element.temp.min.toFixed(0),
+          //   tempMax: element.temp.max.toFixed(0),
+          //   feelsLike: element.feels_like.day.toFixed(0),
+          //   pressure: (element.pressure * 0.0295300).toFixed(2),
+          //   humidity: element.humidity,
+          //   dewPoint: element.dew_point.toFixed(0),
+          //   uvi: element.uvi,
+          //   clouds: element.clouds,
+          //   visibility: element.visibility,
+          //   windSpeed: element.wind_speed,
+          //   windDeg: element.wind_deg,
+          //   weather: element.weather,
+          //   pop: (element.pop * 100),
+          //   // element
+          // }
+
 async function fetchAverageTemps() {
     if (loaded) return;
     const nwsDcanmeUrl = "https://www.weather.gov/lwx/dcanme";
