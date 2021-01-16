@@ -10,8 +10,11 @@ import {
   Box,
   Grid,
   IconButton,
+  isWidthDown,
+  isWidthUp,
   Typography,
   withStyles,
+  withWidth,
 } from "@material-ui/core"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskCard from "./TaskCard";
@@ -110,7 +113,7 @@ const move = (source, destination, droppableSource, droppableDestination) => {
 };
 
 function Notes(props) {
-  const { classes, selectNotes, } = props;
+  const { classes, selectNotes, width } = props;
   const [notes, setNotes] = useState([]);
   const [noteCards, setNoteCards] = useState([getItems(10), getItems(5, 10)]);
   const [state, setState] = useState([getItems(10), getItems(5, 10)]);
@@ -288,7 +291,7 @@ function Notes(props) {
         <Box p={0}>
           <Grid container spacing={4} justify="flex-start" style={{}}>
             {state.map((el, ind) => (
-            <Grid container direction="column" justify="flex-start" item xs={4} key={ind} style={{}}>
+            <Grid container direction="column" justify="flex-start" item xs={isWidthDown('sm', width, true) ? 12 : isWidthDown('md', width, true) ? 6 : 4 } key={ind} style={{}}>
               <Box alignItems="center" justifyContent="center" className={classes.taskColumn} p={1}>
                 <Droppable key={colName[ind]} droppableId={`${colName[ind]}`}>
                   {(provided, snapshot) => (
@@ -299,7 +302,7 @@ function Notes(props) {
                       {...provided.droppableProps}
                     >
                       <Grid item><Box className={classes.cardTitle}><Typography variant="h6" align="left">{colNames[ind]}</Typography></Box></Grid>
-                      <Grid item container spacing={1} direction="column" justify="center">
+                      <Grid container spacing={1} direction="column" justify="center">
                         {el.length > 0 && el.map((note, index) => (
                           <Grid item xs key={index}>
                             <Draggable key={note.id} draggableId={note.id} index={index}>
@@ -351,7 +354,7 @@ Notes.propTypes = {
   classes: PropTypes.object,
 }
 
-export default withStyles(styles, { withTheme: true })(Notes);
+export default withStyles(styles, { withTheme: true })(withWidth()(Notes));
 
 
 // {/* <Card className={classes.card}>
