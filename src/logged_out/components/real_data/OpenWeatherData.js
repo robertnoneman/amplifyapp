@@ -429,24 +429,25 @@ function HourlyForecast(props) {
         }
       })
       .then((res) => {
-        // console.log(res.data);
+        console.log(res.data);
         let newD = new Date();
         let year = newD.getUTCFullYear();
         
         for (let i = 0; i < res.data.results.length; i++) {
           let dlyTimestamp2 = new Date(res.data.results[i].date); //.setFullYear(year)
           let dlyTimestamp = dlyTimestamp2.setFullYear(year);
-          averages.push({
+          averages[i] = {
             // time: res.data.results[i].date.setFullYear(year),
-            time: new Date(dlyTimestamp),
+            time: dlyTimestamp/1000,
             // timestampSeconds: res.data.results[i].date.setFullYear(year),
             timestampSeconds: dlyTimestamp/1000,
+            timestamp: new Date(dlyTimestamp).toISOString(),
             type: res.data.results[i].datatype,
-            temp: (res.data.results[i].value/10).toFixed(0),
+            tempAvg: (res.data.results[i].value/10).toFixed(0),
             windDeg: 0
-          });
+          };
         };
-        // console.log(`averages: ${averages}`);
+        console.log(`averages: ${averages.tempAvg}`);
       })
       .catch((error) => {
         console.error(error)
@@ -463,7 +464,7 @@ function HourlyForecast(props) {
       })
       .then((res2) => {
         // hrlyAverages = res2.data;
-        // console.log(res2.data);
+        console.log(res2.data);
         let newD = new Date();
         let year = newD.getUTCFullYear();
         // let hlyTimestamp =
@@ -476,9 +477,10 @@ function HourlyForecast(props) {
             type: res2.data.results[j].datatype,
             tempAvg: (res2.data.results[j].value/10).toFixed(0),
             windDeg: 0
-          })};
-        }
-      )
+          })
+        };
+        console.log(`Hourly Averages: ${hrlyAverages.tempAvg}`);
+      })
       .catch((error) => {
         console.error(error)
       });
@@ -509,10 +511,11 @@ function HourlyForecast(props) {
           }
         });
         const daily = data.data.daily;
-        const dailyMerged = []
+        const dailyMerged = [];
+        const dailyData = [];
         daily.forEach((element, index) => {
           const rawTimestamp = (element.dt + tOffset);
-          const dailyCommonProps = {
+          dailyMerged[index] = {
             tempMin: element.temp.min.toFixed(0),
             tempMax: element.temp.max.toFixed(0),
             pressure: (element.pressure * 0.0295300).toFixed(2),
@@ -525,41 +528,123 @@ function HourlyForecast(props) {
             windDeg: element.wind_deg,
             weather: element.weather,
             pop: (element.pop * 100),
-            rain: element.rain
-          };
-          dailyMerged.push({
-            ...dailyCommonProps,
-            temp:  element.temp.morn.toFixed(0),
-            feelsLike: element.feels_like.morn.toFixed(0),
-            time: rawTimestamp - 21600,
-            rawTimestamp: (rawTimestamp - 21600) * 1000,
-            dateTime: formatTime(element.dt - 21600, 0)
-          });
-          dailyMerged.push({
-            ...dailyCommonProps,
+            rain: element.rain,
+            tempMorn:  element.temp.morn.toFixed(0),
+            feelsLikeMorn: element.feels_like.morn.toFixed(0),
+            timeMorn: rawTimestamp - 21600,
             temp:  element.temp.day.toFixed(0),
             feelsLike:  element.feels_like.day.toFixed(0),
             time: rawTimestamp,
+            tempEve:  element.temp.eve.toFixed(0),
+            feelsLikeEve: element.feels_like.eve.toFixed(0),
+            timeEve: rawTimestamp + 21600,
+            tempNight:  element.temp.night.toFixed(0),
+            feelsLikeNight: element.feels_like.night.toFixed(0),
+            timeNight: rawTimestamp + 43200,
+            tempAvg: "",
             rawTimestamp: (rawTimestamp) * 1000,
             dateTime: formatTime(element.dt, 0)
-          });
-          dailyMerged.push({
-            ...dailyCommonProps,
-            temp:  element.temp.eve.toFixed(0),
-            feelsLike: element.feels_like.eve.toFixed(0),
-            time: rawTimestamp + 21600,
-            rawTimestamp: (rawTimestamp + 21600) * 1000,
-            dateTime: formatTime(element.dt + 21600, 0)
-          });
-          dailyMerged.push({
-            ...dailyCommonProps,
-            temp:  element.temp.night.toFixed(0),
-            feelsLike: element.feels_like.night.toFixed(0),
-            time: rawTimestamp + 43200,
-            rawTimestamp: (rawTimestamp + 43200) * 1000,
-            dateTime: formatTime(element.dt + 43200, 0)
-          });
+          };
         });
+        let dailyTempMorn = dailyMerged.map((a) => ({ 
+            temp: a.tempMorn,
+            feelsLike: a.feelsLikeMorn,
+            time: a.timeMorn,
+            rawTimestamp: a.timeMorn * 1000,
+            tempMin: a.tempMin,
+            tempMax: a.tempMax,
+            pressure: a.pressure,
+            humidity: a.humidity,
+            dewPoint: a.dewPoint,
+            uvi: a.uvi,
+            clouds: a.clouds,
+            visibility: a.visibility,
+            windSpeed: a.windSpeed,
+            windDeg: a.windDeg,
+            weather: a.weather,
+            pop: a.pop,
+            rain: a.rain,
+            })
+          );
+          let dailyTempDay = dailyMerged.map((a) => ({ 
+            temp: a.temp,
+            feelsLike: a.feelsLike,
+            time: a.time,
+            rawTimestamp: a.time * 1000,
+            tempMin: a.tempMin,
+            tempMax: a.tempMax,
+            pressure: a.pressure,
+            humidity: a.humidity,
+            dewPoint: a.dewPoint,
+            uvi: a.uvi,
+            clouds: a.clouds,
+            visibility: a.visibility,
+            windSpeed: a.windSpeed,
+            windDeg: a.windDeg,
+            weather: a.weather,
+            pop: a.pop,
+            rain: a.rain,
+            })
+          );
+          let dailyTempEve = dailyMerged.map((a) => ({ 
+            temp: a.tempEve,
+            feelsLike: a.feelsLikeEve,
+            time: a.timeEve,
+            rawTimestamp: a.timeEve * 1000,
+            tempMin: a.tempMin,
+            tempMax: a.tempMax,
+            pressure: a.pressure,
+            humidity: a.humidity,
+            dewPoint: a.dewPoint,
+            uvi: a.uvi,
+            clouds: a.clouds,
+            visibility: a.visibility,
+            windSpeed: a.windSpeed,
+            windDeg: a.windDeg,
+            weather: a.weather,
+            pop: a.pop,
+            rain: a.rain,
+            })
+          );
+          let dailyTempNight = dailyMerged.map((a) => ({ 
+            temp: a.tempNight,
+            feelsLike: a.feelsLikeNight,
+            time: a.timeNight,
+            rawTimestamp: a.timeNight * 1000,
+            tempMin: a.tempMin,
+            tempMax: a.tempMax,
+            pressure: a.pressure,
+            humidity: a.humidity,
+            dewPoint: a.dewPoint,
+            uvi: a.uvi,
+            clouds: a.clouds,
+            visibility: a.visibility,
+            windSpeed: a.windSpeed,
+            windDeg: a.windDeg,
+            weather: a.weather,
+            pop: a.pop,
+            rain: a.rain,
+            })
+          );
+          dailyTempMorn.forEach((d) => {
+           dailyData.push(d) 
+          });
+          dailyTempDay.forEach((d) => {
+            dailyData.push(d) 
+          });
+          dailyTempEve.forEach((d) => {
+            dailyData.push(d) 
+          });
+          dailyTempNight.forEach((d) => {
+            dailyData.push(d) 
+          });          
+          dailyData.sort(function(a, b){return a.time - b.time});
+          dailyData.forEach((day) => {
+            console.log(`${day.time} ${day.temp}`)
+          });
+
+////////////////////// TODO: create a NEW dailyData array, populate it by extracting tempMorn, temp, tempEve, and tempNight (plus feelsLike and time)
+
         const hourly = data.data.hourly;
         const merged = [];
         const tempMinMax = [];
@@ -589,7 +674,7 @@ function HourlyForecast(props) {
             };
         });
         let refData = Array.from(merged);
-        let longRefData = Array.from(dailyMerged);
+        let longRefData = Array.from(dailyData);
         let ref = "temp";
         let timeRef = "rawTimestamp";
         let startTimeTemp = new Date(refData[0][timeRef]);
@@ -624,15 +709,16 @@ function HourlyForecast(props) {
         });
         let bottomColor2 = getRgb(20, 100, bottom2);
         let topColor2 = getRgb(20, 100, top2);
-        const dailyTempMinMax = dailyMerged.map(a => a.temp);
-        const dailyFeelsMinMax = dailyMerged.map(a => a.feelsLike);
+        const dailyTempMinMax = dailyData.map(a => a.temp);
+        const dailyFeelsMinMax = dailyData.map(a => a.feelsLike);
         const dailyTempMin = Math.min(...dailyTempMinMax);
         const dailyTempMax = Math.max(...dailyTempMinMax);
         const dailyFeelsMin = Math.min(...dailyFeelsMinMax);
         const dailyFeelsMax = Math.max(...dailyFeelsMinMax);
         tempState = {
+          ...tempState,
           data: merged.slice(), 
-          dailyData: dailyMerged.slice(), 
+          dailyData: dailyData.slice(), 
           minutelyData: minutelyMerged.slice(), 
           // allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()],
           min: bottomColor,
@@ -645,7 +731,104 @@ function HourlyForecast(props) {
           dailyFeelsMax: getRgb(20, 100, dailyFeelsMax),
         }
       });
-      await curlTest('GHCND:USC00186350', times['startTime'], times['endTime'], 'NORMAL_DLY', ['DLY-TAVG-NORMAL', 'DLY-TMIN-NORMAL', 'DLY-TMAX-NORMAL']);
+      await curlTest('GHCND:USC00186350', times['startTime'], times['endTime'], 'NORMAL_DLY', ['DLY-TAVG-NORMAL', 'DLY-TMIN-NORMAL', 'DLY-TMAX-NORMAL'])
+      .then(() => {
+        function filterdAvg(value, index, array) {
+          return value['type'] === 'DLY-TAVG-NORMAL';
+        }
+        function filterdLows(value, index, array) {
+          return value['type'] === 'DLY-TMIN-NORMAL';
+        }
+        function filterdHighs(value, index, array) {
+          return value['type'] === 'DLY-TMAX-NORMAL';
+        }
+        let temptempdAvg = averages.filter(filterdAvg);
+        let temptempdLow = averages.filter(filterdLows);
+        let temptempdHigh = averages.filter(filterdHighs);
+        const dAvg = temptempdAvg.map(a => a.tempAvg);
+        const dLow = temptempdLow.map(a => a.tempAvg);
+        const dHigh = temptempdHigh.map(a => a.tempAvg);
+        for (let j = 0; j < tempState.dailyData.length; j++) {
+          let tempDay = tempState.dailyData[j];
+          if (j < 4) {
+            tempDay = {
+              ...tempDay,
+             tempAvg: temptempdAvg[0].tempAvg,
+             avgLow: temptempdLow[0].tempAvg,
+             avgHigh: temptempdHigh[0].tempAvg
+            //  time: hrlyAverages[i].time
+            }}
+            else if (j < 8) {
+              tempDay = {
+                ...tempDay,
+               tempAvg: temptempdAvg[1].tempAvg,
+               avgLow: temptempdLow[1].tempAvg,
+               avgHigh: temptempdHigh[1].tempAvg
+              //  time: hrlyAverages[i].time
+              }}
+            else if (j < 12) {
+                  tempDay = {
+                    ...tempDay,
+                   tempAvg: temptempdAvg[2].tempAvg,
+                   avgLow: temptempdLow[2].tempAvg,
+                   avgHigh: temptempdHigh[2].tempAvg
+                  //  time: hrlyAverages[i].time
+              }}
+              else if (j < 16) {
+                tempDay = {
+                  ...tempDay,
+                 tempAvg: temptempdAvg[3].tempAvg,
+                 avgLow: temptempdLow[3].tempAvg,
+                 avgHigh: temptempdHigh[3].tempAvg
+                //  time: hrlyAverages[i].time
+                }}
+              else if (j < 20) {
+                    tempDay = {
+                      ...tempDay,
+                     tempAvg: temptempdAvg[4].tempAvg,
+                     avgLow: temptempdLow[4].tempAvg,
+                     avgHigh: temptempdHigh[4].tempAvg
+                    //  time: hrlyAverages[i].time
+                }}
+                else if (j < 24) {
+                    tempDay = {
+                      ...tempDay,
+                     tempAvg: temptempdAvg[5].tempAvg,
+                     avgLow: temptempdLow[5].tempAvg,
+                     avgHigh: temptempdHigh[5].tempAvg
+                    //  time: hrlyAverages[i].time
+                }}
+                else if (j < 28) {
+                tempDay = {
+                  ...tempDay,
+                 tempAvg: temptempdAvg[6].tempAvg,
+                 avgLow: temptempdLow[6].tempAvg,
+                 avgHigh: temptempdHigh[6].tempAvg
+                //  time: hrlyAverages[i].time
+                }}
+              else if (j < 32) {
+                    tempDay = {
+                      ...tempDay,
+                     tempAvg: temptempdAvg[7].tempAvg,
+                     avgLow: temptempdLow[7].tempAvg,
+                     avgHigh: temptempdHigh[7].tempAvg
+                    //  time: hrlyAverages[i].time
+                }}
+          else tempDay = {...tempDay, tempAvg: temptempdAvg[6].tempAvg};
+          tempState.dailyData[j] = tempDay;
+        }
+        tempState.dailyData.sort(function(a, b){return a.time - b.time});
+        tempState = {
+          ...tempState,
+          lowestAvgDay: Math.min(...dAvg),
+          highestAvgDay: Math.max(...dAvg),
+          lowestLowDay: Math.min(...dLow),
+          highestLowDay: Math.max(...dLow),
+          lowestHighDay: Math.min(...dHigh),
+          highestHighDay: Math.max(...dHigh),
+        }
+      })
+
       await fetchHrly('GHCND:USW00013743', times['startTime'], times['endTime'], 'NORMAL_HLY', ['HLY-TEMP-NORMAL', 'HLY-TEMP-10PCTL','HLY-TEMP-90PCTL'])
       .then(() => {
         function filterAvg(value, index, array) {
@@ -657,27 +840,35 @@ function HourlyForecast(props) {
         function filterHighs(value, index, array) {
           return value['type'] === 'HLY-TEMP-90PCTL';
         }
+
         let temptempAvg = hrlyAverages.filter(filterAvg);
         let temptempLow = hrlyAverages.filter(filterLows);
         let temptempHigh = hrlyAverages.filter(filterHighs);
+        
         const lowestAvg = temptempAvg.map(a => a.tempAvg);
         const highestAvg = temptempAvg.map(a => a.tempAvg);
         const lowestLow = temptempLow.map(a => a.tempAvg);
         const highestLow = temptempLow.map(a => a.tempAvg);
         const lowestHigh = temptempHigh.map(a => a.tempAvg);
         const highestHigh = temptempHigh.map(a => a.tempAvg);
+        
         for (let i = 0; i < tempState.data.length; i++) {
           let tempHr = tempState.data[i];
           tempHr = {
             ...tempHr,
            tempAvg: temptempAvg[i].tempAvg,
            avgLow: temptempLow[i].tempAvg,
-           avgHigh: temptempHigh[i].tempAvg
+           avgHigh: temptempHigh[i].tempAvg,
+          //  tempAvgDay: temptempdAvg[i].tempAvg,
+          //  avgLowDay: temptempdLow[i].tempAvg,
+          //  avgHighDay: temptempHigh[i].tempAvg
           //  time: hrlyAverages[i].time
           }
           tempState.data[i] = tempHr;
         }
+        
         tempState.data.sort(function(a, b){return a.time - b.time});
+        
         // console.log(hrlyAverages);
         setState({
           ...state,
