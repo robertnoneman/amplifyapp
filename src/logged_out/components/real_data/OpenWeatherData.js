@@ -117,13 +117,23 @@ function formatTime(unix, offset) {
 }
 
 function labelFormatter(label, timeScale) {
+  
   if (label === null || label < 0 || label === -Infinity || label === Infinity) return;
   // const tempLabel = label * 1000 * 1000;
   const tempLabel = label * 1000;
   if (timeScale === "hours") return format(new Date(tempLabel), "h a");
   if (timeScale === "days") return format(new Date(tempLabel), "ccc");
+  if (timeScale === 'flexible') {
+   console.log(`tempLabel: ${(tempLabel)}`);
+    return format(new Date(tempLabel), 'ccc BBBB')
+  }
   return format(new Date(tempLabel), "ccc p");
 }
+
+function labelFormatterFlexible(label) {
+  return format(new Date(label*1000), 'ccc B')
+}
+
 
 function CustomizedAxisTick(props) {
   const {x, y, payload, timeScale} = props;
@@ -306,9 +316,15 @@ function HourlyForecast(props) {
   
     return [(bottom < bottomRef2 ? bottom : bottomRef2 | 0) - offset, (top > topRef2 ? top : topRef2 | 0) + offset];
   };
+  var logTimes = 0;
 
   const formatter = useCallback(
-    (value, name) => {
+    (value, name, props) => {
+      
+      if (logTimes < 1) {
+        console.log(`tooltip value passed to formatter: ${value}; name: ${name}; props: ${Object.keys(props)}, ${Object.values(props)}, ${Object.values(props.payload)}`)
+        logTimes++;
+        }
       return [value, name, title];
     },
     [title]
@@ -429,17 +445,13 @@ function HourlyForecast(props) {
         }
       })
       .then((res) => {
-        console.log(res.data);
         let newD = new Date();
         let year = newD.getUTCFullYear();
-        
         for (let i = 0; i < res.data.results.length; i++) {
           let dlyTimestamp2 = new Date(res.data.results[i].date); //.setFullYear(year)
           let dlyTimestamp = dlyTimestamp2.setFullYear(year);
           averages[i] = {
-            // time: res.data.results[i].date.setFullYear(year),
             time: dlyTimestamp/1000,
-            // timestampSeconds: res.data.results[i].date.setFullYear(year),
             timestampSeconds: dlyTimestamp/1000,
             timestamp: new Date(dlyTimestamp).toISOString(),
             type: res.data.results[i].datatype,
@@ -447,7 +459,6 @@ function HourlyForecast(props) {
             windDeg: 0
           };
         };
-        console.log(`averages: ${averages.tempAvg}`);
       })
       .catch((error) => {
         console.error(error)
@@ -463,11 +474,8 @@ function HourlyForecast(props) {
         }
       })
       .then((res2) => {
-        // hrlyAverages = res2.data;
-        console.log(res2.data);
         let newD = new Date();
         let year = newD.getUTCFullYear();
-        // let hlyTimestamp =
         for (let j = 0; j < res2.data.results.length; j++) {
           let hlyTimestamp2 = new Date(res2.data.results[j].date); //.setFullYear(year);
           let hlyTimestamp = hlyTimestamp2.setFullYear(year);
@@ -479,7 +487,6 @@ function HourlyForecast(props) {
             windDeg: 0
           })
         };
-        console.log(`Hourly Averages: ${hrlyAverages.tempAvg}`);
       })
       .catch((error) => {
         console.error(error)
@@ -513,8 +520,45 @@ function HourlyForecast(props) {
         const daily = data.data.daily;
         const dailyMerged = [];
         const dailyData = [];
+        const dailyWindPressure = [];
+        const dailyCloudsPop = [];
+        const dailyHumidDP =[];
         daily.forEach((element, index) => {
-          const rawTimestamp = (element.dt + tOffset);
+          const rawTimestamp = (element.dt);
+          dailyWindPressure[index] = {
+            time: rawTimestamp,
+            rawTimestamp: (rawTimestamp) * 1000,
+            windDeg: element.wind_deg,
+            windSpeed: element.wind_speed,
+            pressure: (element.pressure * 0.0295300).toFixed(2),
+            dateTime: formatTime(element.dt, 0)
+          };
+        });
+        daily.forEach((element, index) => {
+          const rawTimestamp = (element.dt);
+          dailyCloudsPop[index] = {
+            time: rawTimestamp,
+            rawTimestamp: (rawTimestamp) * 1000,
+            windDeg: 0,
+            rain: element.rain,
+            pop: (element.pop * 100),
+            clouds: element.clouds,
+            dateTime: formatTime(element.dt, 0),
+          };
+        });
+        daily.forEach((element, index) => {
+          const rawTimestamp = (element.dt);
+          dailyHumidDP[index] = {
+            time: rawTimestamp,
+            rawTimestamp: (rawTimestamp) * 1000,
+            windDeg: 0,
+            humidity: element.humidity,
+            dewPoint: element.dew_point.toFixed(0),
+            dateTime: formatTime(element.dt, 0),
+          };
+        });
+        daily.forEach((element, index) => {
+          const rawTimestamp = (element.dt);
           dailyMerged[index] = {
             tempMin: element.temp.min.toFixed(0),
             tempMax: element.temp.max.toFixed(0),
@@ -565,80 +609,80 @@ function HourlyForecast(props) {
             pop: a.pop,
             rain: a.rain,
             })
-          );
-          let dailyTempDay = dailyMerged.map((a) => ({ 
-            temp: a.temp,
-            feelsLike: a.feelsLike,
-            time: a.time,
-            rawTimestamp: a.time * 1000,
-            tempMin: a.tempMin,
-            tempMax: a.tempMax,
-            pressure: a.pressure,
-            humidity: a.humidity,
-            dewPoint: a.dewPoint,
-            uvi: a.uvi,
-            clouds: a.clouds,
-            visibility: a.visibility,
-            windSpeed: a.windSpeed,
-            windDeg: a.windDeg,
-            weather: a.weather,
-            pop: a.pop,
-            rain: a.rain,
-            })
-          );
-          let dailyTempEve = dailyMerged.map((a) => ({ 
-            temp: a.tempEve,
-            feelsLike: a.feelsLikeEve,
-            time: a.timeEve,
-            rawTimestamp: a.timeEve * 1000,
-            tempMin: a.tempMin,
-            tempMax: a.tempMax,
-            pressure: a.pressure,
-            humidity: a.humidity,
-            dewPoint: a.dewPoint,
-            uvi: a.uvi,
-            clouds: a.clouds,
-            visibility: a.visibility,
-            windSpeed: a.windSpeed,
-            windDeg: a.windDeg,
-            weather: a.weather,
-            pop: a.pop,
-            rain: a.rain,
-            })
-          );
-          let dailyTempNight = dailyMerged.map((a) => ({ 
-            temp: a.tempNight,
-            feelsLike: a.feelsLikeNight,
-            time: a.timeNight,
-            rawTimestamp: a.timeNight * 1000,
-            tempMin: a.tempMin,
-            tempMax: a.tempMax,
-            pressure: a.pressure,
-            humidity: a.humidity,
-            dewPoint: a.dewPoint,
-            uvi: a.uvi,
-            clouds: a.clouds,
-            visibility: a.visibility,
-            windSpeed: a.windSpeed,
-            windDeg: a.windDeg,
-            weather: a.weather,
-            pop: a.pop,
-            rain: a.rain,
-            })
-          );
-          dailyTempMorn.forEach((d) => {
-           dailyData.push(d) 
-          });
-          dailyTempDay.forEach((d) => {
-            dailyData.push(d) 
-          });
-          dailyTempEve.forEach((d) => {
-            dailyData.push(d) 
-          });
-          dailyTempNight.forEach((d) => {
-            dailyData.push(d) 
-          });          
-          dailyData.sort(function(a, b){return a.time - b.time});
+        );
+        let dailyTempDay = dailyMerged.map((a) => ({ 
+          temp: a.temp,
+          feelsLike: a.feelsLike,
+          time: a.time,
+          rawTimestamp: a.time * 1000,
+          tempMin: a.tempMin,
+          tempMax: a.tempMax,
+          pressure: a.pressure,
+          humidity: a.humidity,
+          dewPoint: a.dewPoint,
+          uvi: a.uvi,
+          clouds: a.clouds,
+          visibility: a.visibility,
+          windSpeed: a.windSpeed,
+          windDeg: a.windDeg,
+          weather: a.weather,
+          pop: a.pop,
+          rain: a.rain,
+          })
+        );
+        let dailyTempEve = dailyMerged.map((a) => ({ 
+          temp: a.tempEve,
+          feelsLike: a.feelsLikeEve,
+          time: a.timeEve,
+          rawTimestamp: a.timeEve * 1000,
+          tempMin: a.tempMin,
+          tempMax: a.tempMax,
+          pressure: a.pressure,
+          humidity: a.humidity,
+          dewPoint: a.dewPoint,
+          uvi: a.uvi,
+          clouds: a.clouds,
+          visibility: a.visibility,
+          windSpeed: a.windSpeed,
+          windDeg: a.windDeg,
+          weather: a.weather,
+          pop: a.pop,
+          rain: a.rain,
+          })
+        );
+        let dailyTempNight = dailyMerged.map((a) => ({ 
+          temp: a.tempNight,
+          feelsLike: a.feelsLikeNight,
+          time: a.timeNight,
+          rawTimestamp: a.timeNight * 1000,
+          tempMin: a.tempMin,
+          tempMax: a.tempMax,
+          pressure: a.pressure,
+          humidity: a.humidity,
+          dewPoint: a.dewPoint,
+          uvi: a.uvi,
+          clouds: a.clouds,
+          visibility: a.visibility,
+          windSpeed: a.windSpeed,
+          windDeg: a.windDeg,
+          weather: a.weather,
+          pop: a.pop,
+          rain: a.rain,
+          })
+        );
+        dailyTempMorn.forEach((d) => {
+          dailyData.push(d) 
+        });
+        dailyTempDay.forEach((d) => {
+          dailyData.push(d) 
+        });
+        dailyTempEve.forEach((d) => {
+          dailyData.push(d) 
+        });
+        dailyTempNight.forEach((d) => {
+          dailyData.push(d) 
+        });          
+        dailyData.sort(function(a, b){return a.time - b.time});
 
         const hourly = data.data.hourly;
         const merged = [];
@@ -714,7 +758,10 @@ function HourlyForecast(props) {
         tempState = {
           ...tempState,
           data: merged.slice(), 
-          dailyData: dailyData.slice(), 
+          dailyData: dailyData.slice(),
+          dailyWindPressure: dailyWindPressure.slice(),
+          dailyCloudsPop: dailyCloudsPop.slice(),
+          dailyHumidDP: dailyHumidDP.slice(),
           minutelyData: minutelyMerged.slice(), 
           // allData: [minutelyMerged.slice(), merged.slice(), dailyMerged.slice()],
           min: bottomColor,
@@ -863,7 +910,7 @@ function HourlyForecast(props) {
           }
           tempState.data[i] = tempHr;
         }
-        var increment = 0;
+        var increment = 20;
         for (let i = 0; i < tempState.data.length; i++) {
           let tempHr = tempState.dailyData[i];
           if (increment > 20) increment = 0;
@@ -912,9 +959,9 @@ function HourlyForecast(props) {
 
   return (
     <>
-    <Grid container direction="row" justify="space-between" spacing={3} style={{ marginBottom: 5, }} >
+    <Grid container direction="row" justify="space-between" spacing={3} style={{ marginBottom: 0, }} >
     {/* <Grid container item> */}
-      <Grid item xs={12} lg={12} xl={6} style={{ marginTop: "10px", }}>
+      <Grid item xs={12} lg={12} xl={6} style={isWidthUp('xl', width, true) ? { marginTop: "5px", marginBottom: "5px" } : { marginLeft: "10px", marginRight: "10px" } }>
         <Card className={classes.chartCard}>
           <Box display="flex" justifyContent="space-between">
             <Button className="btn update" onClick={zoomOut}>
@@ -963,12 +1010,10 @@ function HourlyForecast(props) {
             </div>
           </Box>
           <Box height={isWidthDown('md', width) ? 200 : selectedOption === "Compact" ? 400 : height} 
-            width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut}
-            overflow="hidden"
-          >
+            width="100%" display="flex" style={{userSelect: "none"}} onDoubleClick={zoomOut} overflow="hidden" >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 0, left: -20 } : {bottom: 10, top: 20, right: 0, left: -30 }}
+                margin={selectedOption === "Compact" ? {bottom: 10, top: 20, right: 20, left: 20 } : {bottom: 10, top: 20, right: 0, left: -30 }}
                 // data={dataset === "Daily" ? state.dailyData : dataset === "Hourly" ? state.data : state.minutelyData}
                 data={dataset ? state.dailyData : state.data }
                 onMouseDown={(e) =>
@@ -1007,6 +1052,14 @@ function HourlyForecast(props) {
                   <linearGradient id="feelsLikeUvDaily" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={state.dailyFeelsMax} stopOpacity={state.activeArea === "feelsLike" ? 0.95 : 0.3}/>
                     <stop offset="100%" stopColor={state.dailyFeelsMin} stopOpacity={state.activeArea === "feelsLike" ? 0.5 : 0.1}/>
+                  </linearGradient>
+                  <linearGradient id="heatmapUvDailyStroke" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={state.dailyTempMax} stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor={state.dailyTempMin} stopOpacity={0.5}/>
+                  </linearGradient>
+                  <linearGradient id="feelsLikeUvDailyStroke" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={state.dailyFeelsMax} stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor={state.dailyFeelsMin} stopOpacity={0.5}/>
                   </linearGradient>
                   <linearGradient id="feelsLikeUv" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={state.feelsLikeMax} stopOpacity={0.95}/>
@@ -1054,14 +1107,7 @@ function HourlyForecast(props) {
                     <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false} />
-                {/* <ReferenceArea y1={state.averageLow} y2={state.averageHigh} yAxisId="1" 
-                  fill="url(#averageTempsUv)" stroke="url(#averageTempsUv)" strokeWidth={1}
-                  // alwaysShow={true}
-                  ifOverflow="extendDomain"
-                  // label={state.averageHigh}
-                /> */}
-                
+                <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false} />                
                 <XAxis
                   allowDataOverflow
                   dataKey="time"
@@ -1072,7 +1118,7 @@ function HourlyForecast(props) {
                   isCategorial={false}
                   minTickGap={0}
                   tickCount={10}
-                  interval={3}
+                  interval={dataset && selectedOption === "Dense" && isWidthUp('sm', width) ? 0 : 3}
                   scale="time"
                   hide={selectedOption === "Compact" ? true : false}
                 />
@@ -1088,8 +1134,9 @@ function HourlyForecast(props) {
                   hide={selectedOption === "Compact" ? true : false}
                 />
                 <Tooltip
-                  labelFormatter={labelFormatter}
+                  labelFormatter={dataset ? labelFormatterFlexible : labelFormatter}
                   formatter={formatter}
+                  labelFormat='flexible'
                   allowEscapeViewBox={{ x: false, y: false }}
                   cursor={true}
                   offset={15}
@@ -1115,6 +1162,7 @@ function HourlyForecast(props) {
                     color: "white",
                     display: "none"
                   }}
+                  
                 />
                 <Legend 
                   align="center"
@@ -1170,7 +1218,7 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "temp" ? 2 : 1 }
-                  stroke={dataset ? "url(#heatmapUvDaily)" : "url(#activeHeatmapUv)"}
+                  stroke={dataset ? "url(#heatmapUvDailyStroke)" : "url(#activeHeatmapUv)"}
                   fill={state.activeArea === "temp" && !dataset ? "url(#activeHeatmapUv)" : dataset ? "url(#heatmapUvDaily)" : "url(#inactiveHeatmapUv)"}
                   hide={hideArea.hidden.temp}
                 />
@@ -1195,7 +1243,7 @@ function HourlyForecast(props) {
                     })
                   }
                   strokeWidth={state.activeArea === "feelsLike" ? 2 : 1 }
-                  stroke={dataset ? "url(#feelsLikeUvDaily)" : "url(#feelsLikeUv)"}
+                  stroke={dataset ? "url(#feelsLikeUvDailyStroke)" : "url(#feelsLikeUv)"}
                   fill={state.activeArea === "feelsLike" && !dataset ? "url(#feelsLikeUv)" :  dataset ? "url(#feelsLikeUvDaily)" : "url(#inactiveFeelsLikeUv)"}
                   hide={hideArea.hidden.feelsLike}
                 />
@@ -1267,7 +1315,7 @@ function HourlyForecast(props) {
     {/* </Grid> */}
 
     {/* <Grid container item> */}
-      <Grid item xs={12} lg={12} xl={6} style={isWidthUp('xl', width, true) ? { marginTop: "10px" } : { } }>
+      <Grid item xs={12} lg={12} xl={6} style={isWidthUp('xl', width, true) ? { marginTop: "5px", marginBottom: "5px" } : { marginLeft: "10px", marginRight: "10px" } }>
         <Card className={classes.chartCard} style={{  }} >
         {isWidthUp('xl', width, true) && 
           <Box display="flex" justifyContent="space-between">
@@ -1319,8 +1367,8 @@ function HourlyForecast(props) {
           >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                margin={selectedOption === "Compact" ? {bottom: 10, top: -20, right: 0, left: 0 } : {bottom: 0, top: 0, right: -25, left: -30 }}
-                data={state.data}
+                margin={selectedOption === "Compact" ? {bottom: 10, top: -20, right: 20, left: 20 } : {bottom: 0, top: 0, right: -25, left: -30 }}
+                data={dataset ? state.dailyWindPressure: state.data }
                 onMouseDown={(e) =>
                   e && e.activeLabel && setState({
                     ...state,
@@ -1353,12 +1401,12 @@ function HourlyForecast(props) {
                   dataKey="time"
                   domain={[state.left, state.right]}
                   type="number"
-                  tick={<CustomizedAxisTick timeScale="hours"/>}
+                  tick={<CustomizedAxisTick timeScale={dataset ? "days" : "hours"}/>}
                   tickFormatter={labelFormatter}
                   isCategorial={false}
                   minTickGap={0}
                   tickCount={10}
-                  interval={selectedOption === "Compact" ? 0 : 6}
+                  interval={dataset ? 0 : 3}
                   scale="time"
                   hide={selectedOption === "Compact" ? true : false}
                 />
@@ -1509,7 +1557,7 @@ function HourlyForecast(props) {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           margin={{ bottom: 20, top: 20, left: -20, right: -55 }}
-          data={state.data}
+          data={dataset ? state.dailyCloudsPop: state.data }
           onMouseDown={(e) =>
             e && e.activeLabel && setState({
               ...state,
@@ -1530,18 +1578,6 @@ function HourlyForecast(props) {
           syncId="brush"
         >
         <defs>
-            <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
-              <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
-              <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
-              <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
-              <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
-            </linearGradient>
-            <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
-              <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
-              <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
-              <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
-              <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
-            </linearGradient>
             <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
               <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
               <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
@@ -1557,12 +1593,12 @@ function HourlyForecast(props) {
         dataKey="time"
         domain={[state.left, state.right]}
         type="number"
-        tick={<CustomizedAxisTick/>}
+        tick={<CustomizedAxisTick timeScale={dataset ? "days" : ""}/>}
         tickFormatter={labelFormatter}
         isCategorial={false}
         minTickGap={0}
         tickCount={10}
-        interval={3}
+        interval={dataset ? 0 : 3}
         scale="time"
       />
       <YAxis
@@ -1617,7 +1653,7 @@ function HourlyForecast(props) {
       <Brush 
         dataKey="time"
         height={20} stroke={theme.palette.secondary.main} fill={theme.palette.common.darkBlack}
-        endIndex={8}
+        endIndex={7}
         tickFormatter={labelFormatter}
         padding={{top: 20}}
         // onChange={handleBrushChange}
@@ -1696,8 +1732,8 @@ function HourlyForecast(props) {
       <AreaChart
         width={isWidthUp('xl', width, true) ? 1800 : 1200} //{1200}
         height={isWidthUp('xl', width, true) ? height : 200} //{200}
-        margin={{bottom: 20, top: 5, right: -40, left: -20 }}
-        data={state.data}
+        margin={{bottom: 20, top: 5, right: 0, left: -20 }}
+        data={dataset ? state.dailyHumidDP: state.data }
         onMouseDown={(e) =>
           e && e.activeLabel && setState({
             ...state,
@@ -1715,18 +1751,6 @@ function HourlyForecast(props) {
         syncId="ship"
       >
         <defs>
-              <linearGradient id="colorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.25}/>
-                <stop offset="25%" stopColor="#00ff00" stopOpacity={0.2}/>
-                <stop offset="50%" stopColor="#0000ff" stopOpacity={0.1}/>
-                <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.1}/>
-              </linearGradient>
-              <linearGradient id="activeColorUv" x1="0" y1="-0.1" x2="0" y2="1">
-                <stop offset="1%" stopColor="rgb(255, 0, 0)" stopOpacity={0.9}/>
-                <stop offset="25%" stopColor="#00ff00" stopOpacity={0.95}/>
-                <stop offset="50%" stopColor="#0000ff" stopOpacity={0.7}/>
-                <stop offset="85%" stopColor="#ff00ff" stopOpacity={0.5}/>
-              </linearGradient>
               <linearGradient id="monoActiveUv" x1="0" y1="-0.1" x2="0" y2="1">
                 <stop offset="0%" stopColor={state.activeColor} stopOpacity={0.95}/>
                 <stop offset="100%" stopColor={state.activeColor} stopOpacity={0.5}/>
@@ -1735,7 +1759,6 @@ function HourlyForecast(props) {
                 <stop offset="0%" stopColor="#000" stopOpacity={0.25}/>
                 <stop offset="100%" stopColor="#000" stopOpacity={0.1}/>
               </linearGradient>
-              
         </defs>
         <CartesianGrid strokeDasharray="5 5" vertical={false} horizontal={false}/>
         <XAxis
@@ -1744,12 +1767,12 @@ function HourlyForecast(props) {
           dataKey="time"
           domain={[state.left, state.right]}
           type="number"
-          tick={<CustomizedAxisTick/>}
+          tick={<CustomizedAxisTick timeScale={dataset ? "days" : ""}/>}
           tickFormatter={labelFormatter}
           isCategorial={false}
           minTickGap={0}
           tickCount={10}
-          interval={3}
+          interval={dataset? 0 : 3}
           scale="time"
         />
         <YAxis
@@ -1866,11 +1889,8 @@ function HourlyForecast(props) {
           />
         ) : null}
         </AreaChart>
-
       </Box>
-    
     </>
-  
   );
 }
 
