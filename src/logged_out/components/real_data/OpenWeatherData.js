@@ -456,7 +456,7 @@ function HourlyForecast(props) {
 
     async function fetchHrly(station, startDate, endDate, dataSet, dataTypes) {
       let dataTypeString = dataTypes.join('&datatypeid=');
-      const cdoUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=${dataTypeString}&stationid=${station}&startdate=${startDate}&enddate=${endDate}&limit=200`;
+      const cdoUrl= `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=${dataTypeString}&stationid=${station}&startdate=${startDate}&enddate=${endDate}&limit=401`;
       await Axios.get(cdoUrl, {
         headers: {
           token:'lpaFBWqsqoJMWftpmRCmdSvecTcjbUuZ'
@@ -639,11 +639,6 @@ function HourlyForecast(props) {
             dailyData.push(d) 
           });          
           dailyData.sort(function(a, b){return a.time - b.time});
-          dailyData.forEach((day) => {
-            console.log(`${day.time} ${day.temp}`)
-          });
-
-////////////////////// TODO: create a NEW dailyData array, populate it by extracting tempMorn, temp, tempEve, and tempNight (plus feelsLike and time)
 
         const hourly = data.data.hourly;
         const merged = [];
@@ -715,6 +710,7 @@ function HourlyForecast(props) {
         const dailyTempMax = Math.max(...dailyTempMinMax);
         const dailyFeelsMin = Math.min(...dailyFeelsMinMax);
         const dailyFeelsMax = Math.max(...dailyFeelsMinMax);
+        console.log(`Daily temp min: ${dailyTempMin}; Daily temp max: ${dailyTempMax}; Daily feelsLike min: ${dailyFeelsMin}; Daily feelsLikeMax: ${dailyFeelsMax}`);
         tempState = {
           ...tempState,
           data: merged.slice(), 
@@ -748,6 +744,7 @@ function HourlyForecast(props) {
         const dAvg = temptempdAvg.map(a => a.tempAvg);
         const dLow = temptempdLow.map(a => a.tempAvg);
         const dHigh = temptempdHigh.map(a => a.tempAvg);
+        
         for (let j = 0; j < tempState.dailyData.length; j++) {
           let tempDay = tempState.dailyData[j];
           if (j < 4) {
@@ -866,8 +863,26 @@ function HourlyForecast(props) {
           }
           tempState.data[i] = tempHr;
         }
+        var increment = 0;
+        for (let i = 0; i < tempState.data.length; i++) {
+          let tempHr = tempState.dailyData[i];
+          if (increment > 20) increment = 0;
+          tempHr = {
+            ...tempHr,
+           tempAvg: temptempAvg[i+increment].tempAvg,
+           avgLow: temptempLow[i+increment].tempAvg,
+           avgHigh: temptempHigh[i+increment].tempAvg,
+          //  tempAvgDay: temptempdAvg[i].tempAvg,
+          //  avgLowDay: temptempdLow[i].tempAvg,
+          //  avgHighDay: temptempHigh[i].tempAvg
+          //  time: hrlyAverages[i].time
+          }
+          tempState.dailyData[i] = tempHr;
+          increment += 5;
+        }
         
         tempState.data.sort(function(a, b){return a.time - b.time});
+        tempState.dailyData.sort(function(a, b){return a.time - b.time});
         
         // console.log(hrlyAverages);
         setState({
@@ -1859,9 +1874,7 @@ function HourlyForecast(props) {
   );
 }
 
-export default withStyles(styles, { withTheme: true })(
-  withWidth()(HourlyForecast)
-);
+export default withStyles(styles, { withTheme: true })(withWidth()(HourlyForecast));
 
 /*
 
