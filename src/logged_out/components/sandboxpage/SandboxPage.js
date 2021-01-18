@@ -25,7 +25,8 @@ import HourlyForecast from "../real_data/OpenWeatherData";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
 // import WeatherCharts from "../real_data/WeatherCharts";
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+// const mapbox_key = ;
+ //mapbox_key;
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -278,6 +279,7 @@ function SandboxPage(props) {
   }, [selectSandbox]);
 
   useEffect(() => {
+    mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
     const myMap = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v10',
