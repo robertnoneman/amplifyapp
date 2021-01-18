@@ -138,6 +138,7 @@ const weatherLinks = {
   productList: 'https://api.weather.gov/products?location=LWX',
   productTypes: 'https://api.weather.gov/products/locations/LWX/types',
   dailyNormals: 'https://www1.ncdc.noaa.gov/pub/data/normals/1981-2010/products/station/USC00186350.normals.txt',
+  eightDayHourly: 'https://api.weather.gov/gridpoints/LWX/97,70'
 }
 
 const regexTests = [

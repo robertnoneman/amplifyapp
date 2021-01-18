@@ -47,6 +47,9 @@ const styles = (theme) => ({
     
       maxWidth: "100%",
     },
+    '::-webkit-scrollbar': {
+      width: '2px'
+    },
   },
   windArrow: {
     transform: 'rotate(0deg)',
@@ -65,6 +68,9 @@ const styles = (theme) => ({
       maxWidth: "100%",
       overflow: "auto"
     },
+  },
+  'scrollOnMobile::-webkit-scrollbar': {
+      width: '2px'
   },
   chartContainer: {
     width: "auto"
@@ -1030,31 +1036,31 @@ function HourlyForecast(props) {
                       <stop offset="0%" stopColor="#000" stopOpacity={0.25} />
                       <stop offset="100%" stopColor="#000" stopOpacity={0.1} />
                     </linearGradient>
-                    <linearGradient id="averageTempsUv" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="averageTempsUv" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.highestAvg)} stopOpacity={0.2} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.lowestAvg)} stopOpacity={0.0} />
                     </linearGradient>
-                    <linearGradient id="avgLowTempsUv" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="avgLowTempsUv" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.highestLow)} stopOpacity={0.2} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.lowestLow)} stopOpacity={0.0} />
                     </linearGradient>
-                    <linearGradient id="avgHighTempsUv" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="avgHighTempsUv" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.highestHigh)} stopOpacity={0.2} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.lowestHigh)} stopOpacity={0.0} />
                     </linearGradient>
-                    <linearGradient id="averageTempsUvActive" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="averageTempsUvActive" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.highestAvg)} stopOpacity={0.5} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.lowestAvg)} stopOpacity={0.2} />
                     </linearGradient>
-                    <linearGradient id="avgLowTempsUvActive" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="avgLowTempsUvActive" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.highestLow)} stopOpacity={0.5} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.lowestLow)} stopOpacity={0.2} />
                     </linearGradient>
-                    <linearGradient id="avgHighTempsUvActive" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="avgHighTempsUvActive" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.highestHigh)} stopOpacity={0.5} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.lowestHigh)} stopOpacity={0.2} />
                     </linearGradient>
-                    <linearGradient id="averageTemps" x1="1" y1="0" x2="1" y2="1">
+                    <linearGradient id="averageTemps" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor={getRgb(20, 100, state.averageHigh)} stopOpacity={0.5} />
                       <stop offset="50%" stopColor={getRgb(20, 100, state.dailyAverageTemp)} stopOpacity={0.25} />
                       <stop offset="100%" stopColor={getRgb(20, 100, state.averageLow)} stopOpacity={0} />
@@ -1668,6 +1674,7 @@ function HourlyForecast(props) {
       <Grid item xs={12} lg={12} xl={6} style={isWidthUp('xl', width, true) ? { marginTop: "5px", marginBottom: "5px" } : { marginLeft: "10px", marginRight: "10px" }}>
       <Card className={classes.chartCard} style={{}} >
       <Box height={isWidthDown('md', width) ? 250 : height} display="flex"
+        width={isWidthDown('sm', width) ? "100%" : "100%"}
         style={{ backgroundColor: theme.palette.common.black, userSelect: "none", }}
         onDoubleClick={zoomOut}
         className={classes.scrollOnMobile}
@@ -1677,7 +1684,7 @@ function HourlyForecast(props) {
         alignItems={isWidthUp('lg', width, true) ? "center" : "flex-start"}
       >
         <AreaChart
-          width={isWidthUp('xl', width, true) ? 1800 : 1200} //{1200}
+          width={isWidthUp('xl', width, true) ? 1800 : 1132} //{1200}
           height={isWidthDown('md', width) ? 210 : height} //{200} 
           // style={{padding: { bottom: -50, top: -50, right: 0, left: -20 }}}
           data={dataset ? state.dailyHumidDP : state.data}

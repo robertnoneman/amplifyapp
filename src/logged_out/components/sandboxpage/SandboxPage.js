@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import React, {useState, useEffect, Fragment} from "react";
+import React, {useState, useEffect, Fragment, useRef} from "react";
 import PropTypes from "prop-types";
 import { 
   AppBar,
@@ -22,7 +22,10 @@ import Axios from "axios";
 import cheerio from "cheerio"
 import SwipeableViews from "react-swipeable-views";
 import HourlyForecast from "../real_data/OpenWeatherData";
+import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
 // import WeatherCharts from "../real_data/WeatherCharts";
+
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -145,6 +148,20 @@ const styles = theme => ({
       justifyContent: "flex-start",
       backgroundColor: theme.palette.primary.dark
     },
+    mapContainer: {
+      // position: 'absolute',
+      display: 'flex',
+      width: "1132px",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      flexGrow: 1,
+      flexBasis: 0,
+      maxWidth: "100%",
+      maxHeight: "100%"
+      // paddingTop: 1200
+    }
   });
 
 function a11yProps(index) {
@@ -158,9 +175,16 @@ function SandboxPage(props) {
   const { classes, selectSandbox, } = props;
   const theme = useTheme();
   const [value, setValue] = useState(0);
+  const [map, setMap] = useState(null);
+  const [active, setActive] = useState([]);
+  const [lng, setLng] = useState(-77.26044311523435);
+  const [lat, setLat] = useState(38.93598268628932);
+  const [zoom, setZoom] = useState(1.5);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const mapContainerRef = useRef(null);
 
   const handleChangeIndex = (index) => {
     setValue(index);
@@ -170,6 +194,7 @@ function SandboxPage(props) {
   //   enter: theme.transitions.duration.enteringScreen,
   //   exit: theme.transitions.duration.leavingScreen,
   // };
+
 
   const [appState, setAppState] = useState({
     loading: false,
@@ -252,6 +277,42 @@ function SandboxPage(props) {
     selectSandbox();
   }, [selectSandbox]);
 
+  useEffect(() => {
+    const myMap = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/dark-v10',
+      center: [lng, lat],
+      zoom: 8.5
+    })
+    myMap.on('load', () => {
+      myMap.addSource('bref_raw', {
+        type: 'raster',
+        tiles: [
+          // 'https://opengeo.ncep.noaa.gov:443/geoserver/klwx/ows?service=WMS&bbox={bbox-epsg-3857}&format=image/png&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=true&width=256&height=256&layer=klwx_bref_raw&style=radar_time'
+          // 'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&width=256&height=256&layers=klwx_bvel&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG%3A3857&BBOX(geom,-77.86834716796875,38.49713091673101,-76.05560302734375,39.43778393700683,%27EPSG:4326%27)'
+          "https://opengeo.ncep.noaa.gov:443/geoserver/klwx/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&station=klwx&layer=bref_raw&style=radar_time",
+        ],
+        // tiles: 'https://opengeo.ncep.noaa.gov:443/geoserver/klwx/ows?SERVICE=WMS&request=GetMap&outputFormat=application%2Fjson&width=256&height=256&layers=klwx_bvel&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG%3A3857&BBOX=-8531595.349078232%2C4696291.017841229%2C-8453323.832114212%2C4774562.534805249',
+        // url: 'https://mrms.ncep.noaa.gov/data/RIDGEII/L2/KLWX/BREF_RAW',
+        // url: 'https://opengeo.ncep.noaa.gov:443/geoserver/styles/reflectivity.png',
+        // scheme: "tms",
+        tileSize: 256
+      })
+      myMap.addLayer(
+        {
+          id: 'local',
+          type: 'raster',
+          source: 'bref_raw',
+          'paint': {}
+        },
+        'bref_raw'
+      );
+    })
+      // setMap(myMap);})
+      
+    // return () => myMap.remove();
+  }, []); 
+
   const DataLoading = withDataLoading(WeatherData);
 
   return (
@@ -286,7 +347,11 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
               style={ { marginTop: "100px" } }
             > */}
+            <Grid container>
+            <Grid item>
+            
             <Box marginTop="100px">
+            
               <TabPanel value={value} index={0} dir={theme.direction}>
                 <HourlyForecast title={["Temp", "Humidity"]} height={350}/>
               </TabPanel>
@@ -332,10 +397,18 @@ function SandboxPage(props) {
                 </Box>
               </TabPanel>
             </Box>
+            </Grid>
+            <Grid item xs={12} className={classes.mapContainer}>
+            <Box display="flex" xs={12} height="600px">
+            <div ref={mapContainerRef} className={classes.mapContainer} />
+            </Box>
+            </Grid>
+            </Grid>
             {/* </SwipeableViews> */}
           </div>
         </div>
       </div>
+      
     </Fragment>
   );
 }
