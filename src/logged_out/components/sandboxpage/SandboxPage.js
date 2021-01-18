@@ -178,8 +178,8 @@ function SandboxPage(props) {
   const [value, setValue] = useState(0);
   const [map, setMap] = useState(null);
   const [active, setActive] = useState([]);
-  const [lng, setLng] = useState(-77.26044311523435);
-  const [lat, setLat] = useState(38.93598268628932);
+  const [lng, setLng] = useState(-77.044311523435);
+  const [lat, setLat] = useState(38.88598268628932);
   const [zoom, setZoom] = useState(1.5);
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -279,35 +279,45 @@ function SandboxPage(props) {
   }, [selectSandbox]);
 
   useEffect(() => {
-    mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
     const myMap = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v10',
       center: [lng, lat],
-      zoom: 8.5
+      zoom: 10.5
     })
     myMap.on('load', () => {
+      myMap.addSource('bvel_raw', {
+        type: 'raster',
+        tiles: [
+          'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=klwx_bvel'
+        ],
+        tileSize: 256
+      })
       myMap.addSource('bref_raw', {
         type: 'raster',
         tiles: [
-          // 'https://opengeo.ncep.noaa.gov:443/geoserver/klwx/ows?service=WMS&bbox={bbox-epsg-3857}&format=image/png&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=true&width=256&height=256&layer=klwx_bref_raw&style=radar_time'
-          // 'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&width=256&height=256&layers=klwx_bvel&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG%3A3857&BBOX(geom,-77.86834716796875,38.49713091673101,-76.05560302734375,39.43778393700683,%27EPSG:4326%27)'
-          "https://opengeo.ncep.noaa.gov:443/geoserver/klwx/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&station=klwx&layer=bref_raw&style=radar_time",
+          'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=klwx_bref_raw',
         ],
-        // tiles: 'https://opengeo.ncep.noaa.gov:443/geoserver/klwx/ows?SERVICE=WMS&request=GetMap&outputFormat=application%2Fjson&width=256&height=256&layers=klwx_bvel&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG%3A3857&BBOX=-8531595.349078232%2C4696291.017841229%2C-8453323.832114212%2C4774562.534805249',
-        // url: 'https://mrms.ncep.noaa.gov/data/RIDGEII/L2/KLWX/BREF_RAW',
-        // url: 'https://opengeo.ncep.noaa.gov:443/geoserver/styles/reflectivity.png',
-        // scheme: "tms",
         tileSize: 256
       })
       myMap.addLayer(
         {
-          id: 'local',
+          id: 'baseVelocity',
+          type: 'raster',
+          source: 'bvel_raw',
+          'paint': {}
+        },
+        'aeroway-line'
+      );
+      myMap.addLayer(
+        {
+          id: 'baseReflectivity',
           type: 'raster',
           source: 'bref_raw',
           'paint': {}
         },
-        'bref_raw'
+        'aeroway-line'
       );
     })
       // setMap(myMap);})
@@ -401,10 +411,10 @@ function SandboxPage(props) {
             </Box>
             </Grid>
             <Grid item xs={12} className={classes.mapContainer}>
-            <Box display="flex" xs={12} height="600px">
-            <div ref={mapContainerRef} className={classes.mapContainer} />
-            </Box>
-            </Grid>
+              <Box display="flex" xs={12} height="600px">
+              <div ref={mapContainerRef} className={classes.mapContainer} />
+              </Box>
+              </Grid>
             </Grid>
             {/* </SwipeableViews> */}
           </div>

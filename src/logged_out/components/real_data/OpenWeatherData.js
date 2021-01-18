@@ -428,7 +428,7 @@ function HourlyForecast(props) {
 
     async function fetchHrly(station, startDate, endDate, dataSet, dataTypes) {
       let dataTypeString = dataTypes.join('&datatypeid=');
-      const cdo_token=process.env.REACT_APP_CDO_TOKEN;
+      const cdo_token='lpaFBWqsqoJMWftpmRCmdSvecTcjbUuZ' //process.env.REACT_APP_CDO_TOKEN;
       const cdoUrl = `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=${dataSet}&datatypeid=${dataTypeString}&stationid=${station}&startdate=${startDate}&enddate=${endDate}&limit=401`;
       await Axios.get(cdoUrl, {
         headers: {
