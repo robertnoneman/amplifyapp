@@ -271,7 +271,7 @@ function Notes(props) {
       // setState(noteCards, ...noteCards);
       setState(sortedCols);
       hasLoaded(true);
-    }, 750);
+    }, 50);
     return () => {
       clearTimeout(timeoutID);
     }
@@ -303,7 +303,7 @@ function Notes(props) {
                     >
                       <Grid item><Box className={classes.cardTitle}><Typography variant="h6" align="left">{colNames[ind]}</Typography></Box></Grid>
                       <Grid container spacing={1} direction="column" justify="center">
-                        {el.length > 0 && el.map((note, index) => (
+                        {Array.isArray(el) && el.length > 0 && el.map((note, index) => (
                           <Grid item xs key={index}>
                             <Draggable key={note.id} draggableId={note.id} index={index}>
                               {(provided, snapshot) => (

@@ -36,7 +36,7 @@ const styles = theme => ({
     fontSize: 12,
     fontWeight: theme.typography.h6.fontWeight,
     "&:hover": {
-      //fontSize: theme.typography.body1.fontSize,
+      // fontSize: 12.5, // theme.typography.body1.fontSize,
       fontWeight: theme.typography.h6.fontWeight,
       dataAos: "zoom-in" ,
       color: "primary"
@@ -91,7 +91,7 @@ function NavBar(props) {
     },
         {
       link: "/weather_maps",
-      name: "WeatherMap",
+      name: "Map",
       icon: <Map className="text-white" />
     },
     {

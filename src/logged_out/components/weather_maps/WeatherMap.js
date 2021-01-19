@@ -12,27 +12,24 @@ import {
   Tab,
   Tabs,
   isWidthDown,
-  Paper, 
+  Paper,
+  Button, 
 } from "@material-ui/core";
 import classNames from "classnames";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
 
 const styles = (theme) => ({
   mapContainer: {
-    marginTop: "200px",
-    // position: 'absolute',
+    marginTop: theme.spacing(12),
     display: 'inline-flex',
     width: "90%",
     alignItems: "center",
     height:"600px",
-    // flexGrow: 1,
     flexBasis: 0.5,
-    // maxWidth: "100%",
     maxHeight: "100%",
     marginBottom: "5px",
     flexDirection: "column",
-    padding: theme.spacing(3)
-    // overflow: "hidden"
+    padding: theme.spacing(3),
   },
   map: {
     width: "100%",
@@ -44,7 +41,32 @@ function WeatherMap(props) {
   const { classes, theme, width, selectWeather } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
+  const [wMap, setWMap] = useState(null);
   const mapContainerRef = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const handleToggleLayer = (e) => {
+    const { id } = e;
+    if (!wMap || !loaded) return;
+    let setting = wMap.getLayoutProperty(e, 'visibility'); //'baseVelocity', 'visibility'); 
+    let toggle = setting === 'visible';
+    let newSetting = '';
+    if (toggle) {
+      newSetting = 'none'
+    } else newSetting = 'visible';
+    wMap.setLayoutProperty(e, 'visibility', newSetting); //'baseVelocity', 'visibility', newSetting);
+  }
+
+  const mapLayers = [
+    {
+      name: 'baseReflectivity',
+      visibility: 'visible',
+    },
+    {
+      name: 'baseVelocity',
+      visibility: 'hidden',
+    },
+  ]
 
   useEffect(() => {
     selectWeather();
@@ -92,16 +114,30 @@ function WeatherMap(props) {
         'aeroway-line'
       );
       myMap.resize();
+      myMap.setLayoutProperty('baseVelocity', 'visibility', 'none');
+      setWMap(myMap);
     })
+    setLoaded(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
   return (
-  
     <Paper xs={6} className={classes.mapContainer}>
-      <div ref={mapContainerRef} className={classes.map} />
+      {wMap && mapLayers.map(item => {
+        return (
+          <Button
+            key={item.name} 
+            onClick={() => handleToggleLayer(item.name)}
+            >
+            Toggle {item.name}
+          </Button>
+        )
+      })}
+
+      <div ref={mapContainerRef} className={classes.map} >
+
+      </div>
     </Paper>
-  
   )
 }
 
