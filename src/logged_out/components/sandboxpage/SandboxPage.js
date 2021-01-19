@@ -10,7 +10,8 @@ import {
   withStyles,
   useTheme,
   Tab,
-  Tabs, 
+  Tabs,
+  isWidthDown, 
 } from "@material-ui/core";
 import classNames from "classnames";
 import Sandbox from "../home/Sandbox";
@@ -22,7 +23,7 @@ import Axios from "axios";
 import cheerio from "cheerio"
 import SwipeableViews from "react-swipeable-views";
 import HourlyForecast from "../real_data/OpenWeatherData";
-import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
+
 // import WeatherCharts from "../real_data/WeatherCharts";
 
 // const mapbox_key = ;
@@ -151,7 +152,7 @@ const styles = theme => ({
     },
     mapContainer: {
       // position: 'absolute',
-      display: 'flex',
+      // display: 'flex',
       width: "1132px",
       top: 0,
       bottom: 0,
@@ -160,8 +161,7 @@ const styles = theme => ({
       flexGrow: 1,
       flexBasis: 0,
       maxWidth: "100%",
-      maxHeight: "100%"
-      // paddingTop: 1200
+      maxHeight: "100%",
     }
   });
 
@@ -173,14 +173,14 @@ function a11yProps(index) {
 }
   
 function SandboxPage(props) {
-  const { classes, selectSandbox, } = props;
+  const { classes, selectSandbox, width} = props;
   const theme = useTheme();
   const [value, setValue] = useState(0);
-  const [map, setMap] = useState(null);
+  // const [map, setMap] = useState(null);
   const [active, setActive] = useState([]);
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
-  const [zoom, setZoom] = useState(1.5);
+  // const [zoom, setZoom] = useState(1.5);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -278,53 +278,6 @@ function SandboxPage(props) {
     selectSandbox();
   }, [selectSandbox]);
 
-  useEffect(() => {
-    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
-    const myMap = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v10',
-      center: [lng, lat],
-      zoom: 10.5
-    })
-    myMap.on('load', () => {
-      myMap.addSource('bvel_raw', {
-        type: 'raster',
-        tiles: [
-          'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=klwx_bvel'
-        ],
-        tileSize: 256
-      })
-      myMap.addSource('bref_raw', {
-        type: 'raster',
-        tiles: [
-          'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=klwx_bref_raw',
-        ],
-        tileSize: 256
-      })
-      myMap.addLayer(
-        {
-          id: 'baseVelocity',
-          type: 'raster',
-          source: 'bvel_raw',
-          'paint': {}
-        },
-        'aeroway-line'
-      );
-      myMap.addLayer(
-        {
-          id: 'baseReflectivity',
-          type: 'raster',
-          source: 'bref_raw',
-          'paint': {}
-        },
-        'aeroway-line'
-      );
-    })
-      // setMap(myMap);})
-      
-    // return () => myMap.remove();
-  }, []); 
-
   const DataLoading = withDataLoading(WeatherData);
 
   return (
@@ -410,11 +363,6 @@ function SandboxPage(props) {
               </TabPanel>
             </Box>
             </Grid>
-            <Grid item xs={12} className={classes.mapContainer}>
-              <Box display="flex" xs={12} height="600px">
-              <div ref={mapContainerRef} className={classes.mapContainer} />
-              </Box>
-              </Grid>
             </Grid>
             {/* </SwipeableViews> */}
           </div>

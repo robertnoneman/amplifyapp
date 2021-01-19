@@ -48,6 +48,12 @@ function Main(props) {
     setSelectedTab("SandboxPage");
   }, [setSelectedTab]);
 
+  const selectWeather = useCallback(() => {
+    smoothScrollTop();
+    document.title = "Rob Noneman - Weather";
+    setSelectedTab("WeatherMap");
+  }, [setSelectedTab]);
+
   const openLoginDialog = useCallback(() => {
     setDialogOpen("login");
     setIsMobileDrawerOpen(false);
@@ -137,6 +143,7 @@ function Main(props) {
         blogPosts={blogPosts}
         selectHome={selectHome}
         selectSandbox={selectSandbox}
+        selectWeather={selectWeather}
         selectBlog={selectBlog}
 
       />

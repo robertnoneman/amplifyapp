@@ -18,7 +18,9 @@ import LockOpenIcon from "@material-ui/icons/LockOpen";
 import BookIcon from "@material-ui/icons/Book";
 import NavigationDrawer from "../../../shared/components/NavigationDrawer";
 import AnchorLink from "react-anchor-link-smooth-scroll"
-import { BeachAccess, } from "@material-ui/icons";
+import { BeachAccess, Map, } from "@material-ui/icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons";
 
 const styles = theme => ({
   appBar: {
@@ -86,6 +88,11 @@ function NavBar(props) {
       link: "/sandboxpage",
       name: "SandboxPage",
       icon: <BeachAccess className="text-white" />
+    },
+        {
+      link: "/weather_maps",
+      name: "WeatherMap",
+      icon: <Map className="text-white" />
     },
     {
       link: "/blog",

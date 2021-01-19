@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback,
+import React, { useState, useEffect, useCallback, useRef,
 } from "react";
 import {
   CartesianGrid, XAxis, YAxis, Tooltip, ReferenceArea, ResponsiveContainer, Legend, AreaChart, Area, Brush,
@@ -9,6 +9,7 @@ import {
 import Axios from "axios";
 import format from "date-fns/format";
 import MoreVert from "@material-ui/icons/MoreVert";
+import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
 
 const styles = (theme) => ({
   card: {
@@ -74,7 +75,48 @@ const styles = (theme) => ({
   },
   chartContainer: {
     width: "auto"
-  }
+  },
+  mapContainer: {
+    // position: 'absolute',
+    display: 'flex',
+    width: "1134px",
+    height:"200px",
+    flexGrow: 1,
+    flexBasis: 0,
+    maxWidth: "90%",
+    maxHeight: "100%",
+    marginTop: "5px", 
+    marginBottom: "5px",
+    overflow: "hidden"
+  },
+  containerWeather: {
+    width: "100%",
+    paddingRight: theme.spacing(4),
+    paddingLeft: theme.spacing(4),
+    marginRight: "auto",
+    marginLeft: "auto",
+    [theme.breakpoints.up("xs")]: {
+      maxWidth: 390,
+      paddingRight: theme.spacing(0),
+      paddingLeft: theme.spacing(0),
+    },
+    [theme.breakpoints.up("sm")]: {
+      maxWidth: 840
+    },
+    [theme.breakpoints.up("md")]: {
+      maxWidth: 940
+    },
+    [theme.breakpoints.up("lg")]: {
+      maxWidth: 1280,
+      paddingRight: theme.spacing(8),
+      paddingLeft: theme.spacing(8),
+    },
+    [theme.breakpoints.up("xl")]: {
+      maxWidth: 1800,
+      paddingRight: theme.spacing(2),
+      paddingLeft: theme.spacing(2),
+    },
+  },
 });
 
 function getRgb(minimum, maximum, value) {
@@ -245,6 +287,10 @@ function HourlyForecast(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOption, setSelectedOption] = useState("Compact");
   const [dataset, selectDataset] = useState(false);
+  const [lng, setLng] = useState(-77.044311523435);
+  const [lat, setLat] = useState(38.88598268628932);
+
+  const mapContainerRef = useRef(null);
   // const [dataset, selectDataset] = useState("Hourly");
   const handleMenuClick = useCallback(
     (event) => {
@@ -1671,7 +1717,6 @@ function HourlyForecast(props) {
       </Box>
       </Card>
       </Grid>
-
       <Grid item xs={12} lg={12} xl={6} style={isWidthUp('xl', width, true) ? { marginTop: "5px", marginBottom: "5px" } : { marginLeft: "10px", marginRight: "10px" }}>
       <Card className={classes.chartCard} style={{}} >
       <Box height={isWidthDown('md', width) ? 250 : height} display="flex"
