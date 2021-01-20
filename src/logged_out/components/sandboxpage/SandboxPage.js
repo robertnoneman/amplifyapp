@@ -286,11 +286,8 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
               style={ { marginTop: "100px" } }
             > */}
-            {/* <Grid container> */}
-            {/* <Grid item> */}
-            
+
             <Box marginTop="100px">
-            
               <TabPanel value={value} index={0} dir={theme.direction}>
                 <HourlyForecast title={["Temp", "Humidity"]} height={350}/>
               </TabPanel>
@@ -336,8 +333,6 @@ function SandboxPage(props) {
                 </Box>
               </TabPanel>
             </Box>
-            {/* </Grid> */}
-            {/* {/* </Grid> */} */}
             {/* </SwipeableViews> */}
           </div>
         </div>

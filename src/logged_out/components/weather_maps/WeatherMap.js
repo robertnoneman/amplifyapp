@@ -1,55 +1,45 @@
 /* eslint-disable no-useless-escape */
-import React, {useState, useEffect, Fragment, useRef, useCallback} from "react";
+import React, {useState, useEffect, useRef, useCallback} from "react";
 import clsx from 'clsx';
-import PropTypes from "prop-types";
 import { 
-  AppBar,
-  Box,
-  Grid, 
-  Typography, 
   withWidth, 
   withStyles,
-  useTheme,
-  Tab,
-  Tabs,
-  isWidthDown,
   Paper,
   Button,
-  Toolbar,
-  IconButton,
-  MenuItem,
   Drawer,
   Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ButtonGroup, 
+  ButtonGroup,
+  Grid,
+  Box,
+  IconButton, 
 } from "@material-ui/core";
-import classNames from "classnames";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
-import SideDrawer from '../../../logged_in/components/navigation/SideDrawer'
-import MenuIcon from '@material-ui/icons/Menu';
-import { ChevronLeft, ChevronRight, ClearAll, CompassCalibration } from "@material-ui/icons";
-import { faPen, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
-import { WiRain, WiWindy } from "weather-icons-react";
+import { ClearAll, CompassCalibration, FiberSmartRecord, NetworkWifi, SettingsInputAntenna, WifiTethering } from "@material-ui/icons";
 import { useStyles } from "@material-ui/pickers/views/Calendar/SlideTransition";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const drawerWidth = 50;
 
 const styles = (theme) => ({
   mapContainer: {
-    // marginTop: theme.spacing(12),
-    display: 'inline-flex',
+    marginTop: theme.spacing(12),
+    [theme.breakpoints.down('md')]: {
+      width: "100%",
+    },
+  },
+  mapBox: {
+    backgroundColor: theme.palette.common.black,
     width: "90%",
-    alignItems: "center",
-    height:"600px",
-    flexBasis: 0.5,
-    // maxHeight: "100%",
-    marginBottom: "5px",
+    [theme.breakpoints.down('md')]: {
+      maxWidth: "80%",
+    },
+  },
+  mapToolbar: {
+    backgroundColor: theme.palette.secondary.dark,
+    justifyContent: "center",
     flexDirection: "column",
-    padding: theme.spacing(3),
+    width: "auto",
+    marginLeft: '-44px',
+    zIndex: "1201"
   },
   map: {
     width: "100%",
@@ -120,7 +110,7 @@ const styles = (theme) => ({
 });
 
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather, } = props;
+  const { classes, theme, width, selectWeather, toggleLayer} = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
@@ -128,6 +118,7 @@ function WeatherMap(props) {
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
+  const [toggleLayers, setToggleLayers] = useState([]);
 
   const openDrawer = useCallback(() => {
     setIsSideDrawerOpen(true);
@@ -138,15 +129,16 @@ function WeatherMap(props) {
   }, [setIsSideDrawerOpen]);
 
   const handleToggleLayer = (e) => {
-    const { id } = e;
-    if (!wMap || !loaded) return;
-    let setting = wMap.getLayoutProperty(e, 'visibility'); //'baseVelocity', 'visibility'); 
+    // const { id } = e;
+    if (!wMap || !loaded || !toggleLayer) return;
+    console.log(toggleLayer);
+    let setting = wMap.getLayoutProperty(toggleLayer, 'visibility'); //'baseVelocity', 'visibility'); 
     let toggle = setting === 'visible';
     let newSetting = '';
     if (toggle) {
       newSetting = 'none'
     } else newSetting = 'visible';
-    wMap.setLayoutProperty(e, 'visibility', newSetting); //'baseVelocity', 'visibility', newSetting);
+    wMap.setLayoutProperty(toggleLayer, 'visibility', newSetting); //'baseVelocity', 'visibility', newSetting);
   }
 
   const mapLayers = [
@@ -163,8 +155,9 @@ function WeatherMap(props) {
   ]
 
   useEffect(() => {
-    selectWeather();
-  }, [selectWeather]);
+    setToggleLayers(toggleLayer);
+    handleToggleLayer();
+  }, [toggleLayer]);
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
@@ -217,62 +210,70 @@ function WeatherMap(props) {
 
   return (
     <>
-    <Drawer
-      anchor="right"
-      variant="permanent"
-      className={clsx(classes.drawer, {
-        [classes.drawerOpen]: open,
-        [classes.drawerClose]: !open,
-      })}
-      classes={{
-        paper: clsx({
-          [classes.drawerOpen]: open,
-          [classes.drawerClose]: !open,
-        }),
-      }}
-      style={{
-        height: "10%"
-      }}
-      height='10%'
-    >
-      {/* <div className={classes.toolbar}>
-        <IconButton onClick={closeDrawer}>
-          {theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />}
-        </IconButton>
-      </div> */}
-      <Divider />
-      <ButtonGroup orientation="vertical" style={{ minWidth: "5px" }}>
-        {wMap && mapLayers.map((item, index) => {
-          return (
-            <Button
-              key={item.name} 
-              onClick={() => handleToggleLayer(item.name)}
-              startIcon={item.icon}
-              >
-            </Button>
-          )
-        })}
-      </ButtonGroup>
-    </Drawer>
-    <Paper xs={6} className={classes.mapContainer}>
-      
-      <div ref={mapContainerRef} className={classes.map} >
-      <ButtonGroup orientation="vertical" style={{ minWidth: "5px" }}>
-        {wMap && mapLayers.map((item, index) => {
-          return (
-            <Button
-              key={item.name} 
-              onClick={() => handleToggleLayer(item.name)}
-              startIcon={item.icon}
-              >
-            </Button>
-          )
-        })}
-      </ButtonGroup>
-      </div>
-    </Paper>
+      <div ref={mapContainerRef} className={classes.map}></div>
     </>
   )
 }
 
-export default withStyles(styles, { withTheme: true })(withWidth()(WeatherMap));
+function WeatherPage(props) {
+  const { classes, theme, width, selectWeather} = props;
+  const [toggledLayers, setToggledLayers] = useState(['baseReflectivity']);
+
+  const toggleLayer = useCallback((id) => {
+    console.log(id);
+    // handleToggleLayer(id);
+    const tempToggled = Array.from(toggledLayers);
+    
+    if (tempToggled.includes(id)) {
+      let index = tempToggled.indexOf(id);
+      tempToggled.splice(index, 1)
+    }
+    else tempToggled.push(id);
+
+    setToggledLayers(tempToggled);
+    // return id;
+  }, [toggledLayers]);
+
+  useEffect(() => {
+    selectWeather();
+  }, [selectWeather]);
+
+  return (
+    <Grid container height="100%" justify="center" className={classes.mapContainer} alignItems="center">
+      <Grid container item xs={12} justify="center">
+        <Box width="90%" height="600px" className={classes.mapBox}>
+          <WeatherMap classes={classes} theme={theme} toggleLayer={toggledLayers[toggledLayers.length - 1]}/>
+        </Box>
+        <Box height="100%" xs={1} className={classes.mapToolbar}>
+          <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
+            <Button variant={toggledLayers.includes("baseReflectivity") ? "outlined" : "contained"} onClick={() => {toggleLayer('baseReflectivity')}}><CompassCalibration className="text-white"/></Button>
+            <Button variant={toggledLayers.includes("baseVelocity") ? "outlined" : "contained"} onClick={() => {toggleLayer('baseVelocity')}}><SettingsInputAntenna className="text-white"/></Button>
+            <Button variant="contained"><WifiTethering className="text-white"/></Button>
+          </ButtonGroup>
+        </Box>
+      </Grid>
+    </Grid>
+  )
+}
+
+export default withStyles(styles, { withTheme: true })(withWidth()(WeatherPage));
+
+/*
+    <Paper xs={6} className={classes.mapContainer}>
+      <div ref={mapContainerRef} className={classes.map}></div>
+    </Paper>
+    <Box display="flex" justifyContent="flex-end">
+      <ButtonGroup orientation="vertical" style={{ minWidth: "5px", justifyContent: "flex-end" }}>
+        {wMap && mapLayers.map((item, index) => {
+          return (
+            <Button
+              key={item.name} 
+              onClick={() => handleToggleLayer(item.name)}
+              startIcon={item.icon}
+              >
+            </Button>
+          )
+        })}
+      </ButtonGroup>
+      </Box>
+*/

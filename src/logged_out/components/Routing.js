@@ -6,7 +6,7 @@ import Home from "./home/Home";
 import Blog from "./blog/Blog";
 import BlogPost from "./blog/BlogPost";
 import SandboxPage from "./sandboxpage/SandboxPage"
-import WeatherMap from "./weather_maps/WeatherMap"
+import WeatherPage from "./weather_maps/WeatherMap"
 
 function Routing(props) {
   const { blogPosts, selectBlog, selectHome, selectSandbox, selectWeather } = props;
@@ -36,7 +36,7 @@ function Routing(props) {
       
       
       <PropsRoute path="/SandboxPage" component={SandboxPage} selectSandbox={selectSandbox} />
-      <PropsRoute path="/weather_maps" component={WeatherMap} selectWeather={selectWeather} />
+      <PropsRoute path="/weather_maps" component={WeatherPage} selectWeather={selectWeather} />
       <PropsRoute path="/" component={Home} selectHome={selectHome} />
       
       
