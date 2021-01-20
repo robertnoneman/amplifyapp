@@ -24,6 +24,7 @@ import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons";
 
 const styles = theme => ({
   appBar: {
+    zIndex: theme.zIndex.drawer + 1,
     boxShadow: theme.shadows[6],
     backgroundColor: theme.palette.common.black
   },

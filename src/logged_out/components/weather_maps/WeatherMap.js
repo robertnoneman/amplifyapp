@@ -1,5 +1,6 @@
 /* eslint-disable no-useless-escape */
-import React, {useState, useEffect, Fragment, useRef} from "react";
+import React, {useState, useEffect, Fragment, useRef, useCallback} from "react";
+import clsx from 'clsx';
 import PropTypes from "prop-types";
 import { 
   AppBar,
@@ -13,14 +14,33 @@ import {
   Tabs,
   isWidthDown,
   Paper,
-  Button, 
+  Button,
+  Toolbar,
+  IconButton,
+  MenuItem,
+  Drawer,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ButtonGroup, 
 } from "@material-ui/core";
 import classNames from "classnames";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
+import SideDrawer from '../../../logged_in/components/navigation/SideDrawer'
+import MenuIcon from '@material-ui/icons/Menu';
+import { ChevronLeft, ChevronRight, ClearAll, CompassCalibration } from "@material-ui/icons";
+import { faPen, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
+import { WiRain, WiWindy } from "weather-icons-react";
+import { useStyles } from "@material-ui/pickers/views/Calendar/SlideTransition";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+const drawerWidth = 50;
 
 const styles = (theme) => ({
   mapContainer: {
-    marginTop: theme.spacing(12),
+    // marginTop: theme.spacing(12),
     display: 'inline-flex',
     width: "90%",
     alignItems: "center",
@@ -34,16 +54,87 @@ const styles = (theme) => ({
   map: {
     width: "100%",
     height: "100%"
-  }
+  },
+  appBar: {
+    zIndex: theme.zIndex.drawer - 1,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+  },
+  appBarShift: {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
+  menuButton: {
+    // marginRight: 36,
+  },
+  hide: {
+    display: 'none',
+  },
+  paper: {
+    minHeight: "0%"
+  },
+  drawer: {
+    // paddingTop: 100,
+    width: drawerWidth,
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+  },
+  drawerOpen: {
+    width: drawerWidth,
+    transition: theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
+  drawerClose: {
+    transition: theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+    overflowX: 'hidden',
+    marginTop: "100px",
+    width: theme.spacing(4) + 1,
+    [theme.breakpoints.up('sm')]: {
+      // width: theme.spacing(9) + 1,
+    },
+  },
+  toolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: theme.spacing(0, 1),
+    // necessary for content to be below app bar
+    // ...theme.mixins.toolbar,
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+  },
 });
 
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather } = props;
+  const { classes, theme, width, selectWeather, } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
   const mapContainerRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
+
+  const openDrawer = useCallback(() => {
+    setIsSideDrawerOpen(true);
+  }, [setIsSideDrawerOpen]);
+
+  const closeDrawer = useCallback(() => {
+    setIsSideDrawerOpen(false);
+  }, [setIsSideDrawerOpen]);
 
   const handleToggleLayer = (e) => {
     const { id } = e;
@@ -61,10 +152,12 @@ function WeatherMap(props) {
     {
       name: 'baseReflectivity',
       visibility: 'visible',
+      icon: <CompassCalibration className="text-white"/>
     },
     {
       name: 'baseVelocity',
       visibility: 'hidden',
+      icon: <ClearAll className="text-white" />
     },
   ]
 
@@ -122,22 +215,45 @@ function WeatherMap(props) {
   }, []); 
 
   return (
-    <Paper xs={6} className={classes.mapContainer}>
-      {wMap && mapLayers.map(item => {
-        return (
-          <Button
-            key={item.name} 
-            onClick={() => handleToggleLayer(item.name)}
-            >
-            Toggle {item.name}
-          </Button>
-        )
+    <>
+    <Drawer
+      anchor="right"
+      variant="permanent"
+      className={clsx(classes.drawer, {
+        [classes.drawerOpen]: open,
+        [classes.drawerClose]: !open,
       })}
-
+      classes={{
+        paper: clsx({
+          [classes.drawerOpen]: open,
+          [classes.drawerClose]: !open,
+        }),
+      }}
+    >
+      {/* <div className={classes.toolbar}>
+        <IconButton onClick={closeDrawer}>
+          {theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />}
+        </IconButton>
+      </div> */}
+      <Divider />
+      <ButtonGroup orientation="vertical" style={{ minWidth: "5px" }}>
+        {wMap && mapLayers.map((item, index) => {
+          return (
+            <Button
+              key={item.name} 
+              onClick={() => handleToggleLayer(item.name)}
+              startIcon={item.icon}
+              >
+            </Button>
+          )
+        })}
+      </ButtonGroup>
+    </Drawer>
+    <Paper xs={6} className={classes.mapContainer}>
       <div ref={mapContainerRef} className={classes.map} >
-
       </div>
     </Paper>
+    </>
   )
 }
 
