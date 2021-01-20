@@ -76,19 +76,6 @@ const styles = (theme) => ({
   chartContainer: {
     width: "auto"
   },
-  mapContainer: {
-    // position: 'absolute',
-    display: 'flex',
-    width: "1134px",
-    height:"200px",
-    flexGrow: 1,
-    flexBasis: 0,
-    maxWidth: "90%",
-    maxHeight: "100%",
-    marginTop: "5px", 
-    marginBottom: "5px",
-    overflow: "hidden"
-  },
   containerWeather: {
     width: "100%",
     paddingRight: theme.spacing(4),
@@ -287,11 +274,7 @@ function HourlyForecast(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOption, setSelectedOption] = useState("Compact");
   const [dataset, selectDataset] = useState(false);
-  const [lng, setLng] = useState(-77.044311523435);
-  const [lat, setLat] = useState(38.88598268628932);
 
-  const mapContainerRef = useRef(null);
-  // const [dataset, selectDataset] = useState("Hourly");
   const handleMenuClick = useCallback(
     (event) => {
       setAnchorEl(event.currentTarget);

@@ -24,11 +24,6 @@ import cheerio from "cheerio"
 import SwipeableViews from "react-swipeable-views";
 import HourlyForecast from "../real_data/OpenWeatherData";
 
-// import WeatherCharts from "../real_data/WeatherCharts";
-
-// const mapbox_key = ;
- //mapbox_key;
-
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -150,19 +145,6 @@ const styles = theme => ({
       justifyContent: "flex-start",
       backgroundColor: theme.palette.primary.dark
     },
-    mapContainer: {
-      // position: 'absolute',
-      // display: 'flex',
-      width: "1132px",
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      flexGrow: 1,
-      flexBasis: 0,
-      maxWidth: "100%",
-      maxHeight: "100%",
-    }
   });
 
 function a11yProps(index) {
@@ -176,16 +158,9 @@ function SandboxPage(props) {
   const { classes, selectSandbox, width} = props;
   const theme = useTheme();
   const [value, setValue] = useState(0);
-  // const [map, setMap] = useState(null);
-  const [active, setActive] = useState([]);
-  const [lng, setLng] = useState(-77.044311523435);
-  const [lat, setLat] = useState(38.88598268628932);
-  // const [zoom, setZoom] = useState(1.5);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
-  const mapContainerRef = useRef(null);
 
   const handleChangeIndex = (index) => {
     setValue(index);
@@ -195,7 +170,6 @@ function SandboxPage(props) {
   //   enter: theme.transitions.duration.enteringScreen,
   //   exit: theme.transitions.duration.leavingScreen,
   // };
-
 
   const [appState, setAppState] = useState({
     loading: false,
@@ -312,8 +286,8 @@ function SandboxPage(props) {
               onChangeIndex={handleChangeIndex}
               style={ { marginTop: "100px" } }
             > */}
-            <Grid container>
-            <Grid item>
+            {/* <Grid container> */}
+            {/* <Grid item> */}
             
             <Box marginTop="100px">
             
@@ -362,8 +336,8 @@ function SandboxPage(props) {
                 </Box>
               </TabPanel>
             </Box>
-            </Grid>
-            </Grid>
+            {/* </Grid> */}
+            {/* {/* </Grid> */} */}
             {/* </SwipeableViews> */}
           </div>
         </div>

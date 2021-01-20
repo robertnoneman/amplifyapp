@@ -46,7 +46,7 @@ const styles = (theme) => ({
     alignItems: "center",
     height:"600px",
     flexBasis: 0.5,
-    maxHeight: "100%",
+    // maxHeight: "100%",
     marginBottom: "5px",
     flexDirection: "column",
     padding: theme.spacing(3),
@@ -84,6 +84,7 @@ const styles = (theme) => ({
     width: drawerWidth,
     flexShrink: 0,
     whiteSpace: 'nowrap',
+    height: "50px",
   },
   drawerOpen: {
     width: drawerWidth,
@@ -229,6 +230,10 @@ function WeatherMap(props) {
           [classes.drawerClose]: !open,
         }),
       }}
+      style={{
+        height: "10%"
+      }}
+      height='10%'
     >
       {/* <div className={classes.toolbar}>
         <IconButton onClick={closeDrawer}>
@@ -250,7 +255,20 @@ function WeatherMap(props) {
       </ButtonGroup>
     </Drawer>
     <Paper xs={6} className={classes.mapContainer}>
+      
       <div ref={mapContainerRef} className={classes.map} >
+      <ButtonGroup orientation="vertical" style={{ minWidth: "5px" }}>
+        {wMap && mapLayers.map((item, index) => {
+          return (
+            <Button
+              key={item.name} 
+              onClick={() => handleToggleLayer(item.name)}
+              startIcon={item.icon}
+              >
+            </Button>
+          )
+        })}
+      </ButtonGroup>
       </div>
     </Paper>
     </>
