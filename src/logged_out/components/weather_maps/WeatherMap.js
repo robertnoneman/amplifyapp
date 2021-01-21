@@ -29,8 +29,25 @@ const styles = (theme) => ({
   mapBox: {
     backgroundColor: theme.palette.common.black,
     width: "90%",
-    [theme.breakpoints.down('md')]: {
-      maxWidth: "80%",
+    [theme.breakpoints.only('xs')]: {
+      maxWidth: "99%",
+      height: "600px"
+    },
+    [theme.breakpoints.only('sm')]: {
+      maxWidth: "90%",
+      height: "200px"
+    },
+    [theme.breakpoints.only('md')]: {
+      maxWidth: "90%",
+      height: "600px"
+    },
+    [theme.breakpoints.up('lg')]: {
+      maxWidth: "90%",
+      height: "800px"
+    },
+    [theme.breakpoints.up('xl')]: {
+      maxWidth: "90%",
+      height: "1100px"
     },
   },
   mapToolbar: {
@@ -109,8 +126,19 @@ const styles = (theme) => ({
   },
 });
 
+const mapLayers = [
+  {
+    name: 'baseReflectivity',
+    visibility: 'visible',
+  },
+  {
+    name: 'baseVelocity',
+    visibility: 'hidden',
+  },
+]
+
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather, toggleLayer} = props;
+  const { classes, theme, width, selectWeather, toggleLayer, layerClicked} = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
@@ -118,7 +146,7 @@ function WeatherMap(props) {
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
-  const [toggleLayers, setToggleLayers] = useState([]);
+  const [toggleLayers, setToggleLayers] = useState(mapLayers);
 
   const openDrawer = useCallback(() => {
     setIsSideDrawerOpen(true);
@@ -129,30 +157,16 @@ function WeatherMap(props) {
   }, [setIsSideDrawerOpen]);
 
   const handleToggleLayer = (e) => {
-    // const { id } = e;
     if (!wMap || !loaded || !toggleLayer) return;
     console.log(toggleLayer);
-    let setting = wMap.getLayoutProperty(toggleLayer, 'visibility'); //'baseVelocity', 'visibility'); 
-    let toggle = setting === 'visible';
+    let toggle = toggleLayer.layers[layerClicked];
     let newSetting = '';
     if (toggle) {
-      newSetting = 'none'
-    } else newSetting = 'visible';
-    wMap.setLayoutProperty(toggleLayer, 'visibility', newSetting); //'baseVelocity', 'visibility', newSetting);
+      newSetting = 'visible'
+    } else newSetting = 'none';
+    console.log(`Layer clicked: ${toggleLayer.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
+    wMap.setLayoutProperty(layerClicked, 'visibility', newSetting); 
   }
-
-  const mapLayers = [
-    {
-      name: 'baseReflectivity',
-      visibility: 'visible',
-      icon: <CompassCalibration className="text-white"/>
-    },
-    {
-      name: 'baseVelocity',
-      visibility: 'hidden',
-      icon: <ClearAll className="text-white" />
-    },
-  ]
 
   useEffect(() => {
     setToggleLayers(toggleLayer);
@@ -165,7 +179,7 @@ function WeatherMap(props) {
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/dark-v10',
       center: [lng, lat],
-      zoom: 10.5
+      zoom: 9
     })
     myMap.on('load', () => {
       myMap.addSource('bvel_raw', {
@@ -201,6 +215,7 @@ function WeatherMap(props) {
         'aeroway-line'
       );
       myMap.resize();
+      myMap.setLayoutProperty('baseReflectivity', 'visibility', 'visible');
       myMap.setLayoutProperty('baseVelocity', 'visibility', 'none');
       setWMap(myMap);
     })
@@ -217,20 +232,23 @@ function WeatherMap(props) {
 
 function WeatherPage(props) {
   const { classes, theme, width, selectWeather} = props;
-  const [toggledLayers, setToggledLayers] = useState(['baseReflectivity']);
+  const [toggledLayers, setToggledLayers] = useState({
+    layers: {
+      'baseReflectivity': true,
+      'baseVelocity': false
+    }
+  });
+  const [layerClicked, setLayerClicked] = useState('');
 
   const toggleLayer = useCallback((id) => {
     console.log(id);
-    // handleToggleLayer(id);
-    const tempToggled = Array.from(toggledLayers);
-    
-    if (tempToggled.includes(id)) {
-      let index = tempToggled.indexOf(id);
-      tempToggled.splice(index, 1)
-    }
-    else tempToggled.push(id);
-
-    setToggledLayers(tempToggled);
+    let tempToggled = toggledLayers; 
+    let tempVisible = tempToggled.layers[id];
+    console.log(`tempToggled: ${tempToggled.layers[id]}, tempVisible: ${tempVisible}`);
+    setToggledLayers({
+      layers: {...toggledLayers.layers, [id]: !tempVisible }
+    });
+    setLayerClicked(id);
     // return id;
   }, [toggledLayers]);
 
@@ -241,13 +259,13 @@ function WeatherPage(props) {
   return (
     <Grid container height="100%" justify="center" className={classes.mapContainer} alignItems="center">
       <Grid container item xs={12} justify="center">
-        <Box width="90%" height="600px" className={classes.mapBox}>
-          <WeatherMap classes={classes} theme={theme} toggleLayer={toggledLayers[toggledLayers.length - 1]}/>
+        <Box width="90%" className={classes.mapBox}>
+          <WeatherMap classes={classes} theme={theme} toggleLayer={toggledLayers} layerClicked={layerClicked}/>
         </Box>
         <Box height="100%" xs={1} className={classes.mapToolbar}>
           <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
-            <Button variant={toggledLayers.includes("baseReflectivity") ? "outlined" : "contained"} onClick={() => {toggleLayer('baseReflectivity')}}><CompassCalibration className="text-white"/></Button>
-            <Button variant={toggledLayers.includes("baseVelocity") ? "outlined" : "contained"} onClick={() => {toggleLayer('baseVelocity')}}><SettingsInputAntenna className="text-white"/></Button>
+            <Button variant={toggledLayers.layers['baseReflectivity'] ? "outlined" : "contained"} onClick={() => {toggleLayer('baseReflectivity')}}><CompassCalibration className="text-white"/></Button>
+            <Button variant={toggledLayers.layers['baseVelocity'] ? "outlined" : "contained"} onClick={() => {toggleLayer('baseVelocity')}}><SettingsInputAntenna className="text-white"/></Button>
             <Button variant="contained"><WifiTethering className="text-white"/></Button>
           </ButtonGroup>
         </Box>
@@ -257,23 +275,3 @@ function WeatherPage(props) {
 }
 
 export default withStyles(styles, { withTheme: true })(withWidth()(WeatherPage));
-
-/*
-    <Paper xs={6} className={classes.mapContainer}>
-      <div ref={mapContainerRef} className={classes.map}></div>
-    </Paper>
-    <Box display="flex" justifyContent="flex-end">
-      <ButtonGroup orientation="vertical" style={{ minWidth: "5px", justifyContent: "flex-end" }}>
-        {wMap && mapLayers.map((item, index) => {
-          return (
-            <Button
-              key={item.name} 
-              onClick={() => handleToggleLayer(item.name)}
-              startIcon={item.icon}
-              >
-            </Button>
-          )
-        })}
-      </ButtonGroup>
-      </Box>
-*/
