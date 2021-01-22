@@ -11,34 +11,70 @@ import {
   ButtonGroup,
   Grid,
   Box,
-  IconButton, 
+  IconButton,
+  Hidden, 
 } from "@material-ui/core";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
-import { ClearAll, CompassCalibration, FiberSmartRecord, NetworkWifi, SettingsInputAntenna, WifiTethering } from "@material-ui/icons";
+import { ClearAll, CloudCircle, CompassCalibration, FiberSmartRecord, Grain, GraphicEq, InvertColors, LeakAdd, NetworkWifi, SettingsInputAntenna, TrackChanges, Waves, WifiTethering } from "@material-ui/icons";
 import { useStyles } from "@material-ui/pickers/views/Calendar/SlideTransition";
+import Axios from "axios";
+import xml2js from "xml2js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSatellite, faSatelliteDish, faSnowflake, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
 
 const drawerWidth = 50;
+const layerIcons = [
+  <ClearAll className="text-white" />, 
+  <CompassCalibration className="text-white" />, 
+  <FiberSmartRecord className="text-white" />, 
+  <NetworkWifi className="text-white" />, 
+  <SettingsInputAntenna className="text-white" />, 
+  <WifiTethering className="text-white" />,
+  <Waves className="text-white" />,
+  <TrackChanges className="text-white" />,
+  <LeakAdd className="text-white" />,
+  <InvertColors className="text-white" />,
+  <GraphicEq className="text-white" />,
+  <Grain className="text-white" />,
+  <CloudCircle className="text-white" />,
+  <FontAwesomeIcon className="text-white" icon={faTemperatureHigh} />,
+  <FontAwesomeIcon className="text-white" icon={faSnowflake} />,
+  <FontAwesomeIcon className="text-white" icon={faWind} />,
+  <FontAwesomeIcon className="text-white" icon={faSatelliteDish} />,
+  <FontAwesomeIcon className="text-white" icon={faSatellite} />,
+  <FontAwesomeIcon className="text-white" icon={faTachometerAlt} />,
+]
 
 const styles = (theme) => ({
   mapContainer: {
     marginTop: theme.spacing(12),
     [theme.breakpoints.down('md')]: {
       width: "100%",
+      position: "fixed",
+      backgroundColor: theme.palette.common.darkBlack,
+      zIndex: 1201,
+      marginTop: "56px",
+      overflow: "hidden",
+    },
+  },
+  mapContainerFixed: {
+    [theme.breakpoints.down('md')]: {
+      alignItems:"flex-end",
     },
   },
   mapBox: {
     backgroundColor: theme.palette.common.black,
     width: "90%",
     [theme.breakpoints.only('xs')]: {
-      maxWidth: "99%",
-      height: "600px"
+      width: "99%",
+      height: "730px",
     },
     [theme.breakpoints.only('sm')]: {
-      maxWidth: "90%",
-      height: "200px"
+      width: "99%",
+      height: "335px"
     },
     [theme.breakpoints.only('md')]: {
-      maxWidth: "90%",
+      width: "99%",
       height: "600px"
     },
     [theme.breakpoints.up('lg')]: {
@@ -47,7 +83,7 @@ const styles = (theme) => ({
     },
     [theme.breakpoints.up('xl')]: {
       maxWidth: "90%",
-      height: "1100px"
+      height: "1000px"
     },
   },
   mapToolbar: {
@@ -56,11 +92,23 @@ const styles = (theme) => ({
     flexDirection: "column",
     width: "auto",
     marginLeft: '-44px',
-    zIndex: "1201"
+    zIndex: "1201",
+    [theme.breakpoints.down('md')]: {
+      marginTop: "0px",
+      marginBottom: "10px",
+    },
+    [theme.breakpoints.down('sm')]: {
+      marginTop: "0px",
+      marginBottom: "25px",
+    },
   },
   map: {
     width: "100%",
     height: "100%"
+  },
+  hackBox: {
+    height: "600px",
+    width: '100%'
   },
   appBar: {
     zIndex: theme.zIndex.drawer - 1,
@@ -130,23 +178,35 @@ const mapLayers = [
   {
     name: 'baseReflectivity',
     visibility: 'visible',
+    times: [],
   },
   {
     name: 'baseVelocity',
     visibility: 'hidden',
+    times: [],
   },
 ]
 
+const noaaMapsUrl = {
+  getCapabilities: (stationId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetCapabilities`,
+  radarStation: (stationId, layerId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
+  conus: (layerId) => `https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`
+}
+
+var parser = new xml2js.Parser();
+
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather, toggleLayer, layerClicked} = props;
+  const { classes, theme, width, selectWeather, toggleLayer, layerClicked, station } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
+  const [wLayers, setWLayers] = useState([]);
   const mapContainerRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
   const [toggleLayers, setToggleLayers] = useState(mapLayers);
+  const [currentStation, setCurrentStation] = useState('klwx');
 
   const openDrawer = useCallback(() => {
     setIsSideDrawerOpen(true);
@@ -174,51 +234,73 @@ function WeatherMap(props) {
   }, [toggleLayer]);
 
   useEffect(() => {
-    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
-    const myMap = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v10',
-      center: [lng, lat],
-      zoom: 9
-    })
-    myMap.on('load', () => {
-      myMap.addSource('bvel_raw', {
-        type: 'raster',
-        tiles: [
-          'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=klwx_bvel&style=radar_time'
-        ],
-        tileSize: 256
+    setCurrentStation(station);
+  }, [station]);
+
+  useEffect(() => {
+    const tempLayers = [];
+    async function fetchLayerData(stationId) {
+      let caps = [];
+      const capLayers = [];
+      await Axios.get(noaaMapsUrl.getCapabilities(stationId))
+      .then((res) => {
+        parser.parseString(res.data, 
+          function(err, result) { 
+            console.log(result);
+            caps = result;
+          });
+          const layers = caps.WMS_Capabilities.Capability[0].Layer[0].Layer;
+          layers.forEach((layer) => {
+            console.log(layer.Name[0])
+            capLayers.push(layer)
+            tempLayers.push(layer)
+          });
+        setWLayers(capLayers);
       })
-      myMap.addSource('bref_raw', {
-        type: 'raster',
-        tiles: [
-          'https://opengeo.ncep.noaa.gov/geoserver/klwx/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=klwx_bref_raw&style=radar_time', //&time=${time}
-        ],
-        tileSize: 256
+    }
+
+    async function loadMap() {
+      let tempStation = currentStation;
+      if (tempStation === '' || tempStation === null || !tempStation) tempStation = 'klwx';
+      await fetchLayerData(tempStation)
+      .then(() => {
+        mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
+        const myMap = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: 'mapbox://styles/mapbox/dark-v10',
+          center: [lng, lat],
+          zoom: 9
+        })
+        myMap.on('load', () => {
+          if (Array.isArray(tempLayers)) {
+            for (let i = 0; i < tempLayers.length; i++) {
+              console.log(`temp layer ${i}: ${tempLayers[i].Name}`);
+              myMap.addSource(`${tempLayers[i].Name}${i}`, {
+                type: 'raster',
+                tiles: [
+                  noaaMapsUrl.radarStation(tempStation, tempLayers[i].Name)
+                ],
+                tileSize: 256
+              })
+              myMap.addLayer(
+                {
+                  id: `${tempLayers[i].Name}`,
+                  type: 'raster',
+                  source: `${tempLayers[i].Name}${i}`,
+                  'paint': {}
+                },
+                'aeroway-line'
+              );
+              myMap.setLayoutProperty(tempLayers[i].Name, 'visibility', 'none');
+            }
+            // myMap.setLayoutProperty(wLayers[0].Name, 'visibility', 'visible');
+          }
+          myMap.resize();
+          setWMap(myMap);
+        })
       })
-      myMap.addLayer(
-        {
-          id: 'baseVelocity',
-          type: 'raster',
-          source: 'bvel_raw',
-          'paint': {}
-        },
-        'aeroway-line'
-      );
-      myMap.addLayer(
-        {
-          id: 'baseReflectivity',
-          type: 'raster',
-          source: 'bref_raw',
-          'paint': {}
-        },
-        'aeroway-line'
-      );
-      myMap.resize();
-      myMap.setLayoutProperty('baseReflectivity', 'visibility', 'visible');
-      myMap.setLayoutProperty('baseVelocity', 'visibility', 'none');
-      setWMap(myMap);
-    })
+    }
+    loadMap();
     setLoaded(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
@@ -234,11 +316,35 @@ function WeatherPage(props) {
   const { classes, theme, width, selectWeather} = props;
   const [toggledLayers, setToggledLayers] = useState({
     layers: {
-      'baseReflectivity': true,
-      'baseVelocity': false
+      'klwx_bdhc': true,
+      'klwx_bdsa': false,
+      'klwx_bdzd': false,
+      'klwx_beet': false,
+      'klwx_bohp': false,
+      'klwx_bref_raw': false,
+      'klwx_bsrm': false,
+      'klwx_bstp': false,
+      'klwx_bvel': false,
+      'klwx_bvel_raw': false,
+      'klwx_cref': false,
+      'klwx_hvil': false,
     }
   });
   const [layerClicked, setLayerClicked] = useState('');
+  const layerArray = [
+    'klwx_bdhc',
+    'klwx_bdsa',
+    'klwx_bdzd',
+    'klwx_beet',
+    'klwx_bohp',
+    'klwx_bref_raw',
+    'klwx_bsrm',
+    'klwx_bstp',
+    'klwx_bvel',
+    'klwx_bvel_raw',
+    'klwx_cref',
+    'klwx_hvil',
+  ]
 
   const toggleLayer = useCallback((id) => {
     console.log(id);
@@ -249,7 +355,6 @@ function WeatherPage(props) {
       layers: {...toggledLayers.layers, [id]: !tempVisible }
     });
     setLayerClicked(id);
-    // return id;
   }, [toggledLayers]);
 
   useEffect(() => {
@@ -258,20 +363,27 @@ function WeatherPage(props) {
 
   return (
     <Grid container height="100%" justify="center" className={classes.mapContainer} alignItems="center">
-      <Grid container item xs={12} justify="center">
+      <Grid container item xs={12} justify="center" className={classes.mapContainerFixed}>
         <Box width="90%" className={classes.mapBox}>
           <WeatherMap classes={classes} theme={theme} toggleLayer={toggledLayers} layerClicked={layerClicked}/>
         </Box>
         <Box height="100%" xs={1} className={classes.mapToolbar}>
           <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
-            <Button variant={toggledLayers.layers['baseReflectivity'] ? "outlined" : "contained"} onClick={() => {toggleLayer('baseReflectivity')}}><CompassCalibration className="text-white"/></Button>
-            <Button variant={toggledLayers.layers['baseVelocity'] ? "outlined" : "contained"} onClick={() => {toggleLayer('baseVelocity')}}><SettingsInputAntenna className="text-white"/></Button>
-            <Button variant="contained"><WifiTethering className="text-white"/></Button>
+            {layerArray.map((layer, index) => (
+              <Button key={layer} variant={toggledLayers.layers[layer] ? "outlined" : "contained"} onClick={() => {toggleLayer(layer)}}>{layerIcons[index]}</Button>
+            ))}
           </ButtonGroup>
         </Box>
+      </Grid>
+      <Grid item>
+      <Hidden smUp>
+        <Box className={classes.hackBox}>
+        </Box>
+      </Hidden>
       </Grid>
     </Grid>
   )
 }
 
 export default withStyles(styles, { withTheme: true })(withWidth()(WeatherPage));
+
