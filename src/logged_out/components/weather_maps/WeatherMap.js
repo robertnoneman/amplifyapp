@@ -21,6 +21,7 @@ import Axios from "axios";
 import xml2js from "xml2js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSatellite, faSatelliteDish, faSnowflake, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
+import stations from '../../test_data/stations.json'
 
 const drawerWidth = 50;
 const layerIcons = [
@@ -187,6 +188,43 @@ const mapLayers = [
   },
 ]
 
+const conusLayerDefaultStatus = { 
+  layers: {
+    "_bref_qcd": true,
+    "_bref_raw": false,
+    "_cref_qcd": false,
+    "_cref_raw": false,
+    "_neet_v18": false,
+    "_pcpn_typ": false,
+  }
+};
+const tdwrLayerDefaultStatus = { 
+  layers: {
+    "_bref1": true,
+    "_bvel": false,
+    "_bnet": false,
+    "_bvil": false,
+    "_cref": false,
+    "_pcpn_typ": false,
+  }
+};
+const nexradLayerDefaultStatus = {
+  layers: {
+    '_bdhc': true,
+    '_bdsa': false,
+    '_bdzd': false,
+    '_beet': false,
+    '_bohp': false,
+    '_bref_raw': false,
+    '_bsrm': false,
+    '_bstp': false,
+    '_bvel': false,
+    '_bvel_raw': false,
+    '_cref': false,
+    '_hvil': false,
+  }
+};
+
 const noaaMapsUrl = {
   getCapabilities: (stationId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetCapabilities`,
   radarStation: (stationId, layerId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
@@ -197,7 +235,7 @@ const noaaMapsUrl = {
 var parser = new xml2js.Parser();
 
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather, toggleLayer, layerClicked, station } = props;
+  const { classes, theme, width, selectWeather, toggleLayer, layerClicked, station, changeStation, changeLayers, updateToggleLayers, sameLayer } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
@@ -208,7 +246,14 @@ function WeatherMap(props) {
   const [open, setOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
   const [toggleLayers, setToggleLayers] = useState(mapLayers);
-  const [currentStation, setCurrentStation] = useState('klwx');
+  const [currentStation, setCurrentStation] = useState('conus');
+  const [toggledLayers, setToggledLayers] = useState({ layers: {      
+  "_bref_qcd": false,
+  "_bref_raw": false,
+  "_cref_qcd": false,
+  "_cref_raw": false,
+  "_neet_v18": false,
+  "_pcpn_typ": false,} });
 
   const openDrawer = useCallback(() => {
     setIsSideDrawerOpen(true);
@@ -219,22 +264,40 @@ function WeatherMap(props) {
   }, [setIsSideDrawerOpen]);
 
   const handleToggleLayer = (e) => {
+    if (layerClicked === '') return;
     if (!wMap || !loaded || !toggleLayer) return;
     console.log(toggleLayer);
-    let toggle = toggleLayer.layers[`${layerClicked}`];
+    console.log(toggledLayers);
+    let toggle = toggledLayers.layers[`${layerClicked}`];
     let newSetting = '';
-    if (toggle) {
+    if (!toggle) {
       newSetting = 'visible'
     } else newSetting = 'none';
     const stationLayer = `${currentStation}${layerClicked}`;
-    console.log(`Layer clicked: ${stationLayer} - ${toggleLayer.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
+    console.log(`Layer clicked: ${stationLayer} - ${toggledLayers.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
     wMap.setLayoutProperty(stationLayer, 'visibility', newSetting); 
   }
 
+  const updateToggledLayers = (o) => {
+    // const { layer } = o;
+    console.log(`map layer clicked: ${layerClicked}`)
+    var toggle = toggledLayers.layers[layerClicked];
+    setToggledLayers({
+      layers: { ...toggledLayers.layers, [layerClicked]: !toggle }
+    })
+  };
+
   useEffect(() => {
     setToggleLayers(toggleLayer);
+    updateToggledLayers();
     handleToggleLayer();
   }, [toggleLayer]);
+
+  useEffect(() => {
+    updateToggledLayers()
+    // setToggledLayers(layerClicked)
+    handleToggleLayer();
+  }, [layerClicked, sameLayer])
 
   useEffect(() => {
     setCurrentStation(station);
@@ -243,9 +306,21 @@ function WeatherMap(props) {
   useEffect(() => {
     const tempLayers = [];
     const tempNames =[];
+
     async function fetchLayerData(stationId) {
       let caps = [];
       const capLayers = [];
+      let tempToggleLayers = {};
+    
+      if(stationId === 'conus') {
+        tempToggleLayers = conusLayerDefaultStatus;
+      }
+      if(stationId[0] === 'k') {
+        tempToggleLayers = nexradLayerDefaultStatus;
+      }
+      if(stationId[0] === 't') {
+        tempToggleLayers = tdwrLayerDefaultStatus;
+      }
       await Axios.get(noaaMapsUrl.getCapabilities(stationId))
       .then((res) => {
         parser.parseString(res.data, 
@@ -257,6 +332,7 @@ function WeatherMap(props) {
           layers.forEach((layer) => {
             
             if(stationId === 'conus') {
+              // tempToggledLayers = ({layers: {...tempToggledLayers.layers, layer.Name[0].slice(5,): false} })
               console.log(layer.Name[0].slice(5,))
               tempNames.push(layer.Name[0].slice(5,))
             }
@@ -269,12 +345,14 @@ function WeatherMap(props) {
           });
         setWLayers(capLayers);
         setWLayerNames(tempNames);
+        changeLayers(tempNames);
+        setToggledLayers(tempToggleLayers);
       })
     }
 
     async function loadMap() {
       let tempStation = currentStation.toLowerCase();
-      if (tempStation === '' || tempStation === null || !tempStation) tempStation = 'klwx';
+      if (tempStation === '' || tempStation === null || !tempStation) tempStation = 'conus';
       await fetchLayerData(tempStation)
       .then(() => {
         mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
@@ -286,17 +364,6 @@ function WeatherMap(props) {
         })
         
         myMap.on('load', () => {
-          myMap.loadImage('https://cors-anywhere.herokuapp.com/https://cdn.onlinewebfonts.com/svg/img_486487.png', function(error, image) {
-          if (error) throw error;
-          // add image to the active style and make it SDF-enabled
-          myMap.addImage('radar-icon', image, { sdf: true });
-          });
-          // myMap.loadImage('https://cors-anywhere.herokuapp.com/https://simpleicon.com/wp-content/uploads/radar-31.png', function(error, image) {
-            myMap.loadImage('https://cors-anywhere.herokuapp.com/https://cdn.onlinewebfonts.com/svg/img_486487.png', function(error, image) {
-          if (error) throw error;
-          // add image to the active style and make it SDF-enabled
-          myMap.addImage('radar-icon-simple', image, { sdf: true });
-          });
           if (Array.isArray(tempLayers)) {
             for (let i = 0; i < tempLayers.length; i++) {
               console.log(`temp layer ${i}: ${tempLayers[i].Name}`);
@@ -323,7 +390,8 @@ function WeatherMap(props) {
           }
           myMap.addSource('radarStations', {
             type: 'geojson',
-            data: 'https://api.weather.gov/radar/stations'
+            data: stations
+            // data: 'https://api.weather.gov/radar/stations'
           })
           myMap.addLayer({
             'id': 'stations',
@@ -366,7 +434,7 @@ function WeatherMap(props) {
           myMap.on('click', 'stationCircles', function (e) {
             new mapboxgl.Popup()
             .setLngLat(e.features[0].geometry.coordinates)
-            .setHTML(e.features[0].properties.id)
+            // .setHTML(e.features[0].properties.id)
             .addTo(myMap);
             setLng(e.features[0].geometry.coordinates[0])
             setLat(e.features[0].geometry.coordinates[1])
@@ -387,7 +455,15 @@ function WeatherMap(props) {
     loadMap();
     setLoaded(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [station, currentStation]); 
+  }, [station, currentStation]);
+  
+  useEffect(() => {
+    changeStation(currentStation);
+  }, [currentStation, changeStation]);
+
+  useEffect(() => {
+    updateToggleLayers(toggledLayers);
+  }, [toggledLayers, updateToggleLayers])
 
   return (
     <>
@@ -398,7 +474,14 @@ function WeatherMap(props) {
 
 function WeatherPage(props) {
   const { classes, theme, width, selectWeather} = props;
-  const [selectedStation, setSelectedStation] = useState('klwx');
+  // setSelectedStation would be used to set station when controlled from UI, 
+  // so like when changing from individual stations to conus composite
+  const [selectedStation, setSelectedStation] = useState('conus');
+  const [station, setStation] = useState('kdox');
+  const [currentLayers, setCurrentLayers] = useState([]);
+  const [mapLayersStatus, setMapLayersStatus] = useState([]);
+  const [layerClicked, setLayerClicked] = useState('_bref_qcd');
+  const [sameLayerClicked, setSameLayerClicked] = useState(false);
   const [toggledLayers, setToggledLayers] = useState({
     layers: {
       '_bdhc': true,
@@ -415,21 +498,7 @@ function WeatherPage(props) {
       '_hvil': false,
     }
   });
-  const [layerClicked, setLayerClicked] = useState('');
-  const layerArray = [
-    `_bdhc`,
-    `_bdsa`,
-    `_bdzd`,
-    `_beet`,
-    `_bohp`,
-    `_bref_raw`,
-    `_bsrm`,
-    `_bstp`,
-    `_bvel`,
-    `_bvel_raw`,
-    `_cref`,
-    `_hvil`,
-  ]
+  
   const [conusToggledLayers, setConusToggledLayers] = useState({
     layers: {
       "_bref_qcd": true,
@@ -441,8 +510,23 @@ function WeatherPage(props) {
     }
   });
   const conusLayerArray = ["_bref_qcd","_bref_raw","_cref_qcd","_cref_raw","_neet_v18","_pcpn_typ"];
-  const tdwrLayerArray = ["_bref", '_bvel', '_bnet', '_bvil', '_cref'];
   
+  const changeStation = useCallback((stationId) => {
+    console.log(`Current station set to: ${stationId}`);
+    setStation(stationId);
+    // setSelectedStation(stationId)
+  }, [])
+
+  const changeLayers = useCallback((layers) => {
+    console.log(layers);
+    setCurrentLayers(layers);
+  }, [])
+
+  const updateToggledLayers = useCallback((layers) => {
+    console.log(layers);
+    // setToggledLayers(layers);
+    setMapLayersStatus(layers);
+  }, [])
 
   const toggleLayer = useCallback((id) => {
     console.log(id);
@@ -452,8 +536,23 @@ function WeatherPage(props) {
     setToggledLayers({
       layers: {...toggledLayers.layers, [id]: !tempVisible }
     });
-    setLayerClicked(`${id}`);
+    // setLayerClicked(`${id}`);
   }, [toggledLayers]);
+
+  const updateLayerClicked = useCallback((layer) => {
+    console.log(`Layer clicked: ${layer}`);
+    let prevLayerClicked = layerClicked;
+    console.log(prevLayerClicked);
+    let toggy = !sameLayerClicked;
+    // if (prevLayerClicked === layer) setSameLayerClicked(true);
+    setSameLayerClicked(toggy);
+    setLayerClicked(layer);
+    toggleLayer(layer);
+  }, [toggleLayer, setLayerClicked, setSameLayerClicked])
+
+  function hackyLayerClick(layer) {
+    setLayerClicked(layer);
+  }
 
   const toggleConusLayer = useCallback((id) => {
     console.log(id);
@@ -474,14 +573,21 @@ function WeatherPage(props) {
     <Grid container height="100%" justify="center" className={classes.mapContainer} alignItems="center">
       <Grid container item xs={12} justify="center" className={classes.mapContainerFixed}>
         <Box width="90%" className={classes.mapBox}>
-          <WeatherMap station={selectedStation} classes={classes} theme={theme} toggleLayer={selectedStation === 'conus' ? conusToggledLayers : toggledLayers} layerClicked={layerClicked}/>
+          <WeatherMap changeLayers={(layers) => changeLayers(layers)} 
+            changeStation={(id) => changeStation(id)} 
+            updateToggleLayers={(toggledLayers) => updateToggledLayers(toggledLayers)} 
+            station={selectedStation} classes={classes} theme={theme} 
+            toggleLayer={selectedStation === 'conus' ? conusToggledLayers : toggledLayers} 
+            layerClicked={layerClicked}
+            sameLayer={sameLayerClicked}
+          />
         </Box>
         <Box height="100%" xs={1} className={classes.mapToolbar}>
           <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
-            {(selectedStation !== 'conus' && layerArray.map((layer, index) => (
-              <Button key={layer} variant={toggledLayers.layers[layer] ? "outlined" : "contained"} onClick={() => {toggleLayer(layer)}}>{layerIcons[index]}</Button>
+            {(station !== 'conus' && currentLayers.map((layer, index) => (
+              <Button key={layer} variant={mapLayersStatus.layers[layer] ? "outlined" : "contained"} onClick={() => {updateLayerClicked(layer)}}>{layerIcons[index]}</Button>
             )))}
-            {(selectedStation === 'conus' && conusLayerArray.map((layer, index) => (
+            {(station === 'conus' && conusLayerArray.map((layer, index) => (
               <Button key={layer} variant={conusToggledLayers.layers[layer] ? "outlined" : "contained"} onClick={() => {toggleConusLayer(layer)}}>{layerIcons[index]}</Button>
             )))}
           </ButtonGroup>
@@ -499,3 +605,14 @@ function WeatherPage(props) {
 
 export default withStyles(styles, { withTheme: true })(withWidth()(WeatherPage));
 
+          // myMap.loadImage('https://cors-anywhere.herokuapp.com/https://cdn.onlinewebfonts.com/svg/img_486487.png', function(error, image) {
+          // if (error) throw error;
+          // // add image to the active style and make it SDF-enabled
+          // myMap.addImage('radar-icon', image, { sdf: true });
+          // });
+          // // myMap.loadImage('https://cors-anywhere.herokuapp.com/https://simpleicon.com/wp-content/uploads/radar-31.png', function(error, image) {
+          //   myMap.loadImage('https://cors-anywhere.herokuapp.com/https://cdn.onlinewebfonts.com/svg/img_486487.png', function(error, image) {
+          // if (error) throw error;
+          // // add image to the active style and make it SDF-enabled
+          // myMap.addImage('radar-icon-simple', image, { sdf: true });
+          // });
