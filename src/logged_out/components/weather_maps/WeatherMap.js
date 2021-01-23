@@ -12,7 +12,9 @@ import {
   Grid,
   Box,
   IconButton,
-  Hidden, 
+  Hidden,
+  Tooltip,
+  CircularProgress, 
 } from "@material-ui/core";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
 import { ClearAll, CloudCircle, CompassCalibration, FiberSmartRecord, Grain, GraphicEq, InvertColors, LeakAdd, NetworkWifi, SettingsInputAntenna, TrackChanges, Waves, WifiTethering } from "@material-ui/icons";
@@ -22,6 +24,7 @@ import xml2js from "xml2js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSatellite, faSatelliteDish, faSnowflake, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
 import stations from '../../test_data/stations.json'
+import { ThemeContext } from "styled-components";
 
 const drawerWidth = 50;
 const layerIcons = [
@@ -110,6 +113,13 @@ const styles = (theme) => ({
   hackBox: {
     height: "600px",
     width: '100%'
+  },
+  fabProgress: {
+    color: theme.palette.primary.main,
+    position: 'absolute',
+    top: "40%",
+    left: "45%",
+    zIndex: 1,
   },
   appBar: {
     zIndex: theme.zIndex.drawer - 1,
@@ -215,7 +225,7 @@ const nexradLayerDefaultStatus = {
     '_bdzd': false,
     '_beet': false,
     '_bohp': false,
-    '_bref_raw': false,
+    '_bref_raw': true,
     '_bsrm': false,
     '_bstp': false,
     '_bvel': false,
@@ -235,7 +245,9 @@ const noaaMapsUrl = {
 var parser = new xml2js.Parser();
 
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather, toggleLayer, layerClicked, station, changeStation, changeLayers, updateToggleLayers, sameLayer } = props;
+  const { classes, theme, width, selectWeather, updateLoading, toggleLayer, layerClicked, 
+    station, changeStation, changeLayers, changeLayerObjs,
+    updateToggleLayers, sameLayer } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
@@ -243,9 +255,9 @@ function WeatherMap(props) {
   const [wLayerNames, setWLayerNames] = useState([]);
   const mapContainerRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
-  const [toggleLayers, setToggleLayers] = useState(mapLayers);
+  // const [toggleLayers, setToggleLayers] = useState(mapLayers);
   const [currentStation, setCurrentStation] = useState('conus');
   const [toggledLayers, setToggledLayers] = useState({ layers: {      
   "_bref_qcd": false,
@@ -287,11 +299,11 @@ function WeatherMap(props) {
     })
   };
 
-  useEffect(() => {
-    setToggleLayers(toggleLayer);
-    updateToggledLayers();
-    handleToggleLayer();
-  }, [toggleLayer]);
+  // useEffect(() => {
+  //   setToggleLayers(toggleLayer);
+  //   updateToggledLayers();
+  //   handleToggleLayer();
+  // }, [toggleLayer]);
 
   useEffect(() => {
     updateToggledLayers()
@@ -304,8 +316,10 @@ function WeatherMap(props) {
   }, [station]);
 
   useEffect(() => {
+    setLoaded(false);
     const tempLayers = [];
     const tempNames =[];
+    const layerObjs = [];
 
     async function fetchLayerData(stationId) {
       let caps = [];
@@ -333,24 +347,41 @@ function WeatherMap(props) {
             
             if(stationId === 'conus') {
               // tempToggledLayers = ({layers: {...tempToggledLayers.layers, layer.Name[0].slice(5,): false} })
-              console.log(layer.Name[0].slice(5,))
+              console.log(
+                {name: layer.Name[0].slice(5,),
+                description:  layer.Abstract[0]} )
               tempNames.push(layer.Name[0].slice(5,))
+              layerObjs.push({
+                name: layer.Name[0].slice(5,),
+                description: layer.Abstract[0]
+              })
             }
             else { 
-              console.log(layer.Name[0].slice(4,))
+              console.log( 
+                {
+                  name: layer.Name[0].slice(4,),
+                  description: layer.Abstract[0]
+                } )
+                layerObjs.push({
+                  name: layer.Name[0].slice(4,),
+                  description: layer.Abstract[0]
+                })
               tempNames.push(layer.Name[0].slice(4,)) 
             }
             capLayers.push(layer)
             tempLayers.push(layer)
+            
           });
         setWLayers(capLayers);
         setWLayerNames(tempNames);
         changeLayers(tempNames);
+        changeLayerObjs(layerObjs);
         setToggledLayers(tempToggleLayers);
       })
     }
 
     async function loadMap() {
+      setLoaded(false);
       let tempStation = currentStation.toLowerCase();
       if (tempStation === '' || tempStation === null || !tempStation) tempStation = 'conus';
       await fetchLayerData(tempStation)
@@ -360,7 +391,7 @@ function WeatherMap(props) {
           container: mapContainerRef.current,
           style: 'mapbox://styles/mapbox/dark-v10',
           center: [lng, lat],
-          zoom: 9
+          zoom: 8
         })
         
         myMap.on('load', () => {
@@ -385,19 +416,54 @@ function WeatherMap(props) {
                 },
                 'aeroway-line'
               );
-              myMap.setLayoutProperty(tempLayers[i].Name, 'visibility', 'none');
+              if (i > 0) myMap.setLayoutProperty(tempLayers[i].Name, 'visibility', 'none');
             }
           }
           myMap.addSource('radarStations', {
-            type: 'geojson',
-            data: stations
-            // data: 'https://api.weather.gov/radar/stations'
-          })
+              type: 'geojson',
+              data: stations,
+              // data: 'https://api.weather.gov/radar/stations',
+              cluster: true,
+              clusterMaxZoom: 14,
+            });
+            
           myMap.addLayer({
-            'id': 'stations',
-            'type': 'symbol',
-            'source': 'radarStations',
-            'layout': {
+            id: 'stationClusterCircles',
+            type: 'circle',
+            source: 'radarStations',
+            filter: ['has', 'point_count'],
+            paint: {
+            // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+            // with three steps to implement three types of circles:
+            //   * Blue, 20px circles when point count is less than 100
+            //   * Yellow, 30px circles when point count is between 100 and 750
+            //   * Pink, 40px circles when point count is greater than or equal to 750
+            'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#51bbd6',
+            100,
+            '#f1f075',
+            750,
+            '#f28cb1'
+            ],
+            'circle-radius': [
+              'step',
+              ['get', 'point_count'],
+              20,
+              1,
+              20,
+              2,
+              30
+              ]
+              }
+              });
+          myMap.addLayer({
+            id: 'stationClusterLabels',
+            type: 'symbol',
+            source: 'radarStations',
+            filter: ['has', 'point_count'],
+            layout: {
               // get the title name from the source's "title" property
               'text-field': ['get', 'id'],
               'text-font': [
@@ -408,7 +474,7 @@ function WeatherMap(props) {
               'text-offset': [0, 1.25],
               'text-anchor': 'top'
             },
-            'paint': {
+            paint: {
               'icon-color': [
                 'match',
                 ['get', 'rda'],
@@ -422,14 +488,32 @@ function WeatherMap(props) {
             id: 'stationCircles',
             type: 'circle',
             source: 'radarStations',
+            filter: ['!', ['has', 'point_count']],
             paint: {
             'circle-blur': 0.5,
             'circle-color': '#11b4da',
-            'circle-opacity': 0.5,
+            'circle-opacity': 0.75,
             'circle-radius': 12,
             'circle-stroke-width': 1,
             'circle-stroke-color': '#ef6c2a'
             }
+          });
+          // inspect a cluster on click
+          myMap.on('click', 'stationClusterCircles', function (e) {
+            var features = myMap.queryRenderedFeatures(e.point, {
+              layers: ['stationClusterCircles']
+            });
+            var clusterId = features[0].properties.cluster_id;
+            myMap.getSource('radarStations').getClusterExpansionZoom(
+              clusterId,
+              function (err, zoom) {
+                if (err) return;
+                myMap.easeTo({
+                  center: features[0].geometry.coordinates,
+                  zoom: zoom
+                });
+               }
+            );
           });
           myMap.on('click', 'stationCircles', function (e) {
             new mapboxgl.Popup()
@@ -447,23 +531,39 @@ function WeatherMap(props) {
           myMap.on('mouseleave', 'stationCircles', function () {
             myMap.getCanvas().style.cursor = '';
           });
+          myMap.on('sourcedata', function(e) {
+            if (e.isSourceLoaded) {
+            // Do something when the source has finished loading
+              if (e.source === 'radarStations') {
+                console.log('Radar stations loaded successfully!')
+                console.log(`Source data type: ${e.sourceDataType.metadata}`);
+              }
+              
+            }
+            // console.log(`Source data type: ${e.sourceDataType}`);
+            });
           myMap.resize();
           setWMap(myMap);
+          setLoaded(true);
         })
       })
     }
     loadMap();
-    setLoaded(true);
+    // setLoaded(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [station, currentStation]);
+  }, [currentStation]);
   
   useEffect(() => {
     changeStation(currentStation);
-  }, [currentStation, changeStation]);
+  }, [setCurrentStation]);
 
   useEffect(() => {
     updateToggleLayers(toggledLayers);
   }, [toggledLayers, updateToggleLayers])
+
+  useEffect(() => {
+    updateLoading(!loaded);
+  }, [loaded]);
 
   return (
     <>
@@ -474,11 +574,13 @@ function WeatherMap(props) {
 
 function WeatherPage(props) {
   const { classes, theme, width, selectWeather} = props;
+  const [loading, setLoading] = useState(true);
   // setSelectedStation would be used to set station when controlled from UI, 
   // so like when changing from individual stations to conus composite
   const [selectedStation, setSelectedStation] = useState('conus');
   const [station, setStation] = useState('kdox');
   const [currentLayers, setCurrentLayers] = useState([]);
+  const [currentLayerObjs, setCurrentLayerObjs] = useState([]);
   const [mapLayersStatus, setMapLayersStatus] = useState([]);
   const [layerClicked, setLayerClicked] = useState('_bref_qcd');
   const [sameLayerClicked, setSameLayerClicked] = useState(false);
@@ -522,10 +624,21 @@ function WeatherPage(props) {
     setCurrentLayers(layers);
   }, [])
 
+  const changeLayerObjs = useCallback((layers) => {
+    console.log(layers);
+    setCurrentLayerObjs(layers);
+  }, [])
+
   const updateToggledLayers = useCallback((layers) => {
     console.log(layers);
     // setToggledLayers(layers);
     setMapLayersStatus(layers);
+  }, [])
+
+  const updateLoading = useCallback((status) => {
+    console.log(`Loading: ${status}`);
+    // setToggledLayers(layers);
+    setLoading(status);
   }, [])
 
   const toggleLayer = useCallback((id) => {
@@ -548,11 +661,8 @@ function WeatherPage(props) {
     setSameLayerClicked(toggy);
     setLayerClicked(layer);
     toggleLayer(layer);
-  }, [toggleLayer, setLayerClicked, setSameLayerClicked])
-
-  function hackyLayerClick(layer) {
-    setLayerClicked(layer);
-  }
+  // }, [toggleLayer, setLayerClicked, setSameLayerClicked])
+  }, [setLayerClicked])
 
   const toggleConusLayer = useCallback((id) => {
     console.log(id);
@@ -573,22 +683,32 @@ function WeatherPage(props) {
     <Grid container height="100%" justify="center" className={classes.mapContainer} alignItems="center">
       <Grid container item xs={12} justify="center" className={classes.mapContainerFixed}>
         <Box width="90%" className={classes.mapBox}>
-          <WeatherMap changeLayers={(layers) => changeLayers(layers)} 
+          <WeatherMap changeLayers={(layers) => changeLayers(layers)} changeLayerObjs={(layers) => changeLayerObjs(layers)}
             changeStation={(id) => changeStation(id)} 
             updateToggleLayers={(toggledLayers) => updateToggledLayers(toggledLayers)} 
             station={selectedStation} classes={classes} theme={theme} 
             toggleLayer={selectedStation === 'conus' ? conusToggledLayers : toggledLayers} 
             layerClicked={layerClicked}
             sameLayer={sameLayerClicked}
+            updateLoading={(status) => updateLoading(status)}
           />
+          {loading && <CircularProgress size={68} className={classes.fabProgress} />}
         </Box>
         <Box height="100%" xs={1} className={classes.mapToolbar}>
           <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
-            {(station !== 'conus' && currentLayers.map((layer, index) => (
-              <Button key={layer} variant={mapLayersStatus.layers[layer] ? "outlined" : "contained"} onClick={() => {updateLayerClicked(layer)}}>{layerIcons[index]}</Button>
+            {(station !== 'conus' && currentLayerObjs.map((layer, index) => (
+              <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} onClick={() => {updateLayerClicked(layer.name)}}>
+                <Tooltip title={layer.description} placement="right" key={layer.name} >
+                  {layerIcons[index]}
+                </Tooltip>
+              </Button>
             )))}
-            {(station === 'conus' && conusLayerArray.map((layer, index) => (
-              <Button key={layer} variant={conusToggledLayers.layers[layer] ? "outlined" : "contained"} onClick={() => {toggleConusLayer(layer)}}>{layerIcons[index]}</Button>
+            {(station === 'conus' && currentLayerObjs.map((layer, index) => (
+              <Button key={layer.name} variant={conusToggledLayers.layers[layer.name] ? "outlined" : "contained"} onClick={() => {toggleConusLayer(layer.name)}}>
+                <Tooltip title={layer.description} placement="right" key={layer.name} >
+                  {layerIcons[index]}
+                </Tooltip>
+              </Button>
             )))}
           </ButtonGroup>
         </Box>
