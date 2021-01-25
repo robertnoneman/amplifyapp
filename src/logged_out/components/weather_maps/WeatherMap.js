@@ -276,12 +276,10 @@ function WeatherMap(props) {
   const [wLayerNames, setWLayerNames] = useState([]);
   const mapContainerRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
-  // const [open, setOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
-  // const [toggleLayers, setToggleLayers] = useState(mapLayers);
   const [currentStation, setCurrentStation] = useState('conus');
   const [toggledLayers, setToggledLayers] = useState({ layers: {      
-  "_bref_qcd": false,
+  "_bref_qcd": true,
   "_bref_raw": false,
   "_cref_qcd": false,
   "_cref_raw": false,
@@ -308,7 +306,7 @@ function WeatherMap(props) {
     } else newSetting = 'none';
     const stationLayer = `${currentStation}${layerClicked}`;
     console.log(`Layer clicked: ${stationLayer} - ${toggledLayers.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
-    if (layerClicked[layerClicked.length - 1] > 0 ) wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
+    if (layerClicked.substring(0,3) === "sat" ) wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
     else wMap.setLayoutProperty(stationLayer, 'visibility', newSetting); 
   }
 
@@ -391,8 +389,8 @@ function WeatherMap(props) {
       goesCaps.push(layer.Layer[0]);
     })
     setSatLayers(goesCaps);
-  })
-}
+    })
+  }
 
   useEffect(() => {
     fetchGoesData();
@@ -403,7 +401,6 @@ function WeatherMap(props) {
     const tempLayers = [];
     const tempNames =[];
     const layerObjs = [];
-    
 
     async function fetchLayerData(stationId) {
       if (stationId === 'goes') return;
@@ -421,7 +418,6 @@ function WeatherMap(props) {
         tempToggleLayers = tdwrLayerDefaultStatus;
       }
       
-      // Axios.get('https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_east.cgi?VERSION=1.1.1&REQUEST=GetCapabilities&SERVICE=WMS&')
       await Axios.get(noaaMapsUrl.getCapabilities(stationId))
       .then((res) => {
         parser.parseString(res.data, 
@@ -431,9 +427,7 @@ function WeatherMap(props) {
           });
           const layers = caps.WMS_Capabilities.Capability[0].Layer[0].Layer;
           layers.forEach((layer) => {
-            
             if(stationId === 'conus') {
-              // tempToggledLayers = ({layers: {...tempToggledLayers.layers, layer.Name[0].slice(5,): false} })
               console.log(
                 {name: layer.Name[0].slice(5,),
                 description:  layer.Abstract[0]} )
@@ -457,7 +451,6 @@ function WeatherMap(props) {
             }
             capLayers.push(layer)
             tempLayers.push(layer)
-            
           });
         setWLayers(capLayers);
         setWLayerNames(tempNames);
@@ -610,10 +603,6 @@ function WeatherMap(props) {
             setLng(e.features[0].geometry.coordinates[0])
             setLat(e.features[0].geometry.coordinates[1])
             setCurrentStation(e.features[0].properties.id.toLowerCase())
-            // var el = document.createElement('div');
-            // new mapboxgl.Marker(el)
-            //   .setLngLat(e.features[0].geometry.coordinates)
-            //   .addTo(myMap);
           });
           myMap.on('mouseenter', 'stationCircles', function () {
             myMap.getCanvas().style.cursor = 'pointer';
@@ -631,7 +620,6 @@ function WeatherMap(props) {
               }
               
             }
-            // console.log(`Source data type: ${e.sourceDataType}`);
             });
           myMap.resize();
           setWMap(myMap);
@@ -646,7 +634,7 @@ function WeatherMap(props) {
   
   useEffect(() => {
     changeStation(currentStation);
-  }, [setCurrentStation]);
+  }, [currentStation]);
 
   useEffect(() => {
     updateToggleLayers(toggledLayers);
@@ -679,7 +667,7 @@ function WeatherPage(props) {
   const [goesClicked, setGoesClicked] = useState(false);
   const [toggledLayers, setToggledLayers] = useState({
     layers: {
-      '_bdhc': false,
+      '_bdhc': true,
       '_bdsa': false,
       '_bdzd': false,
       '_beet': false,
@@ -711,16 +699,16 @@ function WeatherPage(props) {
       "_pcpn_typ": false,
     }
   });
-  const conusLayerArray = ["_bref_qcd","_bref_raw","_cref_qcd","_cref_raw","_neet_v18","_pcpn_typ"];
   
   const handleGoesClicked = () => {
-    setGoesClicked(true);
+    setGoesClicked(!goesClicked);
     // setSelectedStation('goes')
   }
 
   const changeStation = useCallback((stationId) => {
     console.log(`Current station set to: ${stationId}`);
     setStation(stationId);
+    // setGoesClicked(false);
   }, [])
 
   const changeLayers = useCallback((layers) => {
@@ -760,7 +748,7 @@ function WeatherPage(props) {
       layers: {...tempToggled.layers, [id]: !tempVisible }
     });
     // setLayerClicked(`${id}`);
-  }, [sameLayerClicked]);
+  }, [toggledLayers]);
 
   const updateLayerClicked = useCallback((layer) => {
     console.log(`Layer clicked: ${layer}`);
@@ -770,8 +758,9 @@ function WeatherPage(props) {
     setSameLayerClicked(toggy);
     setLayerClicked(layer);
     toggleLayer(layer);
+    // toggleConusLayer(layer);
   // }, [toggleLayer, setLayerClicked, setSameLayerClicked])
-  }, [setLayerClicked])
+  }, [sameLayerClicked, setLayerClicked])
 
   const toggleConusLayer = useCallback((id) => {
     // console.log(id);
@@ -828,7 +817,7 @@ function WeatherPage(props) {
           <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
             {(Array.isArray(currentSatLayerObjs) && currentSatLayerObjs.map((layer, index) => (
               <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} 
-                onClick={() => {updateLayerClicked(layer.name)}}
+                onClick={station === 'conus' ? () => {toggleConusLayer(layer.name)} : () => {updateLayerClicked(layer.name)}}
                 >
                 <Tooltip title={layer.description} placement="right" key={layer.name} >
                   {layerIcons[index]}
