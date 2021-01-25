@@ -23,7 +23,7 @@ import Axios from "axios";
 import xml2js from "xml2js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSatellite, faSatelliteDish, faSnowflake, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
-import stations from '../../test_data/stations.json'
+import stations from './stations.json'
 import { ThemeContext } from "styled-components";
 
 const drawerWidth = 50;
@@ -104,6 +104,15 @@ const styles = (theme) => ({
     [theme.breakpoints.down('sm')]: {
       marginTop: "0px",
       marginBottom: "25px",
+    },
+  },
+  goesToolbar: {
+    zIndex: "1201",
+    [theme.breakpoints.only('sm')]: {
+      marginTop: "-638px",
+    },
+    [theme.breakpoints.only('xs')]: {
+      marginTop: "-2030px",
     },
   },
   map: {
@@ -814,20 +823,20 @@ function WeatherPage(props) {
               </Button>
             )))}
           </ButtonGroup>
-          <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
-            {(Array.isArray(currentSatLayerObjs) && currentSatLayerObjs.map((layer, index) => (
-              <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} 
-                onClick={station === 'conus' ? () => {toggleConusLayer(layer.name)} : () => {updateLayerClicked(layer.name)}}
-                >
-                <Tooltip title={layer.description} placement="right" key={layer.name} >
-                  {layerIcons[index]}
-                </Tooltip>
-              </Button>
-            )))}
-            <Button onClick={handleGoesClicked}>Add GOES data</Button>
-          </ButtonGroup>
         </Box>
       </Grid>
+      <ButtonGroup className={classes.goesToolbar} color="secondary" variant="contained" size="small" >
+          {(Array.isArray(currentSatLayerObjs) && currentSatLayerObjs.map((layer, index) => (
+            <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} 
+              onClick={station === 'conus' ? () => {toggleConusLayer(layer.name)} : () => {updateLayerClicked(layer.name)}}
+              >
+              <Tooltip title={layer.description} placement="right" key={layer.name} >
+                {layerIcons[index]}
+              </Tooltip>
+            </Button>
+          )))}
+          {!goesClicked && <Button onClick={handleGoesClicked}>Add GOES data</Button>}
+        </ButtonGroup>
       <Grid item>
       <Hidden smUp>
         <Box className={classes.hackBox}>
