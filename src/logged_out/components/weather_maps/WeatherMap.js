@@ -225,7 +225,7 @@ const nexradLayerDefaultStatus = {
     '_bdzd': false,
     '_beet': false,
     '_bohp': false,
-    '_bref_raw': true,
+    '_bref_raw': false,
     '_bsrm': false,
     '_bstp': false,
     '_bvel': false,
@@ -236,22 +236,43 @@ const nexradLayerDefaultStatus = {
 };
 
 const noaaMapsUrl = {
-  getCapabilities: (stationId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetCapabilities`,
-  radarStation: (stationId, layerId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
-  conus: (layerId) => `https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`,
-  stationList: 'https://api.weather.gov/radar/stations'
+  getCapabilities: (stationId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetCapabilities`,
+  goesGetCapabilities: 'https://gentle-fortress-30918.herokuapp.com/https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WMSServer?request=GetCapabilities&service=WMS',
+  goesGetMap: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WmsServer?service=WMS&request=GetMap&version=1.3.0&layers=${layerId}&styles=&format=image/png&transparent=true&height=256&width=256&crs=EPSG:3857&bbox={bbox-epsg-3857}`,
+  radarStation: (stationId, layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
+  conus: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`,
+  stationList: 'https://api.weather.gov/radar/stations',
+  goes: 'https://wms1.nsstc.nasa.gov:443/geoserver/GOES/wms?service=WMS&request=getmap&layers=LAYERNAME&bbox=SWLON,SWLAT,NELON,NELAT&width=IMAGEWIDTH&height=IMAGEHEIGHT&format=image/png',
+  nasaWeatherList: 'https://weather.msfc.nasa.gov/goes/gislist.html',
+  goesAlt: 'https://gist.github.com/ix4/56b767b1e9251638cc27a7aad443805c',
+  ecmwf: 'https://apps.ecmwf.int/wms/?token=public',
+  hrrr: 'https://mesonet.agron.iastate.edu/cgi-bin/wms/hrrr/refd.cgi'
 }
 
 var parser = new xml2js.Parser();
 
+const RadarStationIcon = (props) => {
+  const { classes, theme, color } = props;
+  return ( 
+    <div>
+      <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="radar" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-radar fa-w-16 fa-9x">
+        <path fill="currentColor" d="M504,256c0,136.9668-111.0332,248-248,248S8,392.9668,8,256,119.0332,8,256,8A246.36335,246.36335,0,0,1,395.14648,50.916L425.377,20.68555a16.00006,16.00006,0,0,1,22.627,0l11.31054,11.31054a16.00006,16.00006,0,0,1,0,22.627l-201.373,201.373L257.93555,256H320a64.00026,64.00026,0,1,1-66.15625-63.78125L281.97852,164.084A92.08681,92.08681,0,0,0,256,160a96,96,0,1,0,96,96h64c0,79.53906-58.498,145.17578-134.63281,157.43555C275.54492,405.49414,266.60156,400,256,400s-19.54492,5.49414-25.36719,13.43555A159.59519,159.59519,0,0,1,98.56445,281.36719C106.50586,275.54492,112,266.60156,112,256s-5.49414-19.54492-13.43555-25.36719C110.82422,154.49805,176.46094,96,256,96c27.11328,0,52.21484,7.48438,74.53125,19.53125L354.51953,91.543A190.21144,190.21144,0,0,0,256,64C159.74023,64,80.26172,134.91211,66.375,227.30078a31.59809,31.59809,0,0,0,0,57.39649A191.79963,191.79963,0,0,0,227.30273,445.625a31.59657,31.59657,0,0,0,57.39454,0C377.08594,431.74023,448,352.25977,448,256Z" 
+          class="">
+        </path>
+      </svg>
+    </div>
+  )
+}
+
 function WeatherMap(props) {
   const { classes, theme, width, selectWeather, updateLoading, toggleLayer, layerClicked, 
-    station, changeStation, changeLayers, changeLayerObjs,
+    station, changeStation, changeLayers, changeLayerObjs, changeSatLayerObjs, addGoesData,
     updateToggleLayers, sameLayer } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
   const [wLayers, setWLayers] = useState([]);
+  const [satLayers, setSatLayers] = useState([]);
   const [wLayerNames, setWLayerNames] = useState([]);
   const mapContainerRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
@@ -287,7 +308,8 @@ function WeatherMap(props) {
     } else newSetting = 'none';
     const stationLayer = `${currentStation}${layerClicked}`;
     console.log(`Layer clicked: ${stationLayer} - ${toggledLayers.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
-    wMap.setLayoutProperty(stationLayer, 'visibility', newSetting); 
+    if (layerClicked[layerClicked.length - 1] > 0 ) wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
+    else wMap.setLayoutProperty(stationLayer, 'visibility', newSetting); 
   }
 
   const updateToggledLayers = (o) => {
@@ -299,11 +321,38 @@ function WeatherMap(props) {
     })
   };
 
-  // useEffect(() => {
-  //   setToggleLayers(toggleLayer);
-  //   updateToggledLayers();
-  //   handleToggleLayer();
-  // }, [toggleLayer]);
+  const addGoesLayers = () => {
+    console.log('adding goes layers!')
+    const tempSatLayers = [];
+    for (let i = 0; i < satLayers.length; i++) {
+      wMap.addSource(`${satLayers[i].Name}${i}`, {
+        type: 'raster',
+        tiles: [
+          noaaMapsUrl.goesGetMap(`${satLayers[i].Name}`)
+        ],
+        tileSize: 256
+      })
+      wMap.addLayer(
+        {
+          id: `${satLayers[i].Abstract[0]}_${satLayers[i].Name}`,
+          type: 'raster',
+          source: `${satLayers[i].Name}${i}`,
+          'paint': {}
+        },
+        'aeroway-line'
+      );
+      wMap.setLayoutProperty(`${satLayers[i].Abstract[0]}_${satLayers[i].Name}`, 'visibility', 'none');
+      tempSatLayers.push({
+        name: `${satLayers[i].Abstract[0]}_${satLayers[i].Name[0]}`,
+        description: satLayers[i].Abstract[0]
+      })
+    }
+    changeSatLayerObjs(tempSatLayers);
+  };
+
+  useEffect(() => {
+    addGoesLayers();
+  }, [addGoesData])
 
   useEffect(() => {
     updateToggledLayers()
@@ -315,13 +364,49 @@ function WeatherMap(props) {
     setCurrentStation(station);
   }, [station]);
 
+  async function fetchGoesData() {
+    let goesCaps = [];
+    let caps = [ ];
+    let tempNames = [];
+    let layerObjs = [];
+    // Axios.get('https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_east.cgi?VERSION=1.1.1&REQUEST=GetCapabilities&SERVICE=WMS&')
+    await Axios.get(noaaMapsUrl.goesGetCapabilities)
+    .then((res) => {
+      parser.parseString(res.data, 
+        function(err, result) { 
+          console.log(result);
+          caps = result;
+        });
+      const layers = caps.WMS_Capabilities.Capability[0].Layer[0].Layer;
+      layers.forEach((layer) => {
+        console.log(layer);
+        console.log(
+          {name: layer.Title[0],
+          description:  layer.Abstract[0]} )
+        tempNames.push(layer.Title[0])
+        layerObjs.push({
+          name: layer.Title[0],
+          description: layer.Abstract[0]
+        })
+      goesCaps.push(layer.Layer[0]);
+    })
+    setSatLayers(goesCaps);
+  })
+}
+
+  useEffect(() => {
+    fetchGoesData();
+  }, [])
+
   useEffect(() => {
     setLoaded(false);
     const tempLayers = [];
     const tempNames =[];
     const layerObjs = [];
+    
 
     async function fetchLayerData(stationId) {
+      if (stationId === 'goes') return;
       let caps = [];
       const capLayers = [];
       let tempToggleLayers = {};
@@ -335,6 +420,8 @@ function WeatherMap(props) {
       if(stationId[0] === 't') {
         tempToggleLayers = tdwrLayerDefaultStatus;
       }
+      
+      // Axios.get('https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_east.cgi?VERSION=1.1.1&REQUEST=GetCapabilities&SERVICE=WMS&')
       await Axios.get(noaaMapsUrl.getCapabilities(stationId))
       .then((res) => {
         parser.parseString(res.data, 
@@ -391,7 +478,7 @@ function WeatherMap(props) {
           container: mapContainerRef.current,
           style: 'mapbox://styles/mapbox/dark-v10',
           center: [lng, lat],
-          zoom: 8
+          zoom: 7
         })
         
         myMap.on('load', () => {
@@ -462,7 +549,7 @@ function WeatherMap(props) {
             id: 'stationClusterLabels',
             type: 'symbol',
             source: 'radarStations',
-            filter: ['has', 'point_count'],
+            filter: ['!', ['has', 'point_count']],
             layout: {
               // get the title name from the source's "title" property
               'text-field': ['get', 'id'],
@@ -517,12 +604,16 @@ function WeatherMap(props) {
           });
           myMap.on('click', 'stationCircles', function (e) {
             new mapboxgl.Popup()
-            .setLngLat(e.features[0].geometry.coordinates)
-            // .setHTML(e.features[0].properties.id)
-            .addTo(myMap);
+              .setLngLat(e.features[0].geometry.coordinates)
+              // .setHTML(e.features[0].properties.id)
+              .addTo(myMap);
             setLng(e.features[0].geometry.coordinates[0])
             setLat(e.features[0].geometry.coordinates[1])
             setCurrentStation(e.features[0].properties.id.toLowerCase())
+            // var el = document.createElement('div');
+            // new mapboxgl.Marker(el)
+            //   .setLngLat(e.features[0].geometry.coordinates)
+            //   .addTo(myMap);
           });
           myMap.on('mouseenter', 'stationCircles', function () {
             myMap.getCanvas().style.cursor = 'pointer';
@@ -559,7 +650,7 @@ function WeatherMap(props) {
 
   useEffect(() => {
     updateToggleLayers(toggledLayers);
-  }, [toggledLayers, updateToggleLayers])
+  }, [toggledLayers])
 
   useEffect(() => {
     updateLoading(!loaded);
@@ -581,12 +672,14 @@ function WeatherPage(props) {
   const [station, setStation] = useState('kdox');
   const [currentLayers, setCurrentLayers] = useState([]);
   const [currentLayerObjs, setCurrentLayerObjs] = useState([]);
+  const [currentSatLayerObjs, setCurrentSatLayerObjs] = useState([]);
   const [mapLayersStatus, setMapLayersStatus] = useState([]);
   const [layerClicked, setLayerClicked] = useState('_bref_qcd');
   const [sameLayerClicked, setSameLayerClicked] = useState(false);
+  const [goesClicked, setGoesClicked] = useState(false);
   const [toggledLayers, setToggledLayers] = useState({
     layers: {
-      '_bdhc': true,
+      '_bdhc': false,
       '_bdsa': false,
       '_bdzd': false,
       '_beet': false,
@@ -598,6 +691,13 @@ function WeatherPage(props) {
       '_bvel_raw': false,
       '_cref': false,
       '_hvil': false,
+      "sat_gmgsi_sir_1": false,
+      "sat_gmgsi_lir_5": false,
+      "sat_gmgsi_vis_9": false,
+      "sat_goes_sir_13": false,
+      "sat_goes_lir_17": false,
+      "sat_goes_wv_21": false, 
+      "sat_goes_vis_25": false
     }
   });
   
@@ -613,10 +713,14 @@ function WeatherPage(props) {
   });
   const conusLayerArray = ["_bref_qcd","_bref_raw","_cref_qcd","_cref_raw","_neet_v18","_pcpn_typ"];
   
+  const handleGoesClicked = () => {
+    setGoesClicked(true);
+    // setSelectedStation('goes')
+  }
+
   const changeStation = useCallback((stationId) => {
     console.log(`Current station set to: ${stationId}`);
     setStation(stationId);
-    // setSelectedStation(stationId)
   }, [])
 
   const changeLayers = useCallback((layers) => {
@@ -629,35 +733,40 @@ function WeatherPage(props) {
     setCurrentLayerObjs(layers);
   }, [])
 
+  const changeSatLayerObjs = useCallback((layers) => {
+    console.log(layers);
+    setCurrentSatLayerObjs(layers);
+  }, [])
+
   const updateToggledLayers = useCallback((layers) => {
     console.log(layers);
-    // setToggledLayers(layers);
     setMapLayersStatus(layers);
   }, [])
 
   const updateLoading = useCallback((status) => {
     console.log(`Loading: ${status}`);
-    // setToggledLayers(layers);
     setLoading(status);
   }, [])
 
   const toggleLayer = useCallback((id) => {
     console.log(id);
-    let tempToggled = toggledLayers; 
+    // id = 'id';
+    let tempToggled = toggledLayers;
+    console.log(toggledLayers)
     let tempVisible = tempToggled.layers[id];
+    console.log(tempToggled);
     console.log(`tempToggled: ${tempToggled.layers[id]}, tempVisible: ${tempVisible}`);
     setToggledLayers({
-      layers: {...toggledLayers.layers, [id]: !tempVisible }
+      layers: {...tempToggled.layers, [id]: !tempVisible }
     });
     // setLayerClicked(`${id}`);
-  }, [toggledLayers]);
+  }, [sameLayerClicked]);
 
   const updateLayerClicked = useCallback((layer) => {
     console.log(`Layer clicked: ${layer}`);
     let prevLayerClicked = layerClicked;
     console.log(prevLayerClicked);
     let toggy = !sameLayerClicked;
-    // if (prevLayerClicked === layer) setSameLayerClicked(true);
     setSameLayerClicked(toggy);
     setLayerClicked(layer);
     toggleLayer(layer);
@@ -665,10 +774,12 @@ function WeatherPage(props) {
   }, [setLayerClicked])
 
   const toggleConusLayer = useCallback((id) => {
-    console.log(id);
+    // console.log(id);
     let tempToggled = conusToggledLayers; 
     let tempVisible = tempToggled.layers[id];
     console.log(`tempToggled: ${tempToggled.layers[id]}, tempVisible: ${tempVisible}`);
+    let toggy = !sameLayerClicked;
+    setSameLayerClicked(toggy);
     setConusToggledLayers({
       layers: {...conusToggledLayers.layers, [id]: !tempVisible }
     });
@@ -683,7 +794,9 @@ function WeatherPage(props) {
     <Grid container height="100%" justify="center" className={classes.mapContainer} alignItems="center">
       <Grid container item xs={12} justify="center" className={classes.mapContainerFixed}>
         <Box width="90%" className={classes.mapBox}>
-          <WeatherMap changeLayers={(layers) => changeLayers(layers)} changeLayerObjs={(layers) => changeLayerObjs(layers)}
+          <WeatherMap changeLayers={(layers) => changeLayers(layers)} 
+            changeLayerObjs={(layers) => changeLayerObjs(layers)}
+            changeSatLayerObjs={(layers) => changeSatLayerObjs(layers)}
             changeStation={(id) => changeStation(id)} 
             updateToggleLayers={(toggledLayers) => updateToggledLayers(toggledLayers)} 
             station={selectedStation} classes={classes} theme={theme} 
@@ -691,6 +804,7 @@ function WeatherPage(props) {
             layerClicked={layerClicked}
             sameLayer={sameLayerClicked}
             updateLoading={(status) => updateLoading(status)}
+            addGoesData={goesClicked}
           />
           {loading && <CircularProgress size={68} className={classes.fabProgress} />}
         </Box>
@@ -710,6 +824,18 @@ function WeatherPage(props) {
                 </Tooltip>
               </Button>
             )))}
+          </ButtonGroup>
+          <ButtonGroup color="secondary" variant="contained" orientation="vertical" size="small" style={{ minWidth: "5px", justifyContent: "flex-end", }}>
+            {(Array.isArray(currentSatLayerObjs) && currentSatLayerObjs.map((layer, index) => (
+              <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} 
+                onClick={() => {updateLayerClicked(layer.name)}}
+                >
+                <Tooltip title={layer.description} placement="right" key={layer.name} >
+                  {layerIcons[index]}
+                </Tooltip>
+              </Button>
+            )))}
+            <Button onClick={handleGoesClicked}>Add GOES data</Button>
           </ButtonGroup>
         </Box>
       </Grid>

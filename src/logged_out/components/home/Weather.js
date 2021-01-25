@@ -142,7 +142,8 @@ const weatherLinks = {
   graphicalForecasts: 'https://graphical.weather.gov/xml/rest.php',
   ndfdDataWebMapService: 'https://digital.weather.gov/staticpages/mapservices.php',
   nationalHazards: 'https://www.wpc.ncep.noaa.gov/NationalForecastChart/mapdata/',
-  
+  nationalWeatherServiceDigitalForecastDataLayers: 'https://graphical.weather.gov/xml/SOAP_server/ndfdXMLserver.php?wsdl',
+
 }
 
 const regexTests = [
