@@ -18,11 +18,12 @@ import xml2js from "xml2js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBraille, faBrain, faBroadcastTower, faCloudMeatball, faDigitalTachograph, faHdd, faProjectDiagram, faSatellite, faSatelliteDish, faServer, faSnowflake, faTable, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
 import stations from './stations.json'
-import { strike } from "aws-amplify";
 
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
+const coorsAnywhereUrl = 'https://gentle-fortress-30918.herokuapp.com/';
 
 const drawerWidth = 50;
 const layerIcons = [
@@ -240,11 +241,11 @@ const nexradLayerDefaultStatus = {
 };
 
 const noaaMapsUrl = {
-  getCapabilities: (stationId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetCapabilities`,
-  goesGetCapabilities: 'https://gentle-fortress-30918.herokuapp.com/https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WMSServer?request=GetCapabilities&service=WMS',
-  goesGetMap: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WmsServer?service=WMS&request=GetMap&version=1.3.0&layers=${layerId}&styles=&format=image/png&transparent=true&height=256&width=256&crs=EPSG:3857&bbox={bbox-epsg-3857}`,
-  radarStation: (stationId, layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
-  conus: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`,
+  getCapabilities: (stationId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetCapabilities`,
+  goesGetCapabilities: `https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WMSServer?request=GetCapabilities&service=WMS`,
+  goesGetMap: (layerId) => `https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WmsServer?service=WMS&request=GetMap&version=1.3.0&layers=${layerId}&styles=&format=image/png&transparent=true&height=256&width=256&crs=EPSG:3857&bbox={bbox-epsg-3857}`,
+  radarStation: (stationId, layerId) => `https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
+  conus: (layerId) => `https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`,
   stationList: 'https://api.weather.gov/radar/stations',
   goes: 'https://wms1.nsstc.nasa.gov:443/geoserver/GOES/wms?service=WMS&request=getmap&layers=LAYERNAME&bbox=SWLON,SWLAT,NELON,NELAT&width=IMAGEWIDTH&height=IMAGEHEIGHT&format=image/png',
   nasaWeatherList: 'https://weather.msfc.nasa.gov/goes/gislist.html',

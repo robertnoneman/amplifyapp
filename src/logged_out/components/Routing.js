@@ -36,7 +36,7 @@ function Routing(props) {
       
       
       <PropsRoute path="/SandboxPage" component={SandboxPage} selectSandbox={selectSandbox} />
-      <PropsRoute path="/weather_maps" component={WeatherPage} selectWeather={selectWeather} />
+      <PropsRoute exact path="/weather_maps" component={WeatherPage} selectWeather={selectWeather} />
       <PropsRoute path="/" component={Home} selectHome={selectHome} />
       
       

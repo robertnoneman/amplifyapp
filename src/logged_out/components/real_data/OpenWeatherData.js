@@ -782,93 +782,94 @@ function HourlyForecast(props) {
           const dAvg = temptempdAvg.map(a => a.tempAvg);
           const dLow = temptempdLow.map(a => a.tempAvg);
           const dHigh = temptempdHigh.map(a => a.tempAvg);
-
-          for (let j = 0; j < tempState.dailyData.length; j++) {
-            let tempDay = tempState.dailyData[j];
-            if (j < 4) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[0].tempAvg,
-                avgLow: temptempdLow[0].tempAvg,
-                avgHigh: temptempdHigh[0].tempAvg
-                //  time: hrlyAverages[i].time
+          if (Array.isArray(temptempdAvg)) {
+            for (let j = 0; j < tempState.dailyData.length; j++) {
+              let tempDay = tempState.dailyData[j];
+              if (j < 4) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[0].tempAvg,
+                  avgLow: temptempdLow[0].tempAvg,
+                  avgHigh: temptempdHigh[0].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 8) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[1].tempAvg,
-                avgLow: temptempdLow[1].tempAvg,
-                avgHigh: temptempdHigh[1].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 8) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[1].tempAvg,
+                  avgLow: temptempdLow[1].tempAvg,
+                  avgHigh: temptempdHigh[1].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 12) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[2].tempAvg,
-                avgLow: temptempdLow[2].tempAvg,
-                avgHigh: temptempdHigh[2].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 12) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[2].tempAvg,
+                  avgLow: temptempdLow[2].tempAvg,
+                  avgHigh: temptempdHigh[2].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 16) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[3].tempAvg,
-                avgLow: temptempdLow[3].tempAvg,
-                avgHigh: temptempdHigh[3].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 16) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[3].tempAvg,
+                  avgLow: temptempdLow[3].tempAvg,
+                  avgHigh: temptempdHigh[3].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 20) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[4].tempAvg,
-                avgLow: temptempdLow[4].tempAvg,
-                avgHigh: temptempdHigh[4].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 20) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[4].tempAvg,
+                  avgLow: temptempdLow[4].tempAvg,
+                  avgHigh: temptempdHigh[4].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 24) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[5].tempAvg,
-                avgLow: temptempdLow[5].tempAvg,
-                avgHigh: temptempdHigh[5].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 24) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[5].tempAvg,
+                  avgLow: temptempdLow[5].tempAvg,
+                  avgHigh: temptempdHigh[5].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 28) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[6].tempAvg,
-                avgLow: temptempdLow[6].tempAvg,
-                avgHigh: temptempdHigh[6].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 28) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[6].tempAvg,
+                  avgLow: temptempdLow[6].tempAvg,
+                  avgHigh: temptempdHigh[6].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
-            }
-            else if (j < 32) {
-              tempDay = {
-                ...tempDay,
-                tempAvg: temptempdAvg[7].tempAvg,
-                avgLow: temptempdLow[7].tempAvg,
-                avgHigh: temptempdHigh[7].tempAvg
-                //  time: hrlyAverages[i].time
+              else if (j < 32) {
+                tempDay = {
+                  ...tempDay,
+                  tempAvg: temptempdAvg[7].tempAvg,
+                  avgLow: temptempdLow[7].tempAvg,
+                  avgHigh: temptempdHigh[7].tempAvg
+                  //  time: hrlyAverages[i].time
+                }
               }
+              else tempDay = { ...tempDay, tempAvg: temptempdAvg[6].tempAvg };
+              tempState.dailyData[j] = tempDay;
             }
-            else tempDay = { ...tempDay, tempAvg: temptempdAvg[6].tempAvg };
-            tempState.dailyData[j] = tempDay;
-          }
-          tempState.dailyData.sort(function (a, b) { return a.time - b.time });
-          tempState = {
-            ...tempState,
-            lowestAvgDay: Math.min(...dAvg),
-            highestAvgDay: Math.max(...dAvg),
-            lowestLowDay: Math.min(...dLow),
-            highestLowDay: Math.max(...dLow),
-            lowestHighDay: Math.min(...dHigh),
-            highestHighDay: Math.max(...dHigh),
+            tempState.dailyData.sort(function (a, b) { return a.time - b.time });
+            tempState = {
+              ...tempState,
+              lowestAvgDay: Math.min(...dAvg),
+              highestAvgDay: Math.max(...dAvg),
+              lowestLowDay: Math.min(...dLow),
+              highestLowDay: Math.max(...dLow),
+              lowestHighDay: Math.min(...dHigh),
+              highestHighDay: Math.max(...dHigh),
+            }
           }
         })
 
