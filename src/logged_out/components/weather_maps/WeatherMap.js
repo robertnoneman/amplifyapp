@@ -1,30 +1,24 @@
 /* eslint-disable no-useless-escape */
 import React, {useState, useEffect, useRef, useCallback} from "react";
-import clsx from 'clsx';
 import { 
   withWidth, 
   withStyles,
-  Paper,
   Button,
-  Drawer,
-  Divider,
   ButtonGroup,
   Grid,
   Box,
-  IconButton,
   Hidden,
   Tooltip,
   CircularProgress, 
 } from "@material-ui/core";
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl'
 import { ClearAll, CloudCircle, CompassCalibration, FiberSmartRecord, Grain, GraphicEq, InvertColors, LeakAdd, NetworkWifi, SettingsInputAntenna, TrackChanges, Waves, WifiTethering } from "@material-ui/icons";
-import { useStyles } from "@material-ui/pickers/views/Calendar/SlideTransition";
 import Axios from "axios";
 import xml2js from "xml2js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSatellite, faSatelliteDish, faSnowflake, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
+import { faBraille, faBrain, faBroadcastTower, faCloudMeatball, faDigitalTachograph, faHdd, faProjectDiagram, faSatellite, faSatelliteDish, faServer, faSnowflake, faTable, faTachometerAlt, faTemperatureHigh, faWind } from "@fortawesome/free-solid-svg-icons";
 import stations from './stations.json'
-import { ThemeContext } from "styled-components";
+import { strike } from "aws-amplify";
 
 const drawerWidth = 50;
 const layerIcons = [
@@ -47,6 +41,16 @@ const layerIcons = [
   <FontAwesomeIcon className="text-white" icon={faSatelliteDish} />,
   <FontAwesomeIcon className="text-white" icon={faSatellite} />,
   <FontAwesomeIcon className="text-white" icon={faTachometerAlt} />,
+  <FontAwesomeIcon className="text-white" icon={faDigitalTachograph} />,
+  <FontAwesomeIcon className="text-white" icon={faProjectDiagram} />,
+  <FontAwesomeIcon className="text-white" icon={faTable} />,
+  <FontAwesomeIcon className="text-white" icon={faServer} />,
+  <FontAwesomeIcon className="text-white" icon={faHdd} />,
+  <FontAwesomeIcon className="text-white" icon={faBraille} />,
+  <FontAwesomeIcon className="text-white" icon={faBrain} />,
+  <FontAwesomeIcon className="text-white" icon={faCloudMeatball} />,
+  <FontAwesomeIcon className="text-white" icon={faBroadcastTower} />,
+  // <FontAwesomeIcon className="text-white" icon={"cloudversify"} />,
 ]
 
 const styles = (theme) => ({
@@ -194,19 +198,6 @@ const styles = (theme) => ({
   },
 });
 
-const mapLayers = [
-  {
-    name: 'baseReflectivity',
-    visibility: 'visible',
-    times: [],
-  },
-  {
-    name: 'baseVelocity',
-    visibility: 'hidden',
-    times: [],
-  },
-]
-
 const conusLayerDefaultStatus = { 
   layers: {
     "_bref_qcd": true,
@@ -249,39 +240,31 @@ const noaaMapsUrl = {
   goesGetCapabilities: 'https://gentle-fortress-30918.herokuapp.com/https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WMSServer?request=GetCapabilities&service=WMS',
   goesGetMap: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://nowcoast.noaa.gov/arcgis/services/nowcoast/sat_meteo_imagery_time/MapServer/WmsServer?service=WMS&request=GetMap&version=1.3.0&layers=${layerId}&styles=&format=image/png&transparent=true&height=256&width=256&crs=EPSG:3857&bbox={bbox-epsg-3857}`,
   radarStation: (stationId, layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/${stationId}/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=${layerId}&style=radar_time`,
-  conus: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`,
+  conus: (layerId) => `https://gentle-fortress-30918.herokuapp.com/https://opengeo.ncep.noaa.gov/geoserver/conus/ows?service=wms&version=1.3.0&request=GetMap&format=image%2Fpng&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&width=256&height=256&layers=conus_${layerId}&style=radar_time`,
   stationList: 'https://api.weather.gov/radar/stations',
   goes: 'https://wms1.nsstc.nasa.gov:443/geoserver/GOES/wms?service=WMS&request=getmap&layers=LAYERNAME&bbox=SWLON,SWLAT,NELON,NELAT&width=IMAGEWIDTH&height=IMAGEHEIGHT&format=image/png',
   nasaWeatherList: 'https://weather.msfc.nasa.gov/goes/gislist.html',
   goesAlt: 'https://gist.github.com/ix4/56b767b1e9251638cc27a7aad443805c',
   ecmwf: 'https://apps.ecmwf.int/wms/?token=public',
-  hrrr: 'https://mesonet.agron.iastate.edu/cgi-bin/wms/hrrr/refd.cgi'
+  hrrr: 'https://mesonet.agron.iastate.edu/cgi-bin/wms/hrrr/refd.cgi',
+  hrrrRadar: 'http://wms.ssec.wisc.edu/cgi-bin/mapserv?map=HRR-CONUS-RADAR-LATEST.map&request=GetCapabilities&service=WMS&version=1.3',
+  hrrrMap: (layerId, bbox) => `http://wms.ssec.wisc.edu/cgi-bin/mapserv?map=HRR-CONUS-RADAR-LATEST.map&request=GetMap&service=WMS&version=1.3.0&layers=${layerId}&height=256&width=256&crs=EPSG:3857&format=image/png&bbox={bbox-epsg-3857}`,
+  graphicalForecast: `https://digital.weather.gov/wms.php?LAYERS=ndfd.conus.wx&FORMAT=image%2Fpng&TRANSPARENT=TRUE&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&height=256&width=256&crs=EPSG:3857&bbox={bbox-epsg-3857}`,
+  ndfdGetCapabilities: `http://digital.weather.gov/wms.php?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`
 }
 
 var parser = new xml2js.Parser();
 
-const RadarStationIcon = (props) => {
-  const { classes, theme, color } = props;
-  return ( 
-    <div>
-      <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="radar" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-inline--fa fa-radar fa-w-16 fa-9x">
-        <path fill="currentColor" d="M504,256c0,136.9668-111.0332,248-248,248S8,392.9668,8,256,119.0332,8,256,8A246.36335,246.36335,0,0,1,395.14648,50.916L425.377,20.68555a16.00006,16.00006,0,0,1,22.627,0l11.31054,11.31054a16.00006,16.00006,0,0,1,0,22.627l-201.373,201.373L257.93555,256H320a64.00026,64.00026,0,1,1-66.15625-63.78125L281.97852,164.084A92.08681,92.08681,0,0,0,256,160a96,96,0,1,0,96,96h64c0,79.53906-58.498,145.17578-134.63281,157.43555C275.54492,405.49414,266.60156,400,256,400s-19.54492,5.49414-25.36719,13.43555A159.59519,159.59519,0,0,1,98.56445,281.36719C106.50586,275.54492,112,266.60156,112,256s-5.49414-19.54492-13.43555-25.36719C110.82422,154.49805,176.46094,96,256,96c27.11328,0,52.21484,7.48438,74.53125,19.53125L354.51953,91.543A190.21144,190.21144,0,0,0,256,64C159.74023,64,80.26172,134.91211,66.375,227.30078a31.59809,31.59809,0,0,0,0,57.39649A191.79963,191.79963,0,0,0,227.30273,445.625a31.59657,31.59657,0,0,0,57.39454,0C377.08594,431.74023,448,352.25977,448,256Z" 
-          class="">
-        </path>
-      </svg>
-    </div>
-  )
-}
-
 function WeatherMap(props) {
-  const { classes, theme, width, selectWeather, updateLoading, toggleLayer, layerClicked, 
-    station, changeStation, changeLayers, changeLayerObjs, changeSatLayerObjs, addGoesData,
+  const { classes, updateLoading, toggleLayer, layerClicked, 
+    station, changeStation, changeLayers, changeLayerObjs, changeSatLayerObjs, changeModelLayerObjs, addGoesData,
     updateToggleLayers, sameLayer } = props;
   const [lng, setLng] = useState(-77.044311523435);
   const [lat, setLat] = useState(38.88598268628932);
   const [wMap, setWMap] = useState(null);
   const [wLayers, setWLayers] = useState([]);
   const [satLayers, setSatLayers] = useState([]);
+  const [modelLayers, setModelLayers] = useState([]);
   const [wLayerNames, setWLayerNames] = useState([]);
   const mapContainerRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
@@ -313,10 +296,12 @@ function WeatherMap(props) {
     if (!toggle) {
       newSetting = 'visible'
     } else newSetting = 'none';
-    const stationLayer = `${currentStation}${layerClicked}`;
-    console.log(`Layer clicked: ${stationLayer} - ${toggledLayers.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
-    if (layerClicked.substring(0,3) === "sat" ) wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
-    else wMap.setLayoutProperty(stationLayer, 'visibility', newSetting); 
+    // const stationLayer = `${currentStation}${layerClicked}`;
+    console.log(`Layer clicked: ${layerClicked} - ${toggledLayers.layers[layerClicked]}, currently visible? ${toggle}, new setting: ${newSetting}`);
+    // if (layerClicked.substring(0,2) === "sat" ) wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
+    // else if (layerClicked.search(/(k..x|conus|t[a-z]{3})/i) >= 0) wMap.setLayoutProperty(stationLayer, 'visibility', newSetting);
+    // else wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
+    wMap.setLayoutProperty(layerClicked, 'visibility', newSetting);
   }
 
   const updateToggledLayers = (o) => {
@@ -357,8 +342,38 @@ function WeatherMap(props) {
     changeSatLayerObjs(tempSatLayers);
   };
 
+  const addModelLayers = () => {
+    console.log('adding model layers!')
+    const tempModelLayers = [];
+    for (let i = 0; i < modelLayers.length; i++) {
+      wMap.addSource(`${modelLayers[i].Name}${i}`, {
+        type: 'raster',
+        tiles: [
+          noaaMapsUrl.hrrrMap(`${modelLayers[i].Name}`)
+        ],
+        tileSize: 256
+      })
+      wMap.addLayer(
+        {
+          id: `${modelLayers[i].Name}`,
+          type: 'raster',
+          source: `${modelLayers[i].Name}${i}`,
+          'paint': {}
+        },
+        'aeroway-line'
+      );
+      wMap.setLayoutProperty(`${modelLayers[i].Name}`, 'visibility', 'none');
+      tempModelLayers.push({
+        name: `${modelLayers[i].Name[0]}`,
+        description: modelLayers[i].Title[0]
+      })
+    }
+    changeModelLayerObjs(tempModelLayers);
+  }
+
   useEffect(() => {
     addGoesLayers();
+    addModelLayers();
   }, [addGoesData])
 
   useEffect(() => {
@@ -370,6 +385,35 @@ function WeatherMap(props) {
   useEffect(() => {
     setCurrentStation(station);
   }, [station]);
+
+  async function fetchModelData() {
+    let modelCaps = [];
+    let tempNames = [];
+    let layerObjs = [];
+    let caps = [];
+    await Axios.get(noaaMapsUrl.hrrrRadar)
+    .then((res) => {
+      parser.parseString(res.data, 
+        function(err, result) { 
+          console.log(result);
+          modelCaps = result;
+        });
+        const mLayers = modelCaps.WMS_Capabilities.Capability[0].Layer[0].Layer;
+        mLayers.forEach((layer) => {
+          console.log(layer);
+          console.log(
+            {name: layer.Title[0],
+            description:  layer.Abstract[0]} )
+          tempNames.push(layer.Title[0])
+          layerObjs.push({
+            name: layer.Title[0],
+            description: layer.Abstract[0]
+          })
+        caps.push(layer);
+      })
+    });
+    setModelLayers(...modelLayers, caps);
+  }
 
   async function fetchGoesData() {
     let goesCaps = [];
@@ -389,20 +433,22 @@ function WeatherMap(props) {
         console.log(layer);
         console.log(
           {name: layer.Title[0],
-          description:  layer.Abstract[0]} )
+          description:  layer.Layer[0].Abstract[0]} )
         tempNames.push(layer.Title[0])
         layerObjs.push({
           name: layer.Title[0],
-          description: layer.Abstract[0]
+          description: layer.Layer[0].Abstract[0]
         })
       goesCaps.push(layer.Layer[0]);
     })
-    setSatLayers(goesCaps);
+    
     })
+    setSatLayers(goesCaps);
   }
 
   useEffect(() => {
     fetchGoesData();
+    fetchModelData();
   }, [])
 
   useEffect(() => {
@@ -426,7 +472,7 @@ function WeatherMap(props) {
       if(stationId[0] === 't') {
         tempToggleLayers = tdwrLayerDefaultStatus;
       }
-      
+
       await Axios.get(noaaMapsUrl.getCapabilities(stationId))
       .then((res) => {
         parser.parseString(res.data, 
@@ -442,18 +488,18 @@ function WeatherMap(props) {
                 description:  layer.Abstract[0]} )
               tempNames.push(layer.Name[0].slice(5,))
               layerObjs.push({
-                name: layer.Name[0].slice(5,),
+                name: layer.Name[0],
                 description: layer.Abstract[0]
               })
             }
             else { 
               console.log( 
                 {
-                  name: layer.Name[0].slice(4,),
+                  name: layer.Name[0],
                   description: layer.Abstract[0]
                 } )
                 layerObjs.push({
-                  name: layer.Name[0].slice(4,),
+                  name: layer.Name[0],
                   description: layer.Abstract[0]
                 })
               tempNames.push(layer.Name[0].slice(4,)) 
@@ -475,12 +521,14 @@ function WeatherMap(props) {
       if (tempStation === '' || tempStation === null || !tempStation) tempStation = 'conus';
       await fetchLayerData(tempStation)
       .then(() => {
-        mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' // process.env.REACT_APP_MAPBOX_TOKEN;
+        // mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJja2tpaG1zc3MwN3k5MnBtejkwNXFvaDVyIn0.-UBUKaCuRJXdmE3CML8THw'
+        mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iZXJ0bm9uZW1hbiIsImEiOiJjamhmZmplaGMxNWNnM2RtZHN1dDV3eWZyIn0.vnK-PtNfnDZeB0J4ohyVJg' 
+        // process.env.REACT_APP_MAPBOX_TOKEN;
         const myMap = new mapboxgl.Map({
           container: mapContainerRef.current,
           style: 'mapbox://styles/mapbox/dark-v10',
           center: [lng, lat],
-          zoom: 7
+          zoom: 9
         })
         
         myMap.on('load', () => {
@@ -513,7 +561,7 @@ function WeatherMap(props) {
               data: stations,
               // data: 'https://api.weather.gov/radar/stations',
               cluster: true,
-              clusterMaxZoom: 14,
+              clusterMaxZoom: 10,
             });
             
           myMap.addLayer({
@@ -527,26 +575,23 @@ function WeatherMap(props) {
             //   * Blue, 20px circles when point count is less than 100
             //   * Yellow, 30px circles when point count is between 100 and 750
             //   * Pink, 40px circles when point count is greater than or equal to 750
-            'circle-color': [
-            'step',
-            ['get', 'point_count'],
-            '#51bbd6',
-            100,
-            '#f1f075',
-            750,
-            '#f28cb1'
-            ],
-            'circle-radius': [
+              'circle-color': [
               'step',
               ['get', 'point_count'],
-              20,
-              1,
-              20,
-              2,
-              30
+                '#51bbd6', 
+                2, '#f1f075', 
+                3, '#f28cb1'
+              ],
+              'circle-opacity': 0.5,
+              'circle-radius': [
+                'step',
+                ['get', 'point_count'],
+                  10, 1,
+                  15, 2,
+                  20
               ]
-              }
-              });
+            }
+          });
           myMap.addLayer({
             id: 'stationClusterLabels',
             type: 'symbol',
@@ -627,7 +672,6 @@ function WeatherMap(props) {
                 console.log('Radar stations loaded successfully!')
                 console.log(`Source data type: ${e.sourceDataType.metadata}`);
               }
-              
             }
             });
           myMap.resize();
@@ -670,10 +714,12 @@ function WeatherPage(props) {
   const [currentLayers, setCurrentLayers] = useState([]);
   const [currentLayerObjs, setCurrentLayerObjs] = useState([]);
   const [currentSatLayerObjs, setCurrentSatLayerObjs] = useState([]);
+  const [currentModelLayerObjs, setCurrentModelLayerObjs] = useState([]);
   const [mapLayersStatus, setMapLayersStatus] = useState([]);
   const [layerClicked, setLayerClicked] = useState('_bref_qcd');
   const [sameLayerClicked, setSameLayerClicked] = useState(false);
   const [goesClicked, setGoesClicked] = useState(false);
+  const [modelsClicked, setModelsClicked] = useState(false);
   const [toggledLayers, setToggledLayers] = useState({
     layers: {
       '_bdhc': true,
@@ -711,13 +757,11 @@ function WeatherPage(props) {
   
   const handleGoesClicked = () => {
     setGoesClicked(!goesClicked);
-    // setSelectedStation('goes')
   }
 
   const changeStation = useCallback((stationId) => {
     console.log(`Current station set to: ${stationId}`);
     setStation(stationId);
-    // setGoesClicked(false);
   }, [])
 
   const changeLayers = useCallback((layers) => {
@@ -735,6 +779,11 @@ function WeatherPage(props) {
     setCurrentSatLayerObjs(layers);
   }, [])
 
+  const changeModelLayerObjs = useCallback((layers) => {
+    console.log(layers);
+    setCurrentModelLayerObjs(layers);
+  }, [])
+
   const updateToggledLayers = useCallback((layers) => {
     console.log(layers);
     setMapLayersStatus(layers);
@@ -747,7 +796,6 @@ function WeatherPage(props) {
 
   const toggleLayer = useCallback((id) => {
     console.log(id);
-    // id = 'id';
     let tempToggled = toggledLayers;
     console.log(toggledLayers)
     let tempVisible = tempToggled.layers[id];
@@ -756,7 +804,6 @@ function WeatherPage(props) {
     setToggledLayers({
       layers: {...tempToggled.layers, [id]: !tempVisible }
     });
-    // setLayerClicked(`${id}`);
   }, [toggledLayers]);
 
   const updateLayerClicked = useCallback((layer) => {
@@ -767,8 +814,6 @@ function WeatherPage(props) {
     setSameLayerClicked(toggy);
     setLayerClicked(layer);
     toggleLayer(layer);
-    // toggleConusLayer(layer);
-  // }, [toggleLayer, setLayerClicked, setSameLayerClicked])
   }, [sameLayerClicked, setLayerClicked])
 
   const toggleConusLayer = useCallback((id) => {
@@ -795,6 +840,7 @@ function WeatherPage(props) {
           <WeatherMap changeLayers={(layers) => changeLayers(layers)} 
             changeLayerObjs={(layers) => changeLayerObjs(layers)}
             changeSatLayerObjs={(layers) => changeSatLayerObjs(layers)}
+            changeModelLayerObjs={(layers) => changeModelLayerObjs(layers)}
             changeStation={(id) => changeStation(id)} 
             updateToggleLayers={(toggledLayers) => updateToggledLayers(toggledLayers)} 
             station={selectedStation} classes={classes} theme={theme} 
@@ -830,12 +876,24 @@ function WeatherPage(props) {
             <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} 
               onClick={station === 'conus' ? () => {toggleConusLayer(layer.name)} : () => {updateLayerClicked(layer.name)}}
               >
-              <Tooltip title={layer.description} placement="right" key={layer.name} >
+              <Tooltip title={layer.name} placement="right" key={layer.name} >
                 {layerIcons[index]}
               </Tooltip>
             </Button>
           )))}
           {!goesClicked && <Button onClick={handleGoesClicked}>Add GOES data</Button>}
+        </ButtonGroup>
+        <ButtonGroup className={classes.goesToolbar} color="secondary" variant="contained" size="small" >
+          {(Array.isArray(currentModelLayerObjs) && currentModelLayerObjs.map((layer, index) => (
+            <Button key={layer.name} variant={mapLayersStatus.layers[layer.name] ? "outlined" : "contained"} 
+              onClick={station === 'conus' ? () => {toggleConusLayer(layer.name)} : () => {updateLayerClicked(layer.name)}}
+              >
+              <Tooltip title={layer.description} placement="right" key={layer.name} >
+                {layerIcons[index]}
+              </Tooltip>
+            </Button>
+          )))}
+          {/* {!goesClicked && <Button onClick={handleGoesClicked}>Add GOES data</Button>} */}
         </ButtonGroup>
       <Grid item>
       <Hidden smUp>
