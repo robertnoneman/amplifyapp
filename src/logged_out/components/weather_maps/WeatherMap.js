@@ -247,10 +247,12 @@ const noaaMapsUrl = {
   goesAlt: 'https://gist.github.com/ix4/56b767b1e9251638cc27a7aad443805c',
   ecmwf: 'https://apps.ecmwf.int/wms/?token=public',
   hrrr: 'https://mesonet.agron.iastate.edu/cgi-bin/wms/hrrr/refd.cgi',
-  hrrrRadar: 'http://wms.ssec.wisc.edu/cgi-bin/mapserv?map=HRR-CONUS-RADAR-LATEST.map&request=GetCapabilities&service=WMS&version=1.3',
-  hrrrMap: (layerId, bbox) => `http://wms.ssec.wisc.edu/cgi-bin/mapserv?map=HRR-CONUS-RADAR-LATEST.map&request=GetMap&service=WMS&version=1.3.0&layers=${layerId}&height=256&width=256&crs=EPSG:3857&format=image/png&bbox={bbox-epsg-3857}`,
+  hrrrRadar: 'https://wms.ssec.wisc.edu/cgi-bin/mapserv?map=HRR-CONUS-RADAR-LATEST.map&request=GetCapabilities&service=WMS&version=1.3',
+  hrrrMap: (layerId) => `http://wms.ssec.wisc.edu/cgi-bin/mapserv?map=HRR-CONUS-RADAR-LATEST.map&request=GetMap&service=WMS&version=1.3.0&layers=${layerId}&height=256&width=256&crs=EPSG:3857&format=image/png&bbox={bbox-epsg-3857}`,
+  rapGC: `https://wms.ssec.wisc.edu/cgi-bin/mapserv?map=RAP-CONUS-PRAT-SFC-DBZ.map&request=GetCapabilities&service=WMS&version=1.3`,
+  rapMap: (layerId) => `https://wms.ssec.wisc.edu/cgi-bin/mapserv?map=RAP-CONUS-PRAT-SFC-DBZ.map&request=GetMap&service=WMS&version=1.3.0&layers=${layerId}&height=256&width=256&crs=EPSG:3857&format=image/png&bbox={bbox-epsg-3857}`,
   graphicalForecast: `https://digital.weather.gov/wms.php?LAYERS=ndfd.conus.wx&FORMAT=image%2Fpng&TRANSPARENT=TRUE&VERSION=1.3.0&EXCEPTIONS=INIMAGE&SERVICE=WMS&REQUEST=GetMap&height=256&width=256&crs=EPSG:3857&bbox={bbox-epsg-3857}`,
-  ndfdGetCapabilities: `http://digital.weather.gov/wms.php?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`
+  ndfdGetCapabilities: `https://digital.weather.gov/wms.php?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`
 }
 
 var parser = new xml2js.Parser();
