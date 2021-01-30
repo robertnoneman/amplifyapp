@@ -20,6 +20,10 @@ import { faBraille, faBrain, faBroadcastTower, faCloudMeatball, faDigitalTachogr
 import stations from './stations.json'
 import { strike } from "aws-amplify";
 
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
 const drawerWidth = 50;
 const layerIcons = [
   <ClearAll className="text-white" />, 
